@@ -1,0 +1,28 @@
+{
+  "name": "webpane",
+  "version": "0.1.0",
+  "description": "A Python framework for building web-based desktop applications",
+  "bin": {
+    "webpane": "bin/cli.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "desktop",
+    "web",
+    "gui",
+    "pywebview",
+    "granian",
+    "asgi",
+    "webpane"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smm-h/webpane"
+  }
+}
