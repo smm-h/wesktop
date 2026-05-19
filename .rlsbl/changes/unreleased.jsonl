@@ -4,3 +4,4 @@
 {"commits":["e6f466e1857c268c80f66a150d27b1e8fc0a064f","48d0d63b608e0f58ac817a4c322be5e28132f51b","e03976716edb4de95ba55122e0d00ed4ae8807de","ceb985a298b9d8b0510f6b49b6505203870450b9"],"user_facing":true,"description":"**Desktop integration.** pywebview, desktop entry creation, and public API exports.","type":"feature"}
 {"commits":["679c1bfcbc6db58d7143a807de6fa9ee4921d979","797fc29feda110bc8893439e2652d1118ef8cfa5"],"user_facing":false}
 {"commits":["a453cf8830b6d86e5d9bf32d540e069a5432adaf"],"user_facing":false}
+{"commits":["2ad42e3dc9e0153ed992771f48b60f5255d8db1b"],"user_facing":false}
