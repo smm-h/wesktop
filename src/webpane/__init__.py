@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.metadata
 from pathlib import Path
 
 from webpane.entries import create_entry, remove_entry
@@ -17,6 +18,32 @@ from webpane.asgi import (
     add_ws_route,
 )
 from webpane.sse import Broadcaster, sse_route
+
+__version__ = importlib.metadata.version("webpane")
+
+__all__ = [
+    # asgi
+    "Router",
+    "Request",
+    "JSONResponse",
+    "TextResponse",
+    "HTMLResponse",
+    "BytesResponse",
+    "StreamResponse",
+    "create_app",
+    "add_ws_route",
+    # sse
+    "Broadcaster",
+    "sse_route",
+    # entries
+    "create_entry",
+    "remove_entry",
+    # top-level
+    "run",
+    "serve",
+    # metadata
+    "__version__",
+]
 
 
 def run(
