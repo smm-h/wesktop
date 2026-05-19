@@ -1,0 +1,8 @@
+{
+  "language": "python",
+  "source": [
+    "src/"
+  ],
+  "docs": "docs/",
+  "output": "docs/_build/"
+}
