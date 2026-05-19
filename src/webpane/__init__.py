@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from webpane.entries import create_entry, remove_entry
 from webpane.asgi import (
     Router,
     Request,
