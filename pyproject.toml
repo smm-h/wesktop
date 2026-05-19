@@ -1,0 +1,26 @@
+[project]
+name = "webpane"
+version = "0.1.0"
+description = "A Python framework for building web-based desktop applications"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{name = "smm-h", email = "smmh72@gmail.com"}]
+keywords = ["desktop", "web", "gui", "pywebview", "granian", "asgi"]
+dependencies = [
+    "granian>=2.7.4",
+    "pywebview>=6.2.1",
+    "msgspec>=0.21.1",
+]
+
+[dependency-groups]
+dev = ["pytest", "httpx>=0.28"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/webpane"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
