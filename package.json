@@ -16,7 +16,8 @@
     "pywebview",
     "granian",
     "asgi",
-    "webpane"
+    "webpane",
+    "rlsbl"
   ],
   "engines": {
     "node": ">=18"
