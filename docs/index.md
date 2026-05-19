@@ -94,4 +94,4 @@ Route handlers return one of:
 
 ## API Reference
 
-:-: ref path="webpane"
+See [API docs](api.md) for the full reference.
