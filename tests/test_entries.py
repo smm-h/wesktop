@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from webpane.entries import create_entry, remove_entry
+from wesktop.entries import create_entry, remove_entry
 
 
 # ---------------------------------------------------------------------------
@@ -19,8 +19,8 @@ class TestLinux:
     def test_create_desktop_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Verify .desktop file is created at the correct path."""
         apps_dir = tmp_path / "applications"
-        monkeypatch.setattr("webpane.entries._linux_apps_dir", lambda: apps_dir)
-        monkeypatch.setattr("webpane.entries._linux_icons_dir", lambda: tmp_path / "icons")
+        monkeypatch.setattr("wesktop.entries._linux_apps_dir", lambda: apps_dir)
+        monkeypatch.setattr("wesktop.entries._linux_icons_dir", lambda: tmp_path / "icons")
 
         path = create_entry("TestApp", "/usr/bin/test-app")
         assert path == apps_dir / "TestApp.desktop"
@@ -29,8 +29,8 @@ class TestLinux:
     def test_create_desktop_file_content(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Parse .desktop file and verify all fields."""
         apps_dir = tmp_path / "applications"
-        monkeypatch.setattr("webpane.entries._linux_apps_dir", lambda: apps_dir)
-        monkeypatch.setattr("webpane.entries._linux_icons_dir", lambda: tmp_path / "icons")
+        monkeypatch.setattr("wesktop.entries._linux_apps_dir", lambda: apps_dir)
+        monkeypatch.setattr("wesktop.entries._linux_icons_dir", lambda: tmp_path / "icons")
 
         path = create_entry(
             "MyApp",
@@ -52,8 +52,8 @@ class TestLinux:
         """Verify icon is copied to the icons directory."""
         apps_dir = tmp_path / "applications"
         icons_dir = tmp_path / "icons"
-        monkeypatch.setattr("webpane.entries._linux_apps_dir", lambda: apps_dir)
-        monkeypatch.setattr("webpane.entries._linux_icons_dir", lambda: icons_dir)
+        monkeypatch.setattr("wesktop.entries._linux_apps_dir", lambda: apps_dir)
+        monkeypatch.setattr("wesktop.entries._linux_icons_dir", lambda: icons_dir)
 
         # Create a fake icon file
         icon_src = tmp_path / "source_icon.png"
@@ -73,8 +73,8 @@ class TestLinux:
     def test_create_with_theme_icon_name(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """When icon is a name (not a file), use it directly."""
         apps_dir = tmp_path / "applications"
-        monkeypatch.setattr("webpane.entries._linux_apps_dir", lambda: apps_dir)
-        monkeypatch.setattr("webpane.entries._linux_icons_dir", lambda: tmp_path / "icons")
+        monkeypatch.setattr("wesktop.entries._linux_apps_dir", lambda: apps_dir)
+        monkeypatch.setattr("wesktop.entries._linux_icons_dir", lambda: tmp_path / "icons")
 
         path = create_entry("ThemeApp", "/usr/bin/theme-app", icon="utilities-terminal")
         content = path.read_text()
@@ -84,8 +84,8 @@ class TestLinux:
         """Verify desktop file and icon are deleted."""
         apps_dir = tmp_path / "applications"
         icons_dir = tmp_path / "icons"
-        monkeypatch.setattr("webpane.entries._linux_apps_dir", lambda: apps_dir)
-        monkeypatch.setattr("webpane.entries._linux_icons_dir", lambda: icons_dir)
+        monkeypatch.setattr("wesktop.entries._linux_apps_dir", lambda: apps_dir)
+        monkeypatch.setattr("wesktop.entries._linux_icons_dir", lambda: icons_dir)
 
         # Create an icon file
         icon_src = tmp_path / "icon.png"
@@ -102,8 +102,8 @@ class TestLinux:
 
     def test_remove_nonexistent(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Removing a nonexistent entry returns False."""
-        monkeypatch.setattr("webpane.entries._linux_apps_dir", lambda: tmp_path / "applications")
-        monkeypatch.setattr("webpane.entries._linux_icons_dir", lambda: tmp_path / "icons")
+        monkeypatch.setattr("wesktop.entries._linux_apps_dir", lambda: tmp_path / "applications")
+        monkeypatch.setattr("wesktop.entries._linux_icons_dir", lambda: tmp_path / "icons")
 
         result = remove_entry("DoesNotExist")
         assert result is False
@@ -117,7 +117,7 @@ class TestLinux:
 class TestMacOS:
     def test_create_app_bundle(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Verify .app bundle structure."""
-        monkeypatch.setattr("webpane.entries._macos_apps_dir", lambda: tmp_path)
+        monkeypatch.setattr("wesktop.entries._macos_apps_dir", lambda: tmp_path)
 
         path = create_entry("TestMac", "/usr/local/bin/test-mac", comment="Mac app")
 
@@ -135,12 +135,12 @@ class TestMacOS:
 
         # Info.plist has correct bundle ID
         plist = (path / "Contents" / "Info.plist").read_text()
-        assert "com.webpane.testmac" in plist
+        assert "com.wesktop.testmac" in plist
         assert "<string>TestMac</string>" in plist
 
     def test_create_with_icon(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Verify icon is copied into Resources."""
-        monkeypatch.setattr("webpane.entries._macos_apps_dir", lambda: tmp_path)
+        monkeypatch.setattr("wesktop.entries._macos_apps_dir", lambda: tmp_path)
 
         icon_src = tmp_path / "app.icns"
         icon_src.write_bytes(b"icns data")
@@ -149,7 +149,7 @@ class TestMacOS:
         assert (path / "Contents" / "Resources" / "icon.icns").exists()
 
     def test_remove(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr("webpane.entries._macos_apps_dir", lambda: tmp_path)
+        monkeypatch.setattr("wesktop.entries._macos_apps_dir", lambda: tmp_path)
         create_entry("RmMac", "/usr/bin/rm-mac")
         assert remove_entry("RmMac") is True
         assert not (tmp_path / "RmMac.app").exists()
@@ -163,14 +163,14 @@ class TestMacOS:
 class TestWindows:
     def test_create_shortcut(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Verify .lnk file creation (requires pywin32 or PowerShell)."""
-        monkeypatch.setattr("webpane.entries._windows_start_menu_dir", lambda: tmp_path)
+        monkeypatch.setattr("wesktop.entries._windows_start_menu_dir", lambda: tmp_path)
 
         path = create_entry("TestWin", "C:\\Program Files\\test.exe --arg")
         assert path == tmp_path / "TestWin.lnk"
         assert path.exists()
 
     def test_remove(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr("webpane.entries._windows_start_menu_dir", lambda: tmp_path)
+        monkeypatch.setattr("wesktop.entries._windows_start_menu_dir", lambda: tmp_path)
         create_entry("RmWin", "C:\\test.exe")
         assert remove_entry("RmWin") is True
         assert not (tmp_path / "RmWin.lnk").exists()
@@ -182,12 +182,12 @@ class TestWindows:
 
 def test_unsupported_platform() -> None:
     """Unsupported platform raises OSError."""
-    with patch("webpane.entries.platform.system", return_value="FreeBSD"):
+    with patch("wesktop.entries.platform.system", return_value="FreeBSD"):
         with pytest.raises(OSError, match="Unsupported platform: FreeBSD"):
             create_entry("Test", "/bin/test")
 
 
 def test_remove_unsupported_platform() -> None:
     """Remove on unsupported platform returns False."""
-    with patch("webpane.entries.platform.system", return_value="FreeBSD"):
+    with patch("wesktop.entries.platform.system", return_value="FreeBSD"):
         assert remove_entry("Test") is False

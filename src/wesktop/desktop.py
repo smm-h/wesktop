@@ -8,7 +8,7 @@ from pathlib import Path
 def run(
     target: str,
     *,
-    title: str = "webpane",
+    title: str = "wesktop",
     width: int = 1280,
     height: int = 800,
     icon: str | None = None,
@@ -17,7 +17,7 @@ def run(
     pid_path: Path | None = None,
 ) -> None:
     """Start server + open native desktop window. Blocks until window closes."""
-    from webpane.server import start_server_in_background
+    from wesktop.server import start_server_in_background
 
     url = start_server_in_background(target, host, port, pid_path=pid_path)
 

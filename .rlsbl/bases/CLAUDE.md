@@ -1,4 +1,4 @@
-# webpane
+# wesktop
 
 ## Release workflow
 

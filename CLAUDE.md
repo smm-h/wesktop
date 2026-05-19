@@ -1,10 +1,10 @@
-# webpane
+# wesktop
 
 A Python framework for building web-based desktop applications. Uses granian (Rust-based ASGI server), pywebview (native OS windows), and msgspec (fast serialization).
 
 ## Architecture
 
-webpane was extracted from ProductEngine as a reusable library. It provides four layers:
+wesktop was extracted from ProductEngine as a reusable library. It provides four layers:
 
 1. **ASGI micro-router** (`asgi.py`) -- minimal HTTP routing with `{param}` placeholders, response type dispatch (JSON, text, HTML, bytes, streaming), static file serving, SPA fallback, WebSocket route registry, middleware chain, and async lifespan support. Zero external dependencies beyond msgspec for JSON encoding.
 
@@ -19,7 +19,7 @@ webpane was extracted from ProductEngine as a reusable library. It provides four
 ## Module Layout
 
 ```
-src/webpane/
+src/wesktop/
   __init__.py     Public API: re-exports from all modules, __version__, __all__
   asgi.py         ASGI router, request/response types, app factory, WebSocket registry
   sse.py          SSE Broadcaster and sse_route helper
@@ -40,16 +40,16 @@ Dev dependencies: `pytest`, `httpx` (for async test client).
 
 ## Consumer Patterns
 
-webpane is a library, not a CLI tool. Consumers bring their own entry point and call either:
+wesktop is a library, not a CLI tool. Consumers bring their own entry point and call either:
 
-- `webpane.run("myapp:app")` -- desktop mode (server + native window)
-- `webpane.serve("myapp:app")` -- headless mode (server only)
+- `wesktop.run("myapp:app")` -- desktop mode (server + native window)
+- `wesktop.serve("myapp:app")` -- headless mode (server only)
 
 The `target` argument is an ASGI import path (e.g., `"myapp.web:app"`). Consumers create a `Router`, register routes, call `create_app()`, and then pass the module path to `run()` or `serve()`.
 
 ## Public API
 
-All public symbols are importable from `webpane` directly:
+All public symbols are importable from `wesktop` directly:
 
 - **Router, Request** -- routing and request handling
 - **JSONResponse, TextResponse, HTMLResponse, BytesResponse, StreamResponse** -- response types
@@ -71,7 +71,7 @@ selfdoc serve              # Serve documentation locally
 ## Project Structure
 
 ```
-src/webpane/         Source code
+src/wesktop/         Source code
 tests/               Test suite
 docs/                Documentation (selfdoc templates)
 ```

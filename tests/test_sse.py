@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from webpane.sse import Broadcaster, sse_route
+from wesktop.sse import Broadcaster, sse_route
 
 
 # ---------------------------------------------------------------------------

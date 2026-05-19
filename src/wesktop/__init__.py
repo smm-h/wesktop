@@ -1,12 +1,12 @@
-"""webpane — A Python framework for building web-based desktop applications."""
+"""wesktop — A Python framework for building web-based desktop applications."""
 
 from __future__ import annotations
 
 import importlib.metadata
 from pathlib import Path
 
-from webpane.entries import create_entry, remove_entry
-from webpane.asgi import (
+from wesktop.entries import create_entry, remove_entry
+from wesktop.asgi import (
     Router,
     Request,
     JSONResponse,
@@ -17,9 +17,9 @@ from webpane.asgi import (
     create_app,
     add_ws_route,
 )
-from webpane.sse import Broadcaster, sse_route
+from wesktop.sse import Broadcaster, sse_route
 
-__version__ = importlib.metadata.version("webpane")
+__version__ = importlib.metadata.version("wesktop")
 
 __all__ = [
     # asgi
@@ -49,7 +49,7 @@ __all__ = [
 def run(
     target: str,
     *,
-    title: str = "webpane",
+    title: str = "wesktop",
     width: int = 1280,
     height: int = 800,
     icon: str | None = None,
@@ -58,7 +58,7 @@ def run(
     pid_path: Path | None = None,
 ) -> None:
     """Start server + native desktop window."""
-    from webpane.desktop import run as _run
+    from wesktop.desktop import run as _run
 
     _run(
         target,
@@ -78,9 +78,9 @@ def serve(
     host: str = "127.0.0.1",
     port: int = 8000,
     pid_path: Path | None = None,
-    name: str = "webpane",
+    name: str = "wesktop",
 ) -> None:
     """Start server in blocking/headless mode."""
-    from webpane.server import start_server
+    from wesktop.server import start_server
 
     start_server(target, host, port, pid_path=pid_path, name=name)

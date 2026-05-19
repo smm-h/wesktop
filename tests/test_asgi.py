@@ -1,4 +1,4 @@
-"""Comprehensive tests for the webpane ASGI micro-framework."""
+"""Comprehensive tests for the wesktop ASGI micro-framework."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from webpane.asgi import (
+from wesktop.asgi import (
     BytesResponse,
     HTMLResponse,
     JSONResponse,

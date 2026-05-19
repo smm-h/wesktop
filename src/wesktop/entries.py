@@ -142,7 +142,7 @@ def _create_macos(
     icon: str | Path | None = None,
     comment: str = "",
 ) -> Path:
-    bundle_id = "com.webpane." + name.lower().replace(" ", "-")
+    bundle_id = "com.wesktop." + name.lower().replace(" ", "-")
     app_dir = _macos_apps_dir() / f"{name}.app"
     contents = app_dir / "Contents"
     macos_dir = contents / "MacOS"

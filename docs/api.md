@@ -1,23 +1,23 @@
 ---
 title: API Reference
-description: Public API surface of webpane
+description: Public API surface of wesktop
 date: 2026-05-19
 ---
 
 # API Reference
 
-All symbols listed here are importable directly from `webpane`.
+All symbols listed here are importable directly from `wesktop`.
 
 ## Top-Level Functions
 
-### `webpane.run(target, *, title, width, height, icon, host, port, pid_path)`
+### `wesktop.run(target, *, title, width, height, icon, host, port, pid_path)`
 
 Start a granian server in a background thread and open a native desktop window via pywebview. Blocks until the window is closed.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `target` | `str` | required | ASGI module path (e.g. `"myapp:app"`) |
-| `title` | `str` | `"webpane"` | Window title |
+| `title` | `str` | `"wesktop"` | Window title |
 | `width` | `int` | `1280` | Window width in pixels |
 | `height` | `int` | `800` | Window height in pixels |
 | `icon` | `str \| None` | `None` | Path to window icon |
@@ -25,7 +25,7 @@ Start a granian server in a background thread and open a native desktop window v
 | `port` | `int` | `8000` | Bind port |
 | `pid_path` | `Path \| None` | `None` | PID file for lifecycle management |
 
-### `webpane.serve(target, *, host, port, pid_path, name)`
+### `wesktop.serve(target, *, host, port, pid_path, name)`
 
 Start granian in blocking/headless mode (no desktop window).
 
@@ -35,7 +35,7 @@ Start granian in blocking/headless mode (no desktop window).
 | `host` | `str` | `"127.0.0.1"` | Bind address |
 | `port` | `int` | `8000` | Bind port |
 | `pid_path` | `Path \| None` | `None` | PID file for lifecycle management |
-| `name` | `str` | `"webpane"` | Server name (used in log messages) |
+| `name` | `str` | `"wesktop"` | Server name (used in log messages) |
 
 ## Routing
 

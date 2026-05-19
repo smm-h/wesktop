@@ -4,7 +4,7 @@ import socket
 import sys
 from unittest.mock import MagicMock, patch
 
-import webpane
+import wesktop
 
 
 def _free_port() -> int:
@@ -16,7 +16,7 @@ def _free_port() -> int:
 
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("webpane.server.start_server_in_background")
+@patch("wesktop.server.start_server_in_background")
 def test_run_calls_webview(
     mock_start: MagicMock,
     mock_create_window: MagicMock,
@@ -26,7 +26,7 @@ def test_run_calls_webview(
     port = _free_port()
     mock_start.return_value = f"http://127.0.0.1:{port}"
 
-    from webpane.desktop import run
+    from wesktop.desktop import run
 
     run("myapp:app", title="Test", width=800, height=600, port=port)
 
@@ -47,7 +47,7 @@ def test_run_calls_webview(
 
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("webpane.server.start_server_in_background")
+@patch("wesktop.server.start_server_in_background")
 def test_run_with_icon(
     mock_start: MagicMock,
     mock_create_window: MagicMock,
@@ -57,7 +57,7 @@ def test_run_with_icon(
     port = _free_port()
     mock_start.return_value = f"http://127.0.0.1:{port}"
 
-    from webpane.desktop import run
+    from wesktop.desktop import run
 
     run("myapp:app", icon="/path/to/icon.png", port=port)
 
@@ -65,14 +65,14 @@ def test_run_with_icon(
     mock_wv_start.assert_called_once()
 
 
-@patch("webpane.server.Granian")
+@patch("wesktop.server.Granian")
 def test_serve_calls_start_server(mock_granian_cls: MagicMock) -> None:
-    """webpane.serve() delegates to start_server with correct params."""
+    """wesktop.serve() delegates to start_server with correct params."""
     mock_instance = MagicMock()
     mock_granian_cls.return_value = mock_instance
 
     port = _free_port()
-    webpane.serve("myapp:app", host="127.0.0.1", port=port, name="test-svc")
+    wesktop.serve("myapp:app", host="127.0.0.1", port=port, name="test-svc")
 
     mock_granian_cls.assert_called_once_with(
         target="myapp:app",
@@ -85,24 +85,24 @@ def test_serve_calls_start_server(mock_granian_cls: MagicMock) -> None:
 
 def test_run_late_imports_webview() -> None:
     """webview is not imported at module level -- only when run() is called."""
-    # Ensure the desktop module is loaded (importing webpane triggers it lazily
+    # Ensure the desktop module is loaded (importing wesktop triggers it lazily
     # through the top-level run(), but the module itself should not import webview).
     import importlib
 
-    # Remove webpane.desktop from cache so we can observe a fresh import
-    sys.modules.pop("webpane.desktop", None)
+    # Remove wesktop.desktop from cache so we can observe a fresh import
+    sys.modules.pop("wesktop.desktop", None)
 
     # Record webview presence before importing the module
     had_webview_before = "webview" in sys.modules
 
     # Import the module (not call run())
-    import webpane.desktop  # noqa: F811
+    import wesktop.desktop  # noqa: F811
 
     # webview should not have been pulled in by the module-level import
     if not had_webview_before:
         assert "webview" not in sys.modules, (
-            "webview was imported at module level in webpane.desktop"
+            "webview was imported at module level in wesktop.desktop"
         )
 
     # Clean up: reload so subsequent tests get the patching-friendly version
-    importlib.reload(webpane.desktop)
+    importlib.reload(wesktop.desktop)

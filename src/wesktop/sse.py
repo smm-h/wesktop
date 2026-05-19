@@ -8,7 +8,7 @@ import logging
 from collections.abc import AsyncGenerator
 from typing import Any
 
-from webpane.asgi import Request, StreamResponse
+from wesktop.asgi import Request, StreamResponse
 
 log = logging.getLogger(__name__)
 

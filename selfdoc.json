@@ -1,7 +1,7 @@
 {
   "language": "python",
-  "source": ["src/webpane/"],
+  "source": ["src/wesktop/"],
   "docs": "docs/",
   "output": "docs/_build/",
-  "base_url": "https://webpane.smmh.dev"
+  "base_url": "https://wesktop.smmh.dev"
 }

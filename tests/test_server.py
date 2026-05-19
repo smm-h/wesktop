@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from webpane.server import (
+from wesktop.server import (
     _make_server,
     check_already_running,
     ensure_port_available,
@@ -59,7 +59,7 @@ def test_ensure_port_available_occupied() -> None:
         assert exc_info.value.code == 1
 
 
-@patch("webpane.server.Granian")
+@patch("wesktop.server.Granian")
 def test_make_server_creates_granian(mock_granian_cls: MagicMock) -> None:
     """Verify Granian is instantiated with the correct parameters."""
     _make_server("myapp:app", "0.0.0.0", 9000)
@@ -71,7 +71,7 @@ def test_make_server_creates_granian(mock_granian_cls: MagicMock) -> None:
     )
 
 
-@patch("webpane.server.Granian")
+@patch("wesktop.server.Granian")
 def test_start_server_in_background_returns_url(mock_granian_cls: MagicMock) -> None:
     """Background start returns the correct URL and launches a daemon thread."""
     mock_instance = MagicMock()

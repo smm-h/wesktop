@@ -1,9 +1,9 @@
 {
-  "name": "@smmh/webpane",
+  "name": "wesktop",
   "version": "0.1.0",
   "description": "A Python framework for building web-based desktop applications",
   "bin": {
-    "webpane": "bin/cli.js"
+    "wesktop": "bin/cli.js"
   },
   "files": [
     "bin/"
@@ -16,7 +16,7 @@
     "pywebview",
     "granian",
     "asgi",
-    "webpane",
+    "wesktop",
     "rlsbl"
   ],
   "engines": {
@@ -24,6 +24,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/smm-h/webpane"
+    "url": "https://github.com/smm-h/wesktop"
   }
 }

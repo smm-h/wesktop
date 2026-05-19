@@ -309,7 +309,7 @@ def create_app(
 ) -> Callable:
     """Create an ASGI application callable."""
 
-    log = logging.getLogger(name or "webpane.asgi")
+    log = logging.getLogger(name or "wesktop.asgi")
 
     async def app(scope: dict, receive: Callable, send: Callable) -> None:
         # -- Lifespan protocol --
