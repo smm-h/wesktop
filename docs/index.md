@@ -1,6 +1,6 @@
 ---
 title: webpane
-description: A Python framework for building web-based desktop applications
+description: webpane provides an ASGI router, SSE broadcaster, granian server, and pywebview integration for building web-based desktop apps in Python
 date: 2026-05-19
 ---
 
