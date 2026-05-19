@@ -1,0 +1,15 @@
+{
+  ".github/workflows/ci.yml": "c1c40dd67db0a91b305570028a0579ec03c747da0dd187f31de80a099b6fb516",
+  ".github/workflows/publish.yml": "55e2dba57d17218c2887ba90051d31aee15067cc0b69c8adebc2deab07aef76b",
+  "CHANGELOG.md": "7a6ec46141007c18090a0ff325e2dd68cd51588c4e0b5af7b580365e5eaaca85",
+  ".gitignore": "ce5391c115e249532a3bc27098546bb1ff2a32410b53b0d59ad7b54e765c0a04",
+  "LICENSE": "e958892abc1dd5d991fca6d528e695d335f25773d373d2e0be5f4a9507d8f8d5",
+  ".rlsbl/hooks/pre-checks.sh": "60c57d4563263124530e6f33aca77550ea2161ad3b33b3ba6ad1c03fea9eb6e2",
+  ".rlsbl/hooks/pre-release.sh": "b2dc17c243d0b1a2c1e23c1c25db6f94878596df81dc76c41b32d95f740a7d44",
+  ".rlsbl/hooks/post-release.sh": "b455f8511e0b2655509ecf5dcb0ab7da5bb7c961f47910ff8e00cab5bd51f833",
+  ".claude/settings.json": "78922a784ee78e9e50587e93628cd3b9d4dfbe49087adc4514e6781cea38cbb9",
+  ".rlsbl/lint/python.toml": "9cfbcef2e010d5fad243437bf2fd8df54a1fae70ee0762f9d11da70fe207501c",
+  ".rlsbl/lint/go.toml": "807d5cf760baad6d571a5bfd43cb163efe356f7462ba9f1918d72de45f62339f",
+  ".rlsbl/lint/npm.toml": "baa36014e65923d8cc5c8b83c77fa651da79351627570476402da66840027645",
+  ".rlsbl/changes/unreleased.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
