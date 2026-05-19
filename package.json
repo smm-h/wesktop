@@ -1,5 +1,5 @@
 {
-  "name": "webpane",
+  "name": "@smmh/webpane",
   "version": "0.1.0",
   "description": "A Python framework for building web-based desktop applications",
   "bin": {
