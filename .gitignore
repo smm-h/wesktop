@@ -21,3 +21,4 @@ coverage/
 .env
 .env.local
 *.local-only
+docs/_build/

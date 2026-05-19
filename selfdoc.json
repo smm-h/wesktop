@@ -1,8 +1,7 @@
 {
   "language": "python",
-  "source": [
-    "src/"
-  ],
+  "source": ["src/webpane/"],
   "docs": "docs/",
-  "output": "docs/_build/"
+  "output": "docs/_build/",
+  "base_url": "https://webpane.smmh.dev"
 }
