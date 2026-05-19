@@ -7,3 +7,4 @@
 {"commits":["2ad42e3dc9e0153ed992771f48b60f5255d8db1b"],"user_facing":false}
 {"commits":["1e2274bfe5ae37f4b1649ee8a9c0e6228539baff"],"user_facing":false}
 {"commits":["7c4c6b89d705bad412bd89037cb61715a0932585","01edd549dd66b46d2907a8d3f36d44f969de71c2"],"user_facing":true,"description":"**npm shim.** Install via `npm i -g @smmh/webpane` for a global `webpane` CLI that delegates to Python.","type":"feature"}
+{"commits":["2c16194bae86e9398bd7083561c2aa53c37402a3"],"user_facing":false}
