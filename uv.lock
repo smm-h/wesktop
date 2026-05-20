@@ -477,6 +477,20 @@ wheels = [
 ]
 
 [[package]]
+name = "strictcli"
+version = "0.7.1"
+source = { editable = "../strictcli/python" }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "allpairspy" },
+    { name = "jsonschema" },
+    { name = "pytest" },
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 source = { registry = "https://pypi.org/simple" }
@@ -487,12 +501,13 @@ wheels = [
 
 [[package]]
 name = "wesktop"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "granian" },
     { name = "msgspec" },
     { name = "pywebview" },
+    { name = "strictcli" },
 ]
 
 [package.dev-dependencies]
@@ -506,6 +521,7 @@ requires-dist = [
     { name = "granian", specifier = ">=2.7.4" },
     { name = "msgspec", specifier = ">=0.21.1" },
     { name = "pywebview", specifier = ">=6.2.1" },
+    { name = "strictcli", editable = "../strictcli/python" },
 ]
 
 [package.metadata.requires-dev]
