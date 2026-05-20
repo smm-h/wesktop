@@ -1,0 +1,1 @@
+{"commits":["a65c6b1f200f212f86b3007dde99cb00c45e6121"],"user_facing":true,"description":"**Lazy JSON.** Request.json is now lazily parsed with caching, improving performance for handlers that don't need the body.","type":"feature"}
