@@ -2,6 +2,17 @@
 
 # Changelog
 
+## 0.2.0
+
+### Features
+
+- **Lazy JSON.** Request.json is now lazily parsed with caching, improving performance for handlers that don't need the body.
+- **CLI with diagnose command.** New `wesktop diagnose` command checks Python, Node, pywebview, and granian availability. Config file support via strictcli.
+
+### Fixes
+
+- **Icon fix.** The icon parameter is now correctly wired through to pywebview.
+
 ## 0.1.1
 
 - No user-facing changes.
