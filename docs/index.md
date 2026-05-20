@@ -1,6 +1,6 @@
 ---
 title: wesktop
-description: wesktop provides an ASGI router, SSE broadcaster, granian server, and pywebview integration for building web-based desktop apps in Python
+description: wesktop is a Python framework for building web-based desktop apps with an ASGI micro-router, SSE broadcaster, granian server, and pywebview native windows
 date: 2026-05-19
 ---
 
@@ -35,7 +35,7 @@ wesktop.run("myapp:app", title="My App", width=1024, height=768)
 
 ## Headless Server
 
-If you don't need a desktop window (e.g., for development or server-only deployment), use `serve()` instead:
+If you don't need a desktop window -- for example during development, in CI, or for server-only deployment -- use `serve()` instead of `run()`. This starts granian in blocking mode on the specified host and port without opening a pywebview window, making it suitable for any environment where a GUI is unavailable or unnecessary.
 
 ```python
 import wesktop
@@ -54,7 +54,7 @@ wesktop.serve("myapp:app", host="127.0.0.1", port=8000)
 
 ## SSE (Server-Sent Events)
 
-wesktop includes a `Broadcaster` that manages SSE client connections with typed events:
+wesktop includes a `Broadcaster` class that manages SSE client connections with typed events. Event types must be registered before broadcast (strict mode), and disconnected clients are pruned automatically when their async queue fills. Each client gets its own queue with a configurable buffer size (default 256 messages), so slow consumers do not block fast producers.
 
 ```python
 import wesktop
@@ -81,7 +81,7 @@ Clients connect to `/events` and receive typed SSE messages. The broadcaster pru
 
 ## Response Types
 
-Route handlers return one of:
+wesktop provides 6 response types covering the most common HTTP content patterns. Route handlers can return a plain `dict` or `list` for automatic JSON serialization, or use an explicit response class for full control over status codes, headers, and content types. All JSON encoding uses msgspec for speed.
 
 | Type | Content-Type | Notes |
 |------|-------------|-------|
@@ -94,4 +94,4 @@ Route handlers return one of:
 
 ## API Reference
 
-See [API docs](api.md) for the full reference.
+The full API reference documents every public symbol in the `wesktop` package, including the router, request and response types, SSE broadcaster, server lifecycle functions, and desktop entry helpers. The library exposes 15 public symbols, all importable directly from `wesktop`. See [API docs](api.md) for the complete reference.
