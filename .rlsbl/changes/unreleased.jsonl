@@ -1,1 +1,2 @@
 {"commits":["a65c6b1f200f212f86b3007dde99cb00c45e6121"],"user_facing":true,"description":"**Lazy JSON.** Request.json is now lazily parsed with caching, improving performance for handlers that don't need the body.","type":"feature"}
+{"commits":["e7d2f66056e90f757c1c31cc3b418f9536289044"],"user_facing":true,"description":"**Icon fix.** The icon parameter is now correctly wired through to pywebview.","type":"fix"}
