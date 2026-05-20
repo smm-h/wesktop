@@ -30,10 +30,7 @@ def run(
         width=width,
         height=height,
     )
-    if icon:
-        # pywebview supports icon parameter on some platforms
-        pass
 
-    webview.start()
+    webview.start(icon=icon)
     # When webview.start() returns, the window was closed.
     # Daemon thread (server) auto-exits with main thread.

@@ -41,8 +41,8 @@ def test_run_calls_webview(
         height=600,
     )
 
-    # webview.start() called to enter the event loop
-    mock_wv_start.assert_called_once()
+    # webview.start() called to enter the event loop with icon=None
+    mock_wv_start.assert_called_once_with(icon=None)
 
 
 @patch("webview.start")
@@ -53,7 +53,7 @@ def test_run_with_icon(
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
 ) -> None:
-    """Icon parameter is accepted without error."""
+    """Icon path is forwarded to webview.start(icon=...)."""
     port = _free_port()
     mock_start.return_value = f"http://127.0.0.1:{port}"
 
@@ -62,7 +62,26 @@ def test_run_with_icon(
     run("myapp:app", icon="/path/to/icon.png", port=port)
 
     mock_create_window.assert_called_once()
-    mock_wv_start.assert_called_once()
+    mock_wv_start.assert_called_once_with(icon="/path/to/icon.png")
+
+
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.start_server_in_background")
+def test_run_without_icon(
+    mock_start: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+) -> None:
+    """When no icon is provided, webview.start(icon=None) is called."""
+    port = _free_port()
+    mock_start.return_value = f"http://127.0.0.1:{port}"
+
+    from wesktop.desktop import run
+
+    run("myapp:app", port=port)
+
+    mock_wv_start.assert_called_once_with(icon=None)
 
 
 @patch("wesktop.server.Granian")
