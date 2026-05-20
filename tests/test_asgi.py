@@ -243,6 +243,31 @@ class TestRequest:
         req = Request(self._make_scope(), {}, None)
         assert req.body_size == 0
 
+    def test_json_is_lazy(self, monkeypatch):
+        """JSON decoding should not happen until .json is accessed."""
+        import msgspec as _msgspec
+
+        calls = []
+        original_decode = _msgspec.json.decode
+
+        def tracking_decode(*args, **kwargs):
+            calls.append(1)
+            return original_decode(*args, **kwargs)
+
+        monkeypatch.setattr(_msgspec.json, "decode", tracking_decode)
+
+        body = b'{"key": "value"}'
+        req = Request(self._make_scope(), {}, body)
+        assert len(calls) == 0, "decode called eagerly during __init__"
+
+        result = req.json
+        assert len(calls) == 1, "decode not called on first .json access"
+        assert result == {"key": "value"}
+
+        result2 = req.json
+        assert len(calls) == 1, "decode called again on second .json access"
+        assert result2 == {"key": "value"}
+
 
 # ---------------------------------------------------------------------------
 # Response types

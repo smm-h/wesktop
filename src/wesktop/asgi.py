@@ -84,18 +84,26 @@ class StreamResponse:
 class Request:
     """Wraps ASGI scope with parsed body and params."""
 
-    __slots__ = ("scope", "path_params", "json", "_body")
+    __slots__ = ("scope", "path_params", "_body", "_json", "_json_decoded")
 
     def __init__(self, scope: dict, path_params: dict, body: bytes | None):
         self.scope = scope
         self.path_params = path_params
         self._body = body
-        try:
-            self.json: dict | list | None = (
-                msgspec.json.decode(body) if body else None
-            )
-        except (msgspec.DecodeError, ValueError):
-            self.json = None
+        self._json = None
+        self._json_decoded = False
+
+    @property
+    def json(self) -> dict | list | None:
+        """Lazily decode the JSON body on first access, then cache."""
+        if not self._json_decoded:
+            if self._body:
+                try:
+                    self._json = msgspec.json.decode(self._body)
+                except (msgspec.DecodeError, ValueError):
+                    self._json = None
+            self._json_decoded = True
+        return self._json
 
     @property
     def body(self) -> bytes | None:
