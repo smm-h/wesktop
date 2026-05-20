@@ -1,0 +1,69 @@
+{
+  "name": "wesktop",
+  "version": "0.2.0",
+  "help": "A Python framework for building web-based desktop applications",
+  "env_prefix": null,
+  "config": true,
+  "global_flags": [],
+  "commands": {
+    "diagnose": {
+      "name": "diagnose",
+      "help": "Check runtime environment and dependencies",
+      "flags": [],
+      "args": [],
+      "passthrough": false
+    }
+  },
+  "groups": {
+    "config": {
+      "name": "config",
+      "help": "Manage configuration",
+      "commands": {
+        "path": {
+          "name": "path",
+          "help": "Print the config file path",
+          "flags": [],
+          "args": [],
+          "passthrough": false
+        },
+        "show": {
+          "name": "show",
+          "help": "Show all config values with source attribution",
+          "flags": [],
+          "args": [],
+          "passthrough": false
+        },
+        "set": {
+          "name": "set",
+          "help": "Set a config value",
+          "flags": [],
+          "args": [
+            {
+              "name": "key",
+              "help": "Config key to set",
+              "required": true,
+              "variadic": false
+            },
+            {
+              "name": "value",
+              "help": "Value to set",
+              "required": true,
+              "variadic": false
+            }
+          ],
+          "passthrough": false
+        },
+        "edit": {
+          "name": "edit",
+          "help": "Open the config file in $EDITOR",
+          "flags": [],
+          "args": [],
+          "passthrough": false
+        }
+      },
+      "groups": {},
+      "deprecated": {}
+    }
+  },
+  "deprecated": {}
+}
