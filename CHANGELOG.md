@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 0.2.1
+
+### Fixes
+
+- **Fix.** Use PyPI-published strictcli instead of local source override. Fixes CI test failures.
+
 ## 0.2.0
 
 ### Features
