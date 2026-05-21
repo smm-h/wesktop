@@ -10,7 +10,7 @@ dependencies = [
     "granian>=2.7.4",
     "pywebview>=6.2.1",
     "msgspec>=0.21.1",
-    "strictcli>=0.7.0",
+    "strictcli>=0.8.0",
 ]
 
 [project.scripts]
@@ -25,9 +25,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/wesktop"]
-
-[tool.uv.sources]
-strictcli = { path = "../strictcli/python", editable = true }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

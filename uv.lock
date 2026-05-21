@@ -478,16 +478,11 @@ wheels = [
 
 [[package]]
 name = "strictcli"
-version = "0.7.1"
-source = { editable = "../strictcli/python" }
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "allpairspy" },
-    { name = "jsonschema" },
-    { name = "pytest" },
+version = "0.8.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0a/3c/95f30649c2140d03866ff255129b4a05e888808b9ed7448f660d2733f7c2/strictcli-0.8.3.tar.gz", hash = "sha256:130020959a51a31c1369458728ca36ba3d7204bfbb2146007af7c19871af2feb", size = 90902, upload-time = "2026-05-21T13:43:14.382Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/55/075c802bc4b38986671ccc0d4ca42c9d6a6fb1278179a0d4f6274b40f52a/strictcli-0.8.3-py3-none-any.whl", hash = "sha256:f8aa368efc5376994d6310b6db5d082dda763815e1770ab2a3df915c4c395da4", size = 27804, upload-time = "2026-05-21T13:43:12.645Z" },
 ]
 
 [[package]]
@@ -521,7 +516,7 @@ requires-dist = [
     { name = "granian", specifier = ">=2.7.4" },
     { name = "msgspec", specifier = ">=0.21.1" },
     { name = "pywebview", specifier = ">=6.2.1" },
-    { name = "strictcli", editable = "../strictcli/python" },
+    { name = "strictcli", specifier = ">=0.8.0" },
 ]
 
 [package.metadata.requires-dev]
