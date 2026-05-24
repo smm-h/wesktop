@@ -1,6 +1,6 @@
 {
   "name": "wesktop",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "help": "A Python framework for building web-based desktop applications",
   "env_prefix": null,
   "config": true,
