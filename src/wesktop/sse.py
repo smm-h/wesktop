@@ -21,11 +21,18 @@ class Broadcaster:
     event raises ``ValueError``.  Pass ``strict=False`` to skip validation.
     """
 
-    def __init__(self, buffer_size: int = 256, *, strict: bool = True):
+    def __init__(
+        self,
+        buffer_size: int = 256,
+        *,
+        strict: bool = True,
+        heartbeat_interval: float | None = None,
+    ):
         self._clients: list[asyncio.Queue[str]] = []
         self._buffer_size = buffer_size
         self._event_types: set[str] = set()
         self._strict = strict
+        self._heartbeat_interval = heartbeat_interval
 
     # -- Event type registry --------------------------------------------------
 
@@ -74,10 +81,23 @@ class Broadcaster:
     # -- Client streaming -----------------------------------------------------
 
     async def _event_generator(self, queue: asyncio.Queue[str]) -> AsyncGenerator[str, None]:
-        """Yield SSE messages from a per-client queue."""
+        """Yield SSE messages from a per-client queue.
+
+        When heartbeat_interval is set, yields SSE comment heartbeats
+        (": heartbeat\\n\\n") if no real message arrives within the interval.
+        """
         try:
             while True:
-                msg = await queue.get()
+                if self._heartbeat_interval is not None:
+                    try:
+                        msg = await asyncio.wait_for(
+                            queue.get(), timeout=self._heartbeat_interval
+                        )
+                    except asyncio.TimeoutError:
+                        yield ": heartbeat\n\n"
+                        continue
+                else:
+                    msg = await queue.get()
                 yield msg
         except asyncio.CancelledError:
             return
