@@ -412,6 +412,14 @@ class Request:
         """Get a single cookie value by name."""
         return self.cookies.get(name, default)
 
+    def json_as(self, model: type):
+        """Parse request body as a Pydantic model. Raises HTTPError(422) on failure."""
+        from pydantic import ValidationError
+        try:
+            return model.model_validate(self.json)
+        except ValidationError as e:
+            raise HTTPError(422, str(e)) from e
+
 
 # ---------------------------------------------------------------------------
 # WebSocket helper class
@@ -534,43 +542,43 @@ class Router:
     """
 
     def __init__(self) -> None:
-        # (method, parsed_segments, handler, deps_dict)
-        self._routes: list[tuple[str, list[ParsedSegment], Callable, dict[str, Callable]]] = []
+        # (method, parsed_segments, handler, deps_dict, response_model)
+        self._routes: list[tuple[str, list[ParsedSegment], Callable, dict[str, Callable], type | None]] = []
         # WebSocket routes: (parsed_segments, handler, deps_dict)
         self._ws_routes: list[tuple[list[ParsedSegment], Callable, dict[str, Callable]]] = []
 
-    def get(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
+    def get(self, path: str, *, deps: dict[str, Callable] | None = None, response_model: type | None = None) -> Callable:
         """Decorator to register a GET handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_route("GET", path, fn, deps=deps)
+            self.add_route("GET", path, fn, deps=deps, response_model=response_model)
             return fn
         return decorator
 
-    def post(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
+    def post(self, path: str, *, deps: dict[str, Callable] | None = None, response_model: type | None = None) -> Callable:
         """Decorator to register a POST handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_route("POST", path, fn, deps=deps)
+            self.add_route("POST", path, fn, deps=deps, response_model=response_model)
             return fn
         return decorator
 
-    def delete(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
+    def delete(self, path: str, *, deps: dict[str, Callable] | None = None, response_model: type | None = None) -> Callable:
         """Decorator to register a DELETE handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_route("DELETE", path, fn, deps=deps)
+            self.add_route("DELETE", path, fn, deps=deps, response_model=response_model)
             return fn
         return decorator
 
-    def put(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
+    def put(self, path: str, *, deps: dict[str, Callable] | None = None, response_model: type | None = None) -> Callable:
         """Decorator to register a PUT handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_route("PUT", path, fn, deps=deps)
+            self.add_route("PUT", path, fn, deps=deps, response_model=response_model)
             return fn
         return decorator
 
-    def patch(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
+    def patch(self, path: str, *, deps: dict[str, Callable] | None = None, response_model: type | None = None) -> Callable:
         """Decorator to register a PATCH handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_route("PATCH", path, fn, deps=deps)
+            self.add_route("PATCH", path, fn, deps=deps, response_model=response_model)
             return fn
         return decorator
 
@@ -581,11 +589,12 @@ class Router:
         handler: Callable,
         *,
         deps: dict[str, Callable] | None = None,
+        response_model: type | None = None,
     ) -> None:
         """Programmatic route registration."""
         raw_segments = path.strip("/").split("/")
         parsed = [_parse_segment(s) for s in raw_segments]
-        self._routes.append((method, parsed, handler, deps or {}))
+        self._routes.append((method, parsed, handler, deps or {}, response_model))
 
     def ws(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
         """Decorator to register a WebSocket handler."""
@@ -627,11 +636,11 @@ class Router:
 
         extra_deps = deps or {}
 
-        for method, pattern, handler, existing_deps in other._routes:
+        for method, pattern, handler, existing_deps, resp_model in other._routes:
             merged_pattern = prefix_segs + pattern
             # Router-level deps first, per-handler deps override
             merged_deps = {**extra_deps, **existing_deps}
-            self._routes.append((method, merged_pattern, handler, merged_deps))
+            self._routes.append((method, merged_pattern, handler, merged_deps, resp_model))
 
         # Copy WebSocket routes with prefix and deps
         for pattern, handler, existing_ws_deps in other._ws_routes:
@@ -649,20 +658,20 @@ class Router:
         result = self._match_with_deps(method, path)
         if result is None:
             return None
-        handler, params, _deps = result
+        handler, params, _deps, _resp_model = result
         return handler, params
 
     def _match_with_deps(
         self, method: str, path: str,
-    ) -> tuple[Callable, dict[str, Any], dict[str, Callable]] | None:
-        """Return (handler, path_params, deps) or None.
+    ) -> tuple[Callable, dict[str, Any], dict[str, Callable], type | None] | None:
+        """Return (handler, path_params, deps, response_model) or None.
 
         Internal variant of :meth:`match` that also returns the merged
-        dependency dict for the matched route. Used by ``create_app``
-        for DI resolution.
+        dependency dict and response_model for the matched route. Used by
+        ``create_app`` for DI resolution and response validation.
         """
         segments = path.strip("/").split("/")
-        for route_method, pattern, handler, route_deps in self._routes:
+        for route_method, pattern, handler, route_deps, resp_model in self._routes:
             if route_method != method:
                 continue
 
@@ -679,7 +688,7 @@ class Router:
                     pattern, segments, path_seg_idx
                 )
                 if result is not None:
-                    return handler, result, route_deps
+                    return handler, result, route_deps, resp_model
                 continue
 
             # Normal segment-count matching
@@ -702,7 +711,7 @@ class Router:
                         matched = False
                         break
             if matched:
-                return handler, params, route_deps
+                return handler, params, route_deps, resp_model
         return None
 
     @staticmethod
@@ -1044,7 +1053,7 @@ def create_app(
         # -- Route matching --
         match = router._match_with_deps(method, path)
         if match:
-            handler, path_params, route_deps = match
+            handler, path_params, route_deps, response_model = match
             try:
                 # Read body for all methods (GET with empty body costs nothing)
                 body = b""
@@ -1067,6 +1076,25 @@ def create_app(
                         await DependencyResolver.cleanup(cleanups)
                 else:
                     result = await handler(request)
+
+                # Apply response_model validation if configured and result
+                # is a plain dict (skip if handler returned a Response type)
+                if response_model is not None and isinstance(result, dict):
+                    from pydantic import ValidationError
+                    try:
+                        validated = response_model.model_validate(result)
+                        result = validated.model_dump(mode="json")
+                    except ValidationError as ve:
+                        log.error(
+                            "response_model validation failed on %s %s: %s",
+                            method, path, ve,
+                        )
+                        await _send_response(
+                            send, 500,
+                            msgspec.json.encode({"detail": str(ve)}),
+                            "application/json",
+                        )
+                        return
 
                 await _send_result(send, result)
             except HTTPError as exc:

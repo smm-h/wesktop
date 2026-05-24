@@ -1391,7 +1391,7 @@ class TestRouterComposition:
         main.include_router(sub, prefix="/api", deps={"user": fake_auth})
 
         # Verify the dependency was stored on the route tuple
-        method, pattern, handler, route_deps = main._routes[0]
+        method, pattern, handler, route_deps, _resp_model = main._routes[0]
         assert "user" in route_deps
         assert route_deps["user"] is fake_auth
 
