@@ -53,7 +53,7 @@ class TestJWTTokens:
     """create_token and verify_token."""
 
     def test_create_and_verify(self):
-        secret = "test-secret-key"
+        secret = "test-secret-key-that-is-at-least-thirty-two-bytes-long"
         token = create_token("alice", "admin", secret)
         claims = verify_token(token, secret)
         assert claims is not None
@@ -63,26 +63,26 @@ class TestJWTTokens:
         assert "exp" in claims
 
     def test_expired_token_returns_none(self):
-        secret = "test-secret"
+        secret = "test-secret-key-that-is-at-least-thirty-two-bytes-long"
         token = create_token("alice", "admin", secret, expires_hours=-1)
         assert verify_token(token, secret) is None
 
     def test_tampered_token_returns_none(self):
-        secret = "test-secret"
+        secret = "test-secret-key-that-is-at-least-thirty-two-bytes-long"
         token = create_token("alice", "admin", secret)
         # Flip a character in the signature
         tampered = token[:-1] + ("A" if token[-1] != "A" else "B")
         assert verify_token(tampered, secret) is None
 
     def test_wrong_secret_returns_none(self):
-        token = create_token("alice", "admin", "secret-1")
-        assert verify_token(token, "secret-2") is None
+        token = create_token("alice", "admin", "test-secret-key-that-is-at-least-thirty-two-bytes-long")
+        assert verify_token(token, "wrong-secret-key-that-is-at-least-thirty-two-bytes-long") is None
 
     def test_garbage_token_returns_none(self):
-        assert verify_token("not-a-jwt", "secret") is None
+        assert verify_token("not-a-jwt", "test-secret-key-that-is-at-least-thirty-two-bytes-long") is None
 
     def test_custom_expiry(self):
-        secret = "test-secret"
+        secret = "test-secret-key-that-is-at-least-thirty-two-bytes-long"
         token = create_token("alice", "admin", secret, expires_hours=1)
         claims = verify_token(token, secret)
         assert claims is not None
@@ -93,7 +93,7 @@ class TestJWTTokens:
         assert timedelta(minutes=55) < delta < timedelta(minutes=65)
 
     def test_default_expiry_is_720_hours(self):
-        secret = "test-secret"
+        secret = "test-secret-key-that-is-at-least-thirty-two-bytes-long"
         token = create_token("alice", "admin", secret)
         claims = verify_token(token, secret)
         assert claims is not None
@@ -229,7 +229,7 @@ def _make_auth_app(handler, *, deps=None):
 
     @asynccontextmanager
     async def lifespan(app):
-        yield {"config": {"jwt_secret": "test-jwt-secret"}}
+        yield {"config": {"jwt_secret": "test-secret-key-that-is-at-least-thirty-two-bytes-long"}}
 
     router = Router()
     router.add_route("GET", "/protected", handler, deps=deps or {})
@@ -267,7 +267,7 @@ class TestGetCurrentUser:
         app = _make_auth_app(handler, deps={"user": get_current_user})
         task, shutdown = await _start_lifespan(app)
         try:
-            token = create_token("alice", "admin", "test-jwt-secret")
+            token = create_token("alice", "admin", "test-secret-key-that-is-at-least-thirty-two-bytes-long")
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test",
             ) as client:
@@ -290,7 +290,7 @@ class TestGetCurrentUser:
         app = _make_auth_app(handler, deps={"user": get_current_user})
         task, shutdown = await _start_lifespan(app)
         try:
-            token = create_token("bob", "user", "test-jwt-secret")
+            token = create_token("bob", "user", "test-secret-key-that-is-at-least-thirty-two-bytes-long")
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test",
             ) as client:
@@ -312,7 +312,7 @@ class TestGetCurrentUser:
         app = _make_auth_app(handler, deps={"user": get_current_user})
         task, shutdown = await _start_lifespan(app)
         try:
-            token = create_token("carol", "viewer", "test-jwt-secret")
+            token = create_token("carol", "viewer", "test-secret-key-that-is-at-least-thirty-two-bytes-long")
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test",
             ) as client:
@@ -374,7 +374,7 @@ class TestRequireRole:
         app = _make_auth_app(handler, deps={"user": require_role("admin")})
         task, shutdown = await _start_lifespan(app)
         try:
-            token = create_token("alice", "admin", "test-jwt-secret")
+            token = create_token("alice", "admin", "test-secret-key-that-is-at-least-thirty-two-bytes-long")
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test",
             ) as client:
@@ -396,7 +396,7 @@ class TestRequireRole:
         app = _make_auth_app(handler, deps={"user": require_role("admin")})
         task, shutdown = await _start_lifespan(app)
         try:
-            token = create_token("bob", "viewer", "test-jwt-secret")
+            token = create_token("bob", "viewer", "test-secret-key-that-is-at-least-thirty-two-bytes-long")
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test",
             ) as client:
@@ -776,7 +776,7 @@ class TestAuthDIIntegration:
 
         @asynccontextmanager
         async def lifespan(app):
-            yield {"config": {"jwt_secret": "integration-secret"}}
+            yield {"config": {"jwt_secret": "test-secret-key-that-is-at-least-thirty-two-bytes-long"}}
 
         router = Router()
 
@@ -787,7 +787,7 @@ class TestAuthDIIntegration:
         app = create_app(router, lifespan=lifespan)
         task, shutdown = await _start_lifespan(app)
         try:
-            token = create_token("alice", "admin", "integration-secret")
+            token = create_token("alice", "admin", "test-secret-key-that-is-at-least-thirty-two-bytes-long")
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test",
             ) as client:
@@ -807,7 +807,7 @@ class TestAuthDIIntegration:
 
         @asynccontextmanager
         async def lifespan(app):
-            yield {"config": {"jwt_secret": "role-secret"}}
+            yield {"config": {"jwt_secret": "test-secret-key-that-is-at-least-thirty-two-bytes-long"}}
 
         router = Router()
 
@@ -818,8 +818,8 @@ class TestAuthDIIntegration:
         app = create_app(router, lifespan=lifespan)
         task, shutdown = await _start_lifespan(app)
         try:
-            admin_token = create_token("alice", "admin", "role-secret")
-            user_token = create_token("bob", "viewer", "role-secret")
+            admin_token = create_token("alice", "admin", "test-secret-key-that-is-at-least-thirty-two-bytes-long")
+            user_token = create_token("bob", "viewer", "test-secret-key-that-is-at-least-thirty-two-bytes-long")
 
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test",
