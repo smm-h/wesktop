@@ -396,15 +396,56 @@ class Request:
 
 
 # ---------------------------------------------------------------------------
+# Path parameter type converters
+# ---------------------------------------------------------------------------
+
+_TYPE_CONVERTERS: dict[str, type] = {
+    "str": str,
+    "int": int,
+}
+
+
+def _parse_segment(seg: str) -> tuple[str | None, str | None, type | None]:
+    """Parse a route pattern segment into (literal, param_name, converter).
+
+    Returns one of:
+    - (literal_str, None, None) for plain segments like "api"
+    - (None, param_name, converter) for parameterized segments like {id:int}
+    - (None, param_name, None) for :path segments (greedy)
+    """
+    if not (seg.startswith("{") and seg.endswith("}")):
+        return (seg, None, None)
+    inner = seg[1:-1]
+    if ":" in inner:
+        name, type_name = inner.split(":", 1)
+        if type_name == "path":
+            # Greedy path segment -- converter is None, caller checks name
+            return (None, name, None)
+        converter = _TYPE_CONVERTERS.get(type_name)
+        if converter is None:
+            raise ValueError(f"Unknown path parameter type: {type_name!r}")
+        return (None, name, converter)
+    # Plain {param} -- defaults to str
+    return (None, inner, str)
+
+
+# Parsed segment tuple: (literal | None, param_name | None, converter | None)
+ParsedSegment = tuple[str | None, str | None, type | None]
+
+
+# ---------------------------------------------------------------------------
 # Router
 # ---------------------------------------------------------------------------
 
 class Router:
-    """Simple path-based HTTP router using {param} placeholders."""
+    """Simple path-based HTTP router using {param} placeholders and type coercion.
+
+    Supports {param}, {param:str}, {param:int}, and {param:path} syntax.
+    """
 
     def __init__(self) -> None:
-        # List of (method, pattern_segments, handler)
-        self._routes: list[tuple[str, list[str], Callable]] = []
+        # (method, parsed_segments, handler, dependencies)
+        self._routes: list[tuple[str, list[ParsedSegment], Callable, list]] = []
 
     def get(self, path: str) -> Callable:
         """Decorator to register a GET handler."""
@@ -443,26 +484,113 @@ class Router:
 
     def add_route(self, method: str, path: str, handler: Callable) -> None:
         """Programmatic route registration."""
-        segments = path.strip("/").split("/")
-        self._routes.append((method, segments, handler))
+        raw_segments = path.strip("/").split("/")
+        parsed = [_parse_segment(s) for s in raw_segments]
+        self._routes.append((method, parsed, handler, []))
 
-    def match(self, method: str, path: str) -> tuple[Callable, dict[str, str]] | None:
-        """Return (handler, path_params) or None if no route matches."""
+    def match(self, method: str, path: str) -> tuple[Callable, dict[str, Any]] | None:
+        """Return (handler, path_params) or None if no route matches.
+
+        Path parameter values are coerced to their declared types (e.g.,
+        {id:int} produces an int).  If coercion fails the route does not
+        match, allowing fall-through to 404.
+        """
         segments = path.strip("/").split("/")
-        for route_method, pattern, handler in self._routes:
-            if route_method != method or len(pattern) != len(segments):
+        for route_method, pattern, handler, _deps in self._routes:
+            if route_method != method:
                 continue
-            params: dict[str, str] = {}
-            matched = True
-            for pat_seg, req_seg in zip(pattern, segments):
-                if pat_seg.startswith("{") and pat_seg.endswith("}"):
-                    params[pat_seg[1:-1]] = req_seg
-                elif pat_seg != req_seg:
-                    matched = False
+
+            # Check for :path segments -- they change matching semantics
+            path_seg_idx = None
+            for i, (lit, name, conv) in enumerate(pattern):
+                if name is not None and lit is None and conv is None:
+                    path_seg_idx = i
                     break
+
+            if path_seg_idx is not None:
+                # Greedy :path matching
+                result = self._match_with_path_param(
+                    pattern, segments, path_seg_idx
+                )
+                if result is not None:
+                    return handler, result
+                continue
+
+            # Normal segment-count matching
+            if len(pattern) != len(segments):
+                continue
+
+            params: dict[str, Any] = {}
+            matched = True
+            for (lit, name, conv), req_seg in zip(pattern, segments):
+                if lit is not None:
+                    # Literal segment
+                    if lit != req_seg:
+                        matched = False
+                        break
+                else:
+                    # Parameterized segment -- attempt type coercion
+                    try:
+                        params[name] = conv(req_seg)
+                    except (ValueError, TypeError):
+                        matched = False
+                        break
             if matched:
                 return handler, params
         return None
+
+    @staticmethod
+    def _match_with_path_param(
+        pattern: list[ParsedSegment],
+        segments: list[str],
+        path_idx: int,
+    ) -> dict[str, Any] | None:
+        """Match a route pattern containing a :path greedy parameter.
+
+        Literal/typed segments before the :path param must match exactly.
+        Literal/typed segments after the :path param are matched from the
+        end of the path.  Everything in between is consumed by the :path
+        parameter (joined with "/").
+        """
+        prefix = pattern[:path_idx]
+        suffix = pattern[path_idx + 1:]
+        _, path_name, _ = pattern[path_idx]
+
+        # Need enough segments for prefix + suffix + at least 1 for :path
+        if len(segments) < len(prefix) + len(suffix) + 1:
+            return None
+
+        params: dict[str, Any] = {}
+
+        # Match prefix (literal and typed segments before :path)
+        for (lit, name, conv), req_seg in zip(prefix, segments):
+            if lit is not None:
+                if lit != req_seg:
+                    return None
+            else:
+                try:
+                    params[name] = conv(req_seg)
+                except (ValueError, TypeError):
+                    return None
+
+        # Match suffix from the end
+        suffix_start = len(segments) - len(suffix)
+        for i, (lit, name, conv) in enumerate(suffix):
+            req_seg = segments[suffix_start + i]
+            if lit is not None:
+                if lit != req_seg:
+                    return None
+            else:
+                try:
+                    params[name] = conv(req_seg)
+                except (ValueError, TypeError):
+                    return None
+
+        # Everything between prefix and suffix is the :path value
+        path_segments = segments[len(prefix):suffix_start]
+        params[path_name] = "/".join(path_segments)
+
+        return params
 
 
 # ---------------------------------------------------------------------------

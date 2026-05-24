@@ -1050,3 +1050,126 @@ class TestQueryCoercionFailure:
             resp = await client.get("/api/items?limit=42")
         assert resp.status_code == 200
         assert resp.json()["limit"] == 42
+
+
+# ---------------------------------------------------------------------------
+# 1.4 Path parameter type coercion
+# ---------------------------------------------------------------------------
+
+
+class TestPathParameterTypeCoercion:
+    @pytest.mark.anyio
+    async def test_int_param_matches_numeric(self, client_for):
+        """/{id:int} matches /42 with params["id"] == 42 (int, not str)."""
+        router = Router()
+
+        @router.get("/items/{id:int}")
+        async def get_item(req):
+            item_id = req.path_params["id"]
+            return JSONResponse({
+                "id": item_id,
+                "type": type(item_id).__name__,
+            })
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/items/42")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["id"] == 42
+        assert data["type"] == "int"
+
+    @pytest.mark.anyio
+    async def test_int_param_rejects_non_numeric(self, client_for):
+        """/{id:int} does not match /abc -> 404."""
+        router = Router()
+
+        @router.get("/items/{id:int}")
+        async def get_item(req):
+            return JSONResponse({"id": req.path_params["id"]})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/items/abc")
+        assert resp.status_code == 404
+
+    @pytest.mark.anyio
+    async def test_str_param_explicit(self, client_for):
+        """{param:str} works the same as {param}."""
+        router = Router()
+
+        @router.get("/users/{name:str}")
+        async def get_user(req):
+            return JSONResponse({
+                "name": req.path_params["name"],
+                "type": type(req.path_params["name"]).__name__,
+            })
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/users/alice")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["name"] == "alice"
+        assert data["type"] == "str"
+
+    @pytest.mark.anyio
+    async def test_plain_param_is_string(self, client_for):
+        """{param} without type annotation is str by default."""
+        router = Router()
+
+        @router.get("/items/{slug}")
+        async def get_item(req):
+            return JSONResponse({
+                "slug": req.path_params["slug"],
+                "type": type(req.path_params["slug"]).__name__,
+            })
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/items/my-slug")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["slug"] == "my-slug"
+        assert data["type"] == "str"
+
+    @pytest.mark.anyio
+    async def test_int_param_negative_number(self, client_for):
+        """Negative integers should match {id:int} since int() handles them."""
+        router = Router()
+
+        @router.get("/items/{id:int}")
+        async def get_item(req):
+            return JSONResponse({"id": req.path_params["id"]})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/items/-5")
+        assert resp.status_code == 200
+        assert resp.json()["id"] == -5
+
+    @pytest.mark.anyio
+    async def test_multiple_typed_params(self, client_for):
+        """Multiple typed params in one route."""
+        router = Router()
+
+        @router.get("/users/{user_id:int}/posts/{post_id:int}")
+        async def get_post(req):
+            return JSONResponse({
+                "user_id": req.path_params["user_id"],
+                "post_id": req.path_params["post_id"],
+            })
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/users/1/posts/42")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["user_id"] == 1
+        assert data["post_id"] == 42
+
+    def test_unknown_type_raises(self):
+        """Unknown type annotation raises ValueError during add_route."""
+        router = Router()
+        with pytest.raises(ValueError, match="Unknown path parameter type"):
+            router.add_route("GET", "/items/{id:float}", lambda r: None)
