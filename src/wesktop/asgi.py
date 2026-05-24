@@ -874,15 +874,30 @@ async def _send_stream(send: Callable, resp: StreamResponse) -> None:
     await send({"type": "http.response.body", "body": b"", "more_body": False})
 
 
+def _deep_convert_pydantic(obj: Any) -> Any:
+    """Recursively convert Pydantic models to plain dicts/lists.
+
+    Walks dicts and lists, calling ``.model_dump(mode="json")`` on any
+    object that has ``model_dump`` (i.e. Pydantic BaseModel instances).
+    """
+    if hasattr(obj, "model_dump"):
+        return obj.model_dump(mode="json")
+    if isinstance(obj, dict):
+        return {k: _deep_convert_pydantic(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_deep_convert_pydantic(item) for item in obj]
+    return obj
+
+
 async def _send_result(send: Callable, result: Any) -> None:
     """Dispatch a handler return value to the appropriate sender."""
     # Pydantic BaseModel instances: serialize via model_dump before JSON encoding
     if hasattr(result, "model_dump"):
         result = result.model_dump(mode="json")
 
-    # Auto-wrap plain dicts/lists as JSON responses
+    # Auto-wrap plain dicts/lists as JSON responses, converting nested Pydantic models
     if isinstance(result, (dict, list)):
-        result = JSONResponse(result)
+        result = JSONResponse(_deep_convert_pydantic(result))
 
     if isinstance(result, JSONResponse):
         await _send_response(
