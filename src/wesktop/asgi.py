@@ -492,6 +492,15 @@ class WebSocket:
         msg = await self._receive()
         return msg.get("text", "")
 
+    async def receive_raw(self) -> dict[str, Any]:
+        """Return the raw ASGI message dict from the WebSocket connection.
+
+        The dict contains keys like "type", "bytes", "text" depending on
+        the frame type. Useful for handlers that need to distinguish between
+        binary and text frames without committing to one receive method.
+        """
+        return await self._receive()
+
 
 # ---------------------------------------------------------------------------
 # Path parameter type converters
