@@ -15,6 +15,7 @@ dependencies = [
     "bcrypt",
     "structlog",
     "pydantic",
+    "watchfiles",
 ]
 
 [project.scripts]

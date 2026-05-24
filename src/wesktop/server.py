@@ -184,6 +184,12 @@ def _make_server(target: str, host: str, port: int) -> Granian:
     )
 
 
+def _run_server(target: str, host: str, port: int) -> None:
+    """Create and run a Granian server. Used as the reload subprocess target."""
+    server = _make_server(target, host, port)
+    server.serve()
+
+
 def serve(
     target: str | Callable,
     *,
@@ -193,6 +199,7 @@ def serve(
     pid_path: Path | None = None,
     name: str = "WESKTOP",
     pre_serve: Callable[[], None] | None = None,
+    reload: bool = False,
 ) -> str | None:
     """Start Granian serving the ASGI app.
 
@@ -217,6 +224,9 @@ def serve(
     pre_serve:
         Optional callable invoked synchronously after PID/port checks but
         before Granian starts.
+    reload:
+        When True, watches .py files in the current working directory and
+        restarts the server on changes. Requires foreground=True.
 
     Returns
     -------
@@ -224,6 +234,9 @@ def serve(
         When foreground=False, returns the URL string (e.g. "http://127.0.0.1:8000").
         When foreground=True, returns None (blocks until server stops).
     """
+    if reload and not foreground:
+        raise ValueError("reload requires foreground=True")
+
     resolved_host, resolved_port = _resolve_host_port(host, port, name)
     target_str = _resolve_target(target)
 
@@ -236,8 +249,25 @@ def serve(
     if pre_serve is not None:
         pre_serve()
 
-    server = _make_server(target_str, resolved_host, resolved_port)
     url = f"http://{resolved_host}:{resolved_port}"
+
+    if reload:
+        from watchfiles import PythonFilter, run_process
+
+        log.info("Starting %s on %s (reload enabled)", name, url)
+        run_process(
+            ".",
+            target=_run_server,
+            args=(target_str, resolved_host, resolved_port),
+            watch_filter=PythonFilter(),
+            callback=lambda changes: log.info(
+                "Detected changes, restarting: %s",
+                {path for _, path in changes},
+            ),
+        )
+        return None
+
+    server = _make_server(target_str, resolved_host, resolved_port)
 
     if foreground:
         log.info("Starting %s on %s", name, url)

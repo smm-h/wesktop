@@ -4,22 +4,27 @@ Covers:
 - 1.2: WebSocket.receive_raw() returns raw ASGI message dict
 - 1.3: Broadcaster heartbeat_interval yields SSE heartbeat comments
 - 1.4: Recursive Pydantic model serialization in handler responses
+- 3.1: serve(reload=True) requires foreground=True and invokes watchfiles
 """
 
 from __future__ import annotations
 
 import asyncio
 import json
+import socket
+from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import BaseModel
 
 from wesktop.asgi import (
+    AppConfig,
     JSONResponse,
     Router,
     WebSocket,
     create_app,
 )
+from wesktop.server import serve
 from wesktop.sse import Broadcaster
 
 
@@ -315,3 +320,174 @@ class TestRecursivePydanticSerialization:
             resp = await client.get("/api/plain")
         assert resp.status_code == 200
         assert resp.json() == {"key": "value", "num": 42}
+
+
+# ---------------------------------------------------------------------------
+# 2.1 + 2.2 AppConfig and create_app backward compatibility
+# ---------------------------------------------------------------------------
+
+
+class TestAppConfig:
+    @pytest.mark.anyio
+    async def test_create_app_no_config(self, client_for):
+        """create_app(router) still works without config or kwargs."""
+        router = Router()
+
+        @router.get("/api/ping")
+        async def ping(req):
+            return {"ok": True}
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/ping")
+        assert resp.status_code == 200
+        assert resp.json() == {"ok": True}
+
+    @pytest.mark.anyio
+    async def test_create_app_with_config(self, client_for):
+        """create_app(router, AppConfig(cors_origins=...)) works."""
+        router = Router()
+
+        @router.get("/api/ping")
+        async def ping(req):
+            return {"ok": True}
+
+        cfg = AppConfig(cors_origins=["http://localhost"])
+        app = create_app(router, config=cfg)
+        async with client_for(app) as client:
+            resp = await client.get(
+                "/api/ping",
+                headers={"origin": "http://localhost"},
+            )
+        assert resp.status_code == 200
+        # CORS header is present when Origin matches an allowed origin
+        assert resp.headers.get("access-control-allow-origin") == "http://localhost"
+
+    @pytest.mark.anyio
+    async def test_create_app_kwargs_still_work(self, client_for):
+        """create_app(router, cors_origins=...) still works (backward compat)."""
+        router = Router()
+
+        @router.get("/api/ping")
+        async def ping(req):
+            return {"ok": True}
+
+        app = create_app(router, cors_origins=["http://localhost"])
+        async with client_for(app) as client:
+            resp = await client.get(
+                "/api/ping",
+                headers={"origin": "http://localhost"},
+            )
+        assert resp.status_code == 200
+        assert resp.headers.get("access-control-allow-origin") == "http://localhost"
+
+    @pytest.mark.anyio
+    async def test_kwargs_override_config(self, client_for):
+        """Keyword arguments override matching config fields."""
+        router = Router()
+
+        @router.get("/api/ping")
+        async def ping(req):
+            return {"ok": True}
+
+        # Config says no request_id, kwarg overrides to True
+        cfg = AppConfig(request_id=False)
+        app = create_app(router, config=cfg, request_id=True)
+        async with client_for(app) as client:
+            resp = await client.get("/api/ping")
+        assert resp.status_code == 200
+        # RequestIDMiddleware adds x-request-id to the response header
+        assert resp.headers.get("x-request-id") is not None
+
+    @pytest.mark.anyio
+    async def test_config_request_id_false_no_header(self, client_for):
+        """AppConfig(request_id=False) suppresses the x-request-id header."""
+        router = Router()
+
+        @router.get("/api/ping")
+        async def ping(req):
+            return {"ok": True}
+
+        cfg = AppConfig(request_id=False, request_timing=False)
+        app = create_app(router, config=cfg)
+        async with client_for(app) as client:
+            resp = await client.get("/api/ping")
+        assert resp.status_code == 200
+        assert resp.headers.get("x-request-id") is None
+
+    def test_unknown_kwarg_raises_type_error(self):
+        """Passing an unknown keyword argument raises TypeError."""
+        router = Router()
+        with pytest.raises(TypeError, match="unexpected keyword argument"):
+            create_app(router, bogus_param=True)
+
+    def test_appconfig_importable_from_wesktop(self):
+        """AppConfig is importable from the top-level wesktop package."""
+        from wesktop import AppConfig as AC
+        assert AC is AppConfig
+
+
+# ---------------------------------------------------------------------------
+# 3.1 serve(reload=True) -- auto-restart on .py file changes
+# ---------------------------------------------------------------------------
+
+
+class TestServeReload:
+    def test_reload_requires_foreground(self):
+        """reload=True with foreground=False raises ValueError."""
+        with pytest.raises(ValueError, match="reload requires foreground=True"):
+            serve(
+                "myapp:app",
+                foreground=False,
+                reload=True,
+                host="127.0.0.1",
+                port=9999,
+            )
+
+    @patch("wesktop.server.ensure_port_available")
+    @patch("wesktop.server._resolve_target", return_value="myapp:app")
+    def test_reload_calls_run_process(self, mock_resolve, mock_port):
+        """reload=True invokes watchfiles.run_process with correct args."""
+        mock_port.return_value = 9999
+        mock_run = MagicMock(return_value=0)
+
+        with patch.dict(
+            "sys.modules",
+            {"watchfiles": MagicMock(run_process=mock_run, PythonFilter=MagicMock)},
+        ):
+            # Re-import so the lazy import inside serve() picks up the mock
+            import importlib
+            import wesktop.server as srv
+            importlib.reload(srv)
+
+            srv.serve(
+                "myapp:app",
+                foreground=True,
+                reload=True,
+                host="127.0.0.1",
+                port=9999,
+            )
+
+        mock_run.assert_called_once()
+        call_kwargs = mock_run.call_args
+        # First positional arg is the watch path
+        assert call_kwargs[0][0] == "."
+        # target is _run_server
+        assert call_kwargs[1]["target"].__name__ == "_run_server"
+        # args pass the resolved target, host, port
+        assert call_kwargs[1]["args"] == ("myapp:app", "127.0.0.1", 9999)
+
+    @patch("wesktop.server.Granian")
+    def test_reload_false_does_not_import_watchfiles(self, mock_granian):
+        """reload=False (default) does not touch watchfiles."""
+        mock_instance = MagicMock()
+        mock_granian.return_value = mock_instance
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("127.0.0.1", 0))
+            free_port = s.getsockname()[1]
+
+        # Should work fine without watchfiles installed
+        url = serve("myapp:app", foreground=False, host="127.0.0.1", port=free_port)
+        assert url == f"http://127.0.0.1:{free_port}"
+        mock_instance.serve.assert_called_once()
