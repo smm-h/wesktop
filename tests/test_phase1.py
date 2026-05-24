@@ -764,3 +764,136 @@ class TestQueryList:
             resp = await client.get("/api/single?tag=only")
         assert resp.status_code == 200
         assert resp.json()["tags"] == ["only"]
+
+
+# ---------------------------------------------------------------------------
+# 1.3 Query parameter validation (constraints)
+# ---------------------------------------------------------------------------
+
+
+class TestQueryParameterValidation:
+    @pytest.mark.anyio
+    async def test_ge_violation_returns_422(self, client_for):
+        """?limit=-1 with ge=0 -> 422."""
+        router = Router()
+
+        @router.get("/api/items")
+        async def items(req):
+            limit = req.query("limit", type_=int, ge=0)
+            return JSONResponse({"limit": limit})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/items?limit=-1")
+        assert resp.status_code == 422
+        assert "must be >= 0" in resp.json()["detail"]
+
+    @pytest.mark.anyio
+    async def test_le_violation_returns_422(self, client_for):
+        """?limit=200 with le=100 -> 422."""
+        router = Router()
+
+        @router.get("/api/items")
+        async def items(req):
+            limit = req.query("limit", type_=int, le=100)
+            return JSONResponse({"limit": limit})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/items?limit=200")
+        assert resp.status_code == 422
+        assert "must be <= 100" in resp.json()["detail"]
+
+    @pytest.mark.anyio
+    async def test_min_length_violation_returns_422(self, client_for):
+        """?q=ab with min_length=3 -> 422."""
+        router = Router()
+
+        @router.get("/api/search")
+        async def search(req):
+            q = req.query("q", min_length=3)
+            return JSONResponse({"q": q})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/search?q=ab")
+        assert resp.status_code == 422
+        assert "length >= 3" in resp.json()["detail"]
+
+    @pytest.mark.anyio
+    async def test_max_length_violation_returns_422(self, client_for):
+        """?q=toolong with max_length=5 -> 422."""
+        router = Router()
+
+        @router.get("/api/search")
+        async def search(req):
+            q = req.query("q", max_length=5)
+            return JSONResponse({"q": q})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/search?q=toolong")
+        assert resp.status_code == 422
+        assert "length <= 5" in resp.json()["detail"]
+
+    @pytest.mark.anyio
+    async def test_valid_values_pass_constraints(self, client_for):
+        """Valid values within constraints pass through."""
+        router = Router()
+
+        @router.get("/api/items")
+        async def items(req):
+            limit = req.query("limit", type_=int, ge=0, le=100)
+            return JSONResponse({"limit": limit})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/items?limit=50")
+        assert resp.status_code == 200
+        assert resp.json()["limit"] == 50
+
+    @pytest.mark.anyio
+    async def test_ge_and_le_combined(self, client_for):
+        """ge and le can be combined; boundary values pass."""
+        router = Router()
+
+        @router.get("/api/range")
+        async def range_check(req):
+            val = req.query("v", type_=int, ge=1, le=10)
+            return JSONResponse({"v": val})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            # Boundary: exactly ge
+            resp = await client.get("/api/range?v=1")
+            assert resp.status_code == 200
+            assert resp.json()["v"] == 1
+
+            # Boundary: exactly le
+            resp = await client.get("/api/range?v=10")
+            assert resp.status_code == 200
+            assert resp.json()["v"] == 10
+
+            # Below ge
+            resp = await client.get("/api/range?v=0")
+            assert resp.status_code == 422
+
+            # Above le
+            resp = await client.get("/api/range?v=11")
+            assert resp.status_code == 422
+
+    @pytest.mark.anyio
+    async def test_string_length_valid(self, client_for):
+        """String length within bounds passes."""
+        router = Router()
+
+        @router.get("/api/search")
+        async def search(req):
+            q = req.query("q", min_length=2, max_length=10)
+            return JSONResponse({"q": q})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/search?q=hello")
+        assert resp.status_code == 200
+        assert resp.json()["q"] == "hello"

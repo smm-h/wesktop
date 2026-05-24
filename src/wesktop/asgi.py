@@ -245,16 +245,45 @@ class Request:
         """Raw request body bytes."""
         return self._body
 
-    def query(self, name: str, default: Any = None, type_: type = str) -> Any:
-        """Get a query parameter by name, with optional type conversion."""
+    def query(
+        self,
+        name: str,
+        default: Any = None,
+        *,
+        type_: type = str,
+        ge: int | float | None = None,
+        le: int | float | None = None,
+        min_length: int | None = None,
+        max_length: int | None = None,
+    ) -> Any:
+        """Get a query parameter by name, with optional type conversion and constraints.
+
+        Constraints (checked after type coercion):
+        - ``ge``: value must be >= this (numeric)
+        - ``le``: value must be <= this (numeric)
+        - ``min_length``: len(value) must be >= this (strings)
+        - ``max_length``: len(value) must be <= this (strings)
+
+        Raises HTTPError(422) on constraint violation.
+        """
         qs = parse_qs(self.scope.get("query_string", b"").decode())
         values = qs.get(name)
         if not values:
             return default
         try:
-            return type_(values[0])
+            value = type_(values[0])
         except (ValueError, TypeError):
             return default
+        # Validate constraints
+        if ge is not None and value < ge:
+            raise HTTPError(422, f"Query parameter '{name}' must be >= {ge}")
+        if le is not None and value > le:
+            raise HTTPError(422, f"Query parameter '{name}' must be <= {le}")
+        if min_length is not None and len(value) < min_length:
+            raise HTTPError(422, f"Query parameter '{name}' must have length >= {min_length}")
+        if max_length is not None and len(value) > max_length:
+            raise HTTPError(422, f"Query parameter '{name}' must have length <= {max_length}")
+        return value
 
     def query_list(self, name: str, type_: type = str) -> list:
         """Return all values for a multi-value query key with optional type coercion.
