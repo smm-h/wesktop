@@ -1,6 +1,6 @@
 """
-Minimal ASGI micro-framework with zero external dependencies (stdlib + msgspec).
-Provides routing, static file serving, SPA fallback, middleware, and lifespan support.
+Full-featured ASGI framework built on msgspec, pyjwt, bcrypt, structlog, pydantic, and httpx.
+Provides routing, static files, SPA fallback, WebSocket support, middleware, and lifespan management.
 """
 
 from __future__ import annotations
