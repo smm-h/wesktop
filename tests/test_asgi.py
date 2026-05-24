@@ -11,6 +11,7 @@ from httpx import ASGITransport, AsyncClient
 from wesktop.asgi import (
     BytesResponse,
     HTMLResponse,
+    HTTPError,
     JSONResponse,
     Request,
     Router,
@@ -206,10 +207,13 @@ class TestRequest:
         req = Request(scope, {}, None)
         assert req.query("page", type_=int) == 5
 
-    def test_query_type_coercion_failure_returns_default(self):
+    def test_query_type_coercion_failure_raises_422(self):
         scope = self._make_scope(query_string=b"page=abc")
         req = Request(scope, {}, None)
-        assert req.query("page", default=1, type_=int) == 1
+        with pytest.raises(HTTPError) as exc_info:
+            req.query("page", default=1, type_=int)
+        assert exc_info.value.status_code == 422
+        assert "cannot convert" in exc_info.value.detail
 
     def test_header_case_insensitive(self):
         scope = self._make_scope(headers=[

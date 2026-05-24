@@ -897,3 +897,156 @@ class TestQueryParameterValidation:
             resp = await client.get("/api/search?q=hello")
         assert resp.status_code == 200
         assert resp.json()["q"] == "hello"
+
+
+# ---------------------------------------------------------------------------
+# 1.18 query_params property and coercion failure
+# ---------------------------------------------------------------------------
+
+
+class TestQueryParams:
+    @pytest.mark.anyio
+    async def test_query_params_returns_dict(self, client_for):
+        """req.query_params returns dict with first value per key."""
+        router = Router()
+
+        @router.get("/api/params")
+        async def params(req):
+            return JSONResponse({"params": req.query_params})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/params?token=abc&page=2")
+        assert resp.status_code == 200
+        data = resp.json()["params"]
+        assert data["token"] == "abc"
+        assert data["page"] == "2"
+
+    @pytest.mark.anyio
+    async def test_query_params_first_value_wins(self, client_for):
+        """With ?tag=a&tag=b, query_params["tag"] returns "a" (first value)."""
+        router = Router()
+
+        @router.get("/api/first")
+        async def first(req):
+            return JSONResponse({"tag": req.query_params.get("tag")})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/first?tag=a&tag=b")
+        assert resp.status_code == 200
+        assert resp.json()["tag"] == "a"
+
+    @pytest.mark.anyio
+    async def test_query_params_empty_when_no_query_string(self, client_for):
+        """No query string -> empty dict."""
+        router = Router()
+
+        @router.get("/api/empty")
+        async def empty(req):
+            return JSONResponse({"params": req.query_params})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/empty")
+        assert resp.status_code == 200
+        assert resp.json()["params"] == {}
+
+    @pytest.mark.anyio
+    async def test_query_params_get_method(self, client_for):
+        """query_params.get("token") works like dict.get()."""
+        router = Router()
+
+        @router.get("/api/auth")
+        async def auth(req):
+            token = req.query_params.get("token")
+            return JSONResponse({"token": token})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/auth?token=mytoken")
+        assert resp.status_code == 200
+        assert resp.json()["token"] == "mytoken"
+
+
+class TestQueryCoercionFailure:
+    @pytest.mark.anyio
+    async def test_coercion_failure_raises_422(self, client_for):
+        """?limit=abc with type_=int -> 422, not silent default."""
+        router = Router()
+
+        @router.get("/api/items")
+        async def items(req):
+            limit = req.query("limit", default=10, type_=int)
+            return JSONResponse({"limit": limit})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/items?limit=abc")
+        assert resp.status_code == 422
+        assert "cannot convert" in resp.json()["detail"]
+        assert "'abc'" in resp.json()["detail"]
+        assert "int" in resp.json()["detail"]
+
+    @pytest.mark.anyio
+    async def test_absent_key_uses_default(self, client_for):
+        """?limit absent with default=10 -> returns 10."""
+        router = Router()
+
+        @router.get("/api/items")
+        async def items(req):
+            limit = req.query("limit", default=10, type_=int)
+            return JSONResponse({"limit": limit})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/items")
+        assert resp.status_code == 200
+        assert resp.json()["limit"] == 10
+
+    @pytest.mark.anyio
+    async def test_absent_key_no_default_returns_none(self, client_for):
+        """Absent key with no default -> returns None."""
+        router = Router()
+
+        @router.get("/api/items")
+        async def items(req):
+            limit = req.query("limit", type_=int)
+            return JSONResponse({"limit": limit})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/items")
+        assert resp.status_code == 200
+        assert resp.json()["limit"] is None
+
+    @pytest.mark.anyio
+    async def test_coercion_failure_does_not_use_default(self, client_for):
+        """Even with a default, coercion failure raises 422."""
+        router = Router()
+
+        @router.get("/api/items")
+        async def items(req):
+            limit = req.query("limit", default=50, type_=int)
+            return JSONResponse({"limit": limit})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/items?limit=notanumber")
+        assert resp.status_code == 422
+
+    @pytest.mark.anyio
+    async def test_valid_coercion_works(self, client_for):
+        """?limit=42 with type_=int -> 42."""
+        router = Router()
+
+        @router.get("/api/items")
+        async def items(req):
+            limit = req.query("limit", type_=int)
+            return JSONResponse({"limit": limit})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/items?limit=42")
+        assert resp.status_code == 200
+        assert resp.json()["limit"] == 42

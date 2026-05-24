@@ -200,6 +200,13 @@ class State:
 
 
 # ---------------------------------------------------------------------------
+# Sentinel for missing query parameter defaults
+# ---------------------------------------------------------------------------
+
+_MISSING = object()
+
+
+# ---------------------------------------------------------------------------
 # Request wrapper
 # ---------------------------------------------------------------------------
 
@@ -209,6 +216,7 @@ class Request:
     __slots__ = (
         "scope", "path_params", "_body", "_json", "_json_decoded",
         "_receive", "_disconnected", "_cookies", "_cookies_parsed",
+        "_query_params",
     )
 
     def __init__(
@@ -227,6 +235,7 @@ class Request:
         self._disconnected = False
         self._cookies = None
         self._cookies_parsed = False
+        self._query_params = None
 
     @property
     def json(self) -> dict | list | None:
@@ -248,7 +257,7 @@ class Request:
     def query(
         self,
         name: str,
-        default: Any = None,
+        default: Any = _MISSING,
         *,
         type_: type = str,
         ge: int | float | None = None,
@@ -258,22 +267,36 @@ class Request:
     ) -> Any:
         """Get a query parameter by name, with optional type conversion and constraints.
 
+        The *default* is only used when the key is **absent** from the query
+        string.  When no default is given and the key is absent, returns
+        ``None``.
+
+        Type coercion failure (key present but unconvertible) always raises
+        ``HTTPError(422)`` -- the default is **not** used as a fallback for
+        bad input.
+
         Constraints (checked after type coercion):
         - ``ge``: value must be >= this (numeric)
         - ``le``: value must be <= this (numeric)
         - ``min_length``: len(value) must be >= this (strings)
         - ``max_length``: len(value) must be <= this (strings)
 
-        Raises HTTPError(422) on constraint violation.
+        Raises HTTPError(422) on coercion failure or constraint violation.
         """
         qs = parse_qs(self.scope.get("query_string", b"").decode())
         values = qs.get(name)
         if not values:
+            if default is _MISSING:
+                return None
             return default
+        raw = values[0]
         try:
-            value = type_(values[0])
+            value = type_(raw)
         except (ValueError, TypeError):
-            return default
+            raise HTTPError(
+                422,
+                f"Query parameter '{name}': cannot convert '{raw}' to {type_.__name__}",
+            )
         # Validate constraints
         if ge is not None and value < ge:
             raise HTTPError(422, f"Query parameter '{name}' must be >= {ge}")
@@ -295,6 +318,14 @@ class Request:
         if not values:
             return []
         return [type_(v) for v in values]
+
+    @property
+    def query_params(self) -> dict[str, str]:
+        """Parsed query string as a dict (first value per key). Cached."""
+        if self._query_params is None:
+            qs = parse_qs(self.scope.get("query_string", b"").decode())
+            self._query_params = {k: v[0] for k, v in qs.items()}
+        return self._query_params
 
     def header(self, name: str, default: str | None = None) -> str | None:
         """Return a request header by name (case-insensitive).
