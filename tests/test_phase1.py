@@ -1288,3 +1288,152 @@ class TestExceptionHandlerRegistry:
             resp = await client.get("/api/ok")
         assert resp.status_code == 200
         assert resp.json() == {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# 1.10 Router composition and prefix mounting
+# ---------------------------------------------------------------------------
+
+
+class TestRouterComposition:
+    @pytest.mark.anyio
+    async def test_sub_router_with_prefix(self, client_for):
+        """Sub-router with GET /status mounted at /api/v1 responds at /api/v1/status."""
+        main = Router()
+        sub = Router()
+
+        @sub.get("/status")
+        async def status(req):
+            return JSONResponse({"status": "ok"})
+
+        main.include_router(sub, prefix="/api/v1")
+        app = create_app(main)
+        async with client_for(app) as client:
+            resp = await client.get("/api/v1/status")
+        assert resp.status_code == 200
+        assert resp.json() == {"status": "ok"}
+
+    @pytest.mark.anyio
+    async def test_two_sub_routers_same_prefix(self, client_for):
+        """Two sub-routers at the same prefix with different routes both work."""
+        main = Router()
+        sub_a = Router()
+        sub_b = Router()
+
+        @sub_a.get("/health")
+        async def health(req):
+            return JSONResponse({"service": "health"})
+
+        @sub_b.get("/info")
+        async def info(req):
+            return JSONResponse({"service": "info"})
+
+        main.include_router(sub_a, prefix="/api")
+        main.include_router(sub_b, prefix="/api")
+        app = create_app(main)
+        async with client_for(app) as client:
+            resp_health = await client.get("/api/health")
+            resp_info = await client.get("/api/info")
+        assert resp_health.status_code == 200
+        assert resp_health.json() == {"service": "health"}
+        assert resp_info.status_code == 200
+        assert resp_info.json() == {"service": "info"}
+
+    @pytest.mark.anyio
+    async def test_sub_router_without_prefix(self, client_for):
+        """include_router without prefix copies routes at root level."""
+        main = Router()
+        sub = Router()
+
+        @sub.get("/status")
+        async def status(req):
+            return JSONResponse({"status": "ok"})
+
+        main.include_router(sub)
+        app = create_app(main)
+        async with client_for(app) as client:
+            resp = await client.get("/status")
+        assert resp.status_code == 200
+        assert resp.json() == {"status": "ok"}
+
+    @pytest.mark.anyio
+    async def test_sub_router_with_path_params(self, client_for):
+        """Sub-router routes with path params work under a prefix."""
+        main = Router()
+        sub = Router()
+
+        @sub.get("/items/{id:int}")
+        async def get_item(req):
+            return JSONResponse({"id": req.path_params["id"]})
+
+        main.include_router(sub, prefix="/api/v1")
+        app = create_app(main)
+        async with client_for(app) as client:
+            resp = await client.get("/api/v1/items/42")
+        assert resp.status_code == 200
+        assert resp.json()["id"] == 42
+
+    @pytest.mark.anyio
+    async def test_dependencies_stored_on_route(self, client_for):
+        """Dependencies parameter is accepted and stored (scaffolding for Phase 3)."""
+        main = Router()
+        sub = Router()
+
+        @sub.get("/secured")
+        async def secured(req):
+            return JSONResponse({"ok": True})
+
+        def fake_auth():
+            pass
+
+        main.include_router(sub, prefix="/api", dependencies=[fake_auth])
+
+        # Verify the dependency was stored on the route tuple
+        method, pattern, handler, deps = main._routes[0]
+        assert fake_auth in deps
+
+        # Route still works (deps are stored but not resolved yet)
+        app = create_app(main)
+        async with client_for(app) as client:
+            resp = await client.get("/api/secured")
+        assert resp.status_code == 200
+
+    @pytest.mark.anyio
+    async def test_main_router_routes_still_work(self, client_for):
+        """Including a sub-router doesn't break routes on the main router."""
+        main = Router()
+        sub = Router()
+
+        @main.get("/health")
+        async def health(req):
+            return JSONResponse({"source": "main"})
+
+        @sub.get("/status")
+        async def status(req):
+            return JSONResponse({"source": "sub"})
+
+        main.include_router(sub, prefix="/api")
+        app = create_app(main)
+        async with client_for(app) as client:
+            resp_main = await client.get("/health")
+            resp_sub = await client.get("/api/status")
+        assert resp_main.status_code == 200
+        assert resp_main.json()["source"] == "main"
+        assert resp_sub.status_code == 200
+        assert resp_sub.json()["source"] == "sub"
+
+    @pytest.mark.anyio
+    async def test_unmatched_prefix_returns_404(self, client_for):
+        """Request to wrong prefix returns 404."""
+        main = Router()
+        sub = Router()
+
+        @sub.get("/status")
+        async def status(req):
+            return JSONResponse({"ok": True})
+
+        main.include_router(sub, prefix="/api/v1")
+        app = create_app(main)
+        async with client_for(app) as client:
+            resp = await client.get("/api/v2/status")
+        assert resp.status_code == 404

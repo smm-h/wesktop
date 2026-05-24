@@ -488,6 +488,32 @@ class Router:
         parsed = [_parse_segment(s) for s in raw_segments]
         self._routes.append((method, parsed, handler, []))
 
+    def include_router(
+        self,
+        other: Router,
+        prefix: str | None = None,
+        dependencies: list[Callable] | None = None,
+    ) -> None:
+        """Copy all routes from *other* into this router.
+
+        If *prefix* is given (e.g. ``"/api/v1"``), its segments are
+        prepended to every copied route's pattern.
+
+        If *dependencies* is given, the list is stored alongside each
+        copied route (merged with any deps the route already carries).
+        DI resolution is not wired yet (Phase 3 scaffolding).
+        """
+        prefix_segs: list[ParsedSegment] = []
+        if prefix:
+            prefix_segs = [_parse_segment(s) for s in prefix.strip("/").split("/")]
+
+        extra_deps = dependencies or []
+
+        for method, pattern, handler, existing_deps in other._routes:
+            merged_pattern = prefix_segs + pattern
+            merged_deps = extra_deps + existing_deps
+            self._routes.append((method, merged_pattern, handler, merged_deps))
+
     def match(self, method: str, path: str) -> tuple[Callable, dict[str, Any]] | None:
         """Return (handler, path_params) or None if no route matches.
 
