@@ -1,0 +1,9 @@
+{"commits":["a50004e4aa1fcd08c83f33983114b2e4ef08c9a9"],"user_facing":true,"description":"**Fix.** Query list coercion error handling, cached Request.state, typed Receive/Send aliases.","type":"fix"}
+{"commits":["2cdc5278ece9b42fa41303d0615de6c9e7d0eae4"],"user_facing":true,"description":"**New feature.** Forward reload parameter to run().","type":"feature"}
+{"commits":["8f1fee23a0e186d2e1bbd90458c07dc1bd8449b3"],"user_facing":false}
+{"commits":["2a5c46f5e538ff5e07008afbdec27c0ff8017475"],"user_facing":true,"description":"**Fix.** Merge lifespan state into WebSocket scope.","type":"fix"}
+{"commits":["76bcc3ab87918345d39b7ac3e1a0d09f4009d849","1879ff30f22d733daa978557057a12880a9ef88f"],"user_facing":false}
+{"commits":["1d554af12abef28ac54ec0e42e1cf5385a308221"],"user_facing":true,"description":"**Fix.** Replace private config path import with public `config_file_path` property.","type":"fix"}
+{"commits":["5a09af55a080e9a0616c7fe95022148d82e2a70e"],"user_facing":true,"description":"**Fix.** Document optional MCP dependency in docstring.","type":"fix"}
+{"commits":["fa5c35a5d86b1e520199c9d2921a3a4d5845ba8e"],"user_facing":false}
+{"commits":["497173da12c0f10c1d71b841c4647eaa2158b6aa"],"user_facing":false}
