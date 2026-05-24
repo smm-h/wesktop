@@ -18,6 +18,7 @@ def run(
     pid_path: Path | None = None,
     name: str = "WESKTOP",
     pre_serve: Callable[[], None] | None = None,
+    reload: bool = False,
 ) -> None:
     """Start server + open native desktop window. Blocks until window closes."""
     from wesktop.server import serve
@@ -30,6 +31,7 @@ def run(
         pid_path=pid_path,
         name=name,
         pre_serve=pre_serve,
+        reload=reload,
     )
 
     # Late import so headless mode (serve) has no pywebview dependency

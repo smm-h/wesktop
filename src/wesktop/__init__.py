@@ -274,6 +274,7 @@ def run(
     pid_path: Path | None = None,
     name: str = "WESKTOP",
     pre_serve: Callable[[], None] | None = None,
+    reload: bool = False,
 ) -> None:
     """Start server + native desktop window."""
     from wesktop.desktop import run as _run
@@ -289,6 +290,7 @@ def run(
         pid_path=pid_path,
         name=name,
         pre_serve=pre_serve,
+        reload=reload,
     )
 
 
