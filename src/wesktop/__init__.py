@@ -301,6 +301,7 @@ def serve(
     pid_path: Path | None = None,
     name: str = "WESKTOP",
     pre_serve: Callable[[], None] | None = None,
+    reload: bool = False,
 ) -> str | None:
     """Start server. Blocks if foreground=True, returns URL if foreground=False."""
     from wesktop.server import serve as _serve
@@ -313,6 +314,7 @@ def serve(
         pid_path=pid_path,
         name=name,
         pre_serve=pre_serve,
+        reload=reload,
     )
 
 
