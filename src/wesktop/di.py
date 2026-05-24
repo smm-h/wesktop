@@ -20,7 +20,7 @@ class DependencyResolver:
     """
 
     def __init__(self, overrides: dict[Callable, Callable] | None = None):
-        self._overrides = overrides or {}
+        self._overrides = overrides if overrides is not None else {}
 
     async def resolve(
         self,
@@ -49,7 +49,16 @@ class DependencyResolver:
                     resolved[name] = cache[factory_id]
                     continue
 
-                result = actual_factory(request)
+                # Call the factory with request if it accepts it, otherwise
+                # call with no args. This supports test override factories
+                # like ``async def fake(): return {"sub": "test"}`` that
+                # don't need request context.
+                sig = inspect.signature(actual_factory)
+                params = sig.parameters
+                if params:
+                    result = actual_factory(request)
+                else:
+                    result = actual_factory()
 
                 # Handle awaitable (async def factory)
                 if inspect.isawaitable(result):

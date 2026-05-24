@@ -1073,7 +1073,25 @@ def create_app(
                         route_deps, request,
                     )
                     try:
-                        result = await handler(request, **resolved)
+                        # Filter resolved deps to only those the handler
+                        # actually accepts, so router-level deps (e.g. auth)
+                        # don't cause TypeError on handlers that don't need
+                        # the resolved value.
+                        import inspect as _inspect
+                        _sig = _inspect.signature(handler)
+                        _params = _sig.parameters
+                        if any(
+                            p.kind == _inspect.Parameter.VAR_KEYWORD
+                            for p in _params.values()
+                        ):
+                            filtered = resolved
+                        else:
+                            accepted = set(_params.keys())
+                            filtered = {
+                                k: v for k, v in resolved.items()
+                                if k in accepted
+                            }
+                        result = await handler(request, **filtered)
                     finally:
                         await DependencyResolver.cleanup(cleanups)
                 else:
