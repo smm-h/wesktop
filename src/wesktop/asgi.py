@@ -966,11 +966,13 @@ def create_app(
     trusted_hosts: list[str] | None = None,
     request_id: bool = True,
     request_timing: bool = True,
+    vite_dev_port: int | None = None,
 ) -> Callable:
     """Create an ASGI application callable.
 
     Built-in middleware (applied when their parameters are truthy):
     - ``trusted_hosts``: TrustedHostMiddleware (outermost)
+    - ``vite_dev_port``: ViteDevProxy
     - ``cors_origins``: CORSMiddleware
     - ``request_id``: RequestIDMiddleware
     - ``request_timing``: RequestTimingMiddleware (innermost)
@@ -1160,6 +1162,7 @@ def create_app(
         RequestIDMiddleware as _RequestIDMiddleware,
         RequestTimingMiddleware as _RequestTimingMiddleware,
         TrustedHostMiddleware as _TrustedHostMiddleware,
+        ViteDevProxy as _ViteDevProxy,
     )
 
     if request_timing:
@@ -1168,6 +1171,8 @@ def create_app(
         wrapped = _RequestIDMiddleware(wrapped)
     if cors_origins:
         wrapped = _CORSMiddleware(wrapped, allow_origins=cors_origins)
+    if vite_dev_port is not None:
+        wrapped = _ViteDevProxy(wrapped, vite_port=vite_dev_port)
     if trusted_hosts:
         wrapped = _TrustedHostMiddleware(wrapped, allowed_hosts=trusted_hosts)
 

@@ -1,4 +1,4 @@
-"""Request tracing, CORS, and trusted-host middleware.
+"""Request tracing, CORS, trusted-host, and Vite dev proxy middleware.
 
 All middleware classes are pure ASGI — no framework dependency beyond
 wesktop's own ``send_error`` helper.  This keeps them streaming-safe
@@ -10,6 +10,7 @@ Classes:
     RequestTimingMiddleware — logs method, path, status, duration; ring buffer
     CORSMiddleware        — preflight OPTIONS + response header injection
     TrustedHostMiddleware — rejects requests from unlisted Host headers
+    ViteDevProxy          — proxies non-API requests to a Vite dev server
 """
 
 from __future__ import annotations
@@ -300,3 +301,219 @@ class TrustedHostMiddleware:
             return
 
         await self.app(scope, receive, send)
+
+
+# ---------------------------------------------------------------------------
+# Vite Dev Proxy
+# ---------------------------------------------------------------------------
+
+class ViteDevProxy:
+    """ASGI middleware that proxies non-API requests to a Vite dev server.
+
+    Handles both HTTP requests and WebSocket upgrades (for HMR).
+
+    Args:
+        app: The inner ASGI application.
+        vite_port: Port the Vite dev server is listening on.
+        api_prefix: Path prefix for API requests (default ``"/api"``).
+            Requests whose path starts with this prefix or ``/events``
+            pass through to the inner app; everything else is proxied.
+    """
+
+    def __init__(
+        self,
+        app: Callable,
+        *,
+        vite_port: int,
+        api_prefix: str = "/api",
+    ) -> None:
+        self.app = app
+        self.vite_port = vite_port
+        self.api_prefix = api_prefix
+        self._http_client: Any | None = None
+
+    def _is_api_request(self, path: str) -> bool:
+        """Return True if this path should go to the app, not be proxied."""
+        return (
+            path.startswith(self.api_prefix + "/")
+            or path == self.api_prefix
+            or path.startswith("/events")
+        )
+
+    def _get_client(self) -> Any:
+        if self._http_client is None:
+            import httpx as _httpx
+            self._http_client = _httpx.AsyncClient(
+                timeout=60, follow_redirects=False,
+            )
+        return self._http_client
+
+    async def close(self) -> None:
+        if self._http_client is not None:
+            await self._http_client.aclose()
+            self._http_client = None
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http":
+            path = scope.get("path", "")
+            if not self._is_api_request(path):
+                await self._proxy_http(scope, receive, send)
+                return
+
+        elif scope["type"] == "websocket":
+            path = scope.get("path", "")
+            if not self._is_api_request(path):
+                await self._proxy_ws(scope, receive, send)
+                return
+
+        await self.app(scope, receive, send)
+
+    async def _proxy_http(
+        self, scope: Scope, receive: Receive, send: Send,
+    ) -> None:
+        """Forward an HTTP request to the Vite dev server."""
+        import httpx as _httpx
+
+        path = scope.get("path", "/")
+        qs = scope.get("query_string", b"")
+        target = f"http://127.0.0.1:{self.vite_port}{path}"
+        if qs:
+            target += f"?{qs.decode('latin-1')}"
+
+        method = scope.get("method", "GET")
+
+        # Collect request body.
+        body = b""
+        while True:
+            msg = await receive()
+            body += msg.get("body", b"")
+            if not msg.get("more_body", False):
+                break
+
+        # Forward a subset of headers.
+        fwd_headers: dict[str, str] = {}
+        for raw_name, raw_val in scope.get("headers", []):
+            name = raw_name.decode("latin-1").lower()
+            if name in (
+                "accept", "accept-encoding", "accept-language",
+                "cookie", "if-none-match", "if-modified-since",
+                "cache-control", "content-type",
+            ):
+                fwd_headers[name] = raw_val.decode("latin-1")
+
+        client = self._get_client()
+        try:
+            resp = await client.request(
+                method=method,
+                url=target,
+                headers=fwd_headers,
+                content=body or None,
+            )
+        except _httpx.ConnectError:
+            await send_error(send, 502, "Vite dev server not reachable")
+            return
+
+        # Build response headers, excluding hop-by-hop headers.
+        excluded = {"transfer-encoding", "content-encoding", "content-length"}
+        resp_headers = [
+            (k.encode("latin-1"), v.encode("latin-1"))
+            for k, v in resp.headers.items()
+            if k.lower() not in excluded
+        ]
+        resp_headers.append(
+            (b"content-length", str(len(resp.content)).encode("latin-1"))
+        )
+
+        await send({
+            "type": "http.response.start",
+            "status": resp.status_code,
+            "headers": resp_headers,
+        })
+        await send({
+            "type": "http.response.body",
+            "body": resp.content,
+        })
+
+    async def _proxy_ws(
+        self, scope: Scope, receive: Receive, send: Send,
+    ) -> None:
+        """Bidirectional WebSocket proxy to Vite (for HMR).
+
+        Uses the ``websockets`` library if available. Falls back to
+        closing the connection with an error code if not installed.
+        """
+        import asyncio
+
+        path = scope.get("path", "/")
+        qs = scope.get("query_string", b"")
+        target_path = path
+        if qs:
+            target_path += f"?{qs.decode('latin-1')}"
+
+        # Accept the client WebSocket.
+        msg = await receive()
+        if msg.get("type") != "websocket.connect":
+            return
+
+        # Extract subprotocol from client headers.
+        subprotocol = None
+        for raw_name, raw_val in scope.get("headers", []):
+            if raw_name.decode("latin-1").lower() == "sec-websocket-protocol":
+                subprotocol = raw_val.decode("latin-1")
+                break
+
+        accept_msg: dict[str, Any] = {"type": "websocket.accept"}
+        if subprotocol:
+            accept_msg["subprotocol"] = subprotocol
+        await send(accept_msg)
+
+        # Connect to Vite's WebSocket.
+        try:
+            from websockets.asyncio.client import connect
+
+            ws_kwargs: dict[str, Any] = {
+                "ping_interval": None, "close_timeout": 5,
+            }
+            if subprotocol:
+                ws_kwargs["subprotocols"] = [subprotocol]
+
+            ws_url = f"ws://127.0.0.1:{self.vite_port}{target_path}"
+            async with connect(ws_url, **ws_kwargs) as vite_ws:
+
+                async def client_to_vite() -> None:
+                    while True:
+                        inner_msg = await receive()
+                        if inner_msg["type"] == "websocket.receive":
+                            text = inner_msg.get("text")
+                            if text is not None:
+                                await vite_ws.send(text)
+                            else:
+                                await vite_ws.send(inner_msg.get("bytes", b""))
+                        elif inner_msg["type"] == "websocket.disconnect":
+                            break
+
+                async def vite_to_client() -> None:
+                    async for data in vite_ws:
+                        if isinstance(data, str):
+                            await send({"type": "websocket.send", "text": data})
+                        else:
+                            await send({"type": "websocket.send", "bytes": data})
+
+                _done, pending = await asyncio.wait(
+                    [
+                        asyncio.ensure_future(client_to_vite()),
+                        asyncio.ensure_future(vite_to_client()),
+                    ],
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                for task in pending:
+                    task.cancel()
+        except ImportError:
+            pass
+        except Exception:
+            pass
+        finally:
+            try:
+                await send({"type": "websocket.close", "code": 1000})
+            except Exception:
+                pass

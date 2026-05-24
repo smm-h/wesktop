@@ -48,7 +48,10 @@ from wesktop.middleware import (
     RequestIDMiddleware,
     RequestTimingMiddleware,
     TrustedHostMiddleware,
+    ViteDevProxy,
 )
+from wesktop.config import load_config
+from wesktop.testing import AsyncTestClient, TestClient
 from wesktop.server import ServerStatus
 from wesktop.sse import Broadcaster, sse_route
 
@@ -99,6 +102,12 @@ __all__ = [
     "RequestIDMiddleware",
     "RequestTimingMiddleware",
     "TrustedHostMiddleware",
+    "ViteDevProxy",
+    # config
+    "load_config",
+    # testing
+    "AsyncTestClient",
+    "TestClient",
     # sse
     "Broadcaster",
     "sse_route",
