@@ -1118,6 +1118,11 @@ def create_app(
 
         # -- WebSocket routing (app-scoped via router) --
         if scope["type"] == "websocket":
+            # Merge lifespan state into scope for WebSocket connections
+            if "state" not in scope:
+                scope["state"] = {}
+            scope["state"].update(_lifespan_state)
+
             path = scope.get("path", "")
             ws_match = router._match_ws_with_deps(path)
             if ws_match:
