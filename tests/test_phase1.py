@@ -17,12 +17,14 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from wesktop.asgi import (
+    FileResponse,
     HTTPError,
     JSONResponse,
     Router,
     State,
     StreamResponse,
     TextResponse,
+    WebSocket,
     create_app,
     delete_cookie,
     send_error,
@@ -1547,3 +1549,449 @@ class TestPathConverter:
         async with client_for(app) as client:
             resp = await client.get("/api/services/myapp/stop")
         assert resp.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# 1.7 WebSocket path parameters and app-scoped routing
+# ---------------------------------------------------------------------------
+
+
+async def _ws_connect(app, path, headers=None, query_string=b""):
+    """Simulate a WebSocket connection via raw ASGI scope/receive/send.
+
+    Returns (sent_messages, receive_queue) where:
+    - sent_messages is a list of messages the app sent
+    - receive_queue is an asyncio.Queue the test pushes messages into
+    """
+    scope = {
+        "type": "websocket",
+        "path": path,
+        "headers": headers or [],
+        "query_string": query_string,
+    }
+    receive_queue: asyncio.Queue = asyncio.Queue()
+    sent_messages: list[dict] = []
+
+    # Push websocket.connect as the first thing the app will receive
+    await receive_queue.put({"type": "websocket.connect"})
+
+    async def receive():
+        return await receive_queue.get()
+
+    async def send(msg):
+        sent_messages.append(msg)
+
+    return scope, receive, send, receive_queue, sent_messages
+
+
+class TestWebSocketPathParams:
+    @pytest.mark.anyio
+    async def test_ws_path_param_received(self):
+        """WebSocket connects to /ws/{id}, handler receives path_params["id"]."""
+        router = Router()
+        captured_params = {}
+
+        @router.ws("/ws/{id}")
+        async def ws_handler(ws):
+            captured_params.update(ws.path_params)
+            await ws.accept()
+            await ws.send_json({"id": ws.path_params["id"]})
+
+        app = create_app(router)
+        scope, receive, send, recv_q, sent = await _ws_connect(app, "/ws/abc123")
+        await app(scope, receive, send)
+
+        assert captured_params["id"] == "abc123"
+        # First sent message is websocket.accept, second is the data
+        assert sent[0]["type"] == "websocket.accept"
+        assert sent[1]["type"] == "websocket.send"
+        import json
+        assert json.loads(sent[1]["text"]) == {"id": "abc123"}
+
+    @pytest.mark.anyio
+    async def test_ws_typed_path_param(self):
+        """WebSocket connects to /ws/{id:int}, handler receives int param."""
+        router = Router()
+        captured_params = {}
+
+        @router.ws("/ws/{id:int}")
+        async def ws_handler(ws):
+            captured_params.update(ws.path_params)
+            await ws.accept()
+            await ws.send_json({"id": ws.path_params["id"]})
+
+        app = create_app(router)
+        scope, receive, send, recv_q, sent = await _ws_connect(app, "/ws/42")
+        await app(scope, receive, send)
+
+        assert captured_params["id"] == 42
+        assert isinstance(captured_params["id"], int)
+
+    @pytest.mark.anyio
+    async def test_two_apps_independent_ws_routes(self):
+        """Two apps in the same process have independent WS route tables."""
+        router_a = Router()
+        router_b = Router()
+
+        results_a = []
+        results_b = []
+
+        @router_a.ws("/ws/echo")
+        async def ws_a(ws):
+            await ws.accept()
+            await ws.send_text("app_a")
+            results_a.append("called")
+
+        @router_b.ws("/ws/echo")
+        async def ws_b(ws):
+            await ws.accept()
+            await ws.send_text("app_b")
+            results_b.append("called")
+
+        app_a = create_app(router_a)
+        app_b = create_app(router_b)
+
+        # Connect to app_a
+        scope_a, recv_a, send_a, _, sent_a = await _ws_connect(app_a, "/ws/echo")
+        await app_a(scope_a, recv_a, send_a)
+        assert results_a == ["called"]
+        assert results_b == []
+        assert sent_a[1]["text"] == "app_a"
+
+        # Connect to app_b
+        scope_b, recv_b, send_b, _, sent_b = await _ws_connect(app_b, "/ws/echo")
+        await app_b(scope_b, recv_b, send_b)
+        assert results_b == ["called"]
+        assert sent_b[1]["text"] == "app_b"
+
+    @pytest.mark.anyio
+    async def test_ws_unmatched_path_rejected(self):
+        """WebSocket to unmatched path gets close code 4004."""
+        router = Router()
+        app = create_app(router)
+
+        scope, receive, send, _, sent = await _ws_connect(app, "/ws/nonexistent")
+        await app(scope, receive, send)
+
+        assert any(m.get("type") == "websocket.close" for m in sent)
+        close_msg = next(m for m in sent if m["type"] == "websocket.close")
+        assert close_msg["code"] == 4004
+
+    @pytest.mark.anyio
+    async def test_ws_route_via_add_ws_route(self):
+        """Router.add_ws_route works programmatically."""
+        router = Router()
+        captured = {}
+
+        async def handler(ws):
+            captured["path_params"] = ws.path_params
+            await ws.accept()
+
+        router.add_ws_route("/ws/{room}", handler)
+        app = create_app(router)
+        scope, receive, send, _, sent = await _ws_connect(app, "/ws/general")
+        await app(scope, receive, send)
+
+        assert captured["path_params"]["room"] == "general"
+        assert sent[0]["type"] == "websocket.accept"
+
+
+# ---------------------------------------------------------------------------
+# 1.8 WebSocket helper class
+# ---------------------------------------------------------------------------
+
+
+class TestWebSocketHelper:
+    @pytest.mark.anyio
+    async def test_echo_json(self):
+        """Client sends JSON, server receives via ws.receive_json(), echoes via ws.send_json()."""
+        router = Router()
+
+        @router.ws("/ws/echo")
+        async def echo(ws):
+            await ws.accept()
+            data = await ws.receive_json()
+            await ws.send_json(data)
+
+        app = create_app(router)
+        scope, receive, send, recv_q, sent = await _ws_connect(app, "/ws/echo")
+
+        import json
+        # Queue a message for the handler to receive after accept
+        await recv_q.put({"type": "websocket.receive", "text": json.dumps({"msg": "hello"})})
+
+        await app(scope, receive, send)
+
+        # sent[0] = accept, sent[1] = echo response
+        assert sent[0]["type"] == "websocket.accept"
+        assert json.loads(sent[1]["text"]) == {"msg": "hello"}
+
+    @pytest.mark.anyio
+    async def test_send_and_receive_text(self):
+        """send_text and receive_text work correctly."""
+        router = Router()
+
+        @router.ws("/ws/text")
+        async def text_handler(ws):
+            await ws.accept()
+            text = await ws.receive_text()
+            await ws.send_text(f"echo: {text}")
+
+        app = create_app(router)
+        scope, receive, send, recv_q, sent = await _ws_connect(app, "/ws/text")
+        await recv_q.put({"type": "websocket.receive", "text": "hello"})
+        await app(scope, receive, send)
+
+        assert sent[1]["text"] == "echo: hello"
+
+    @pytest.mark.anyio
+    async def test_send_and_receive_bytes(self):
+        """send_bytes and receive_bytes work correctly."""
+        router = Router()
+
+        @router.ws("/ws/bytes")
+        async def bytes_handler(ws):
+            await ws.accept()
+            data = await ws.receive_bytes()
+            await ws.send_bytes(data + b"-echoed")
+
+        app = create_app(router)
+        scope, receive, send, recv_q, sent = await _ws_connect(app, "/ws/bytes")
+        await recv_q.put({"type": "websocket.receive", "bytes": b"raw"})
+        await app(scope, receive, send)
+
+        assert sent[1]["bytes"] == b"raw-echoed"
+
+    @pytest.mark.anyio
+    async def test_path_params_property(self):
+        """ws.path_params reflects scope path_params."""
+        router = Router()
+        captured = {}
+
+        @router.ws("/ws/{session_id}")
+        async def handler(ws):
+            captured["session_id"] = ws.path_params["session_id"]
+            await ws.accept()
+
+        app = create_app(router)
+        scope, receive, send, _, _ = await _ws_connect(app, "/ws/sess-42")
+        await app(scope, receive, send)
+
+        assert captured["session_id"] == "sess-42"
+
+    @pytest.mark.anyio
+    async def test_headers_property(self):
+        """ws.headers parses ASGI headers."""
+        router = Router()
+        captured = {}
+
+        @router.ws("/ws/headers")
+        async def handler(ws):
+            captured.update(ws.headers)
+            await ws.accept()
+
+        app = create_app(router)
+        headers = [
+            [b"authorization", b"Bearer token123"],
+            [b"x-custom", b"value"],
+        ]
+        scope, receive, send, _, _ = await _ws_connect(app, "/ws/headers", headers=headers)
+        await app(scope, receive, send)
+
+        assert captured["authorization"] == "Bearer token123"
+        assert captured["x-custom"] == "value"
+
+    @pytest.mark.anyio
+    async def test_query_string_property(self):
+        """ws.query_string returns decoded query string."""
+        router = Router()
+        captured = {}
+
+        @router.ws("/ws/qs")
+        async def handler(ws):
+            captured["qs"] = ws.query_string
+            await ws.accept()
+
+        app = create_app(router)
+        scope, receive, send, _, _ = await _ws_connect(
+            app, "/ws/qs", query_string=b"token=abc&mode=live",
+        )
+        await app(scope, receive, send)
+
+        assert captured["qs"] == "token=abc&mode=live"
+
+    @pytest.mark.anyio
+    async def test_close(self):
+        """ws.close() sends websocket.close with code."""
+        router = Router()
+
+        @router.ws("/ws/close")
+        async def handler(ws):
+            await ws.accept()
+            await ws.close(code=1001)
+
+        app = create_app(router)
+        scope, receive, send, _, sent = await _ws_connect(app, "/ws/close")
+        await app(scope, receive, send)
+
+        assert sent[0]["type"] == "websocket.accept"
+        assert sent[1]["type"] == "websocket.close"
+        assert sent[1]["code"] == 1001
+
+    @pytest.mark.anyio
+    async def test_accept_with_subprotocol(self):
+        """ws.accept(subprotocol=...) includes subprotocol in accept message."""
+        router = Router()
+
+        @router.ws("/ws/proto")
+        async def handler(ws):
+            await ws.accept(subprotocol="graphql-ws")
+
+        app = create_app(router)
+        scope, receive, send, _, sent = await _ws_connect(app, "/ws/proto")
+        await app(scope, receive, send)
+
+        assert sent[0]["type"] == "websocket.accept"
+        assert sent[0]["subprotocol"] == "graphql-ws"
+
+    def test_websocket_importable_from_wesktop(self):
+        """WebSocket is importable from wesktop."""
+        from wesktop import WebSocket as WS
+        assert WS is WebSocket
+
+
+# ---------------------------------------------------------------------------
+# 1.17 FileResponse
+# ---------------------------------------------------------------------------
+
+
+class TestFileResponse:
+    @pytest.mark.anyio
+    async def test_file_response_serves_file(self, client_for, tmp_path):
+        """FileResponse serves file content with correct Content-Type and Content-Length."""
+        # Create a real file
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("hello world")
+
+        router = Router()
+
+        @router.get("/download")
+        async def download(req):
+            return FileResponse(test_file)
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/download")
+
+        assert resp.status_code == 200
+        assert resp.text == "hello world"
+        assert resp.headers["content-type"] == "text/plain"
+        assert resp.headers["content-length"] == "11"
+
+    @pytest.mark.anyio
+    async def test_file_response_explicit_content_type(self, client_for, tmp_path):
+        """FileResponse with explicit content_type overrides MIME detection."""
+        test_file = tmp_path / "data.bin"
+        test_file.write_bytes(b"\x00\x01\x02\x03")
+
+        router = Router()
+
+        @router.get("/download")
+        async def download(req):
+            return FileResponse(test_file, content_type="application/x-custom")
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/download")
+
+        assert resp.status_code == 200
+        assert resp.content == b"\x00\x01\x02\x03"
+        assert resp.headers["content-type"] == "application/x-custom"
+
+    @pytest.mark.anyio
+    async def test_file_response_json_file(self, client_for, tmp_path):
+        """FileResponse auto-detects JSON MIME type."""
+        test_file = tmp_path / "config.json"
+        test_file.write_text('{"key": "value"}')
+
+        router = Router()
+
+        @router.get("/config")
+        async def config(req):
+            return FileResponse(test_file)
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/config")
+
+        assert resp.status_code == 200
+        assert resp.text == '{"key": "value"}'
+        assert resp.headers["content-type"] == "application/json"
+        assert resp.headers["content-length"] == "16"
+
+    @pytest.mark.anyio
+    async def test_file_response_custom_status(self, client_for, tmp_path):
+        """FileResponse with custom status code."""
+        test_file = tmp_path / "report.html"
+        test_file.write_text("<h1>Report</h1>")
+
+        router = Router()
+
+        @router.get("/report")
+        async def report(req):
+            return FileResponse(test_file, status=201)
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/report")
+
+        assert resp.status_code == 201
+        assert resp.headers["content-type"] == "text/html"
+
+    @pytest.mark.anyio
+    async def test_file_response_with_headers_and_cookies(self, client_for, tmp_path):
+        """FileResponse supports extra headers and cookies."""
+        test_file = tmp_path / "image.png"
+        test_file.write_bytes(b"PNG_FAKE_DATA")
+
+        router = Router()
+
+        @router.get("/image")
+        async def image(req):
+            return FileResponse(
+                test_file,
+                headers={"X-Custom": "myval"},
+                cookies=[set_cookie("downloaded", "true")],
+            )
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/image")
+
+        assert resp.status_code == 200
+        assert resp.headers["x-custom"] == "myval"
+        assert "downloaded=true" in resp.headers.get("set-cookie", "")
+
+    @pytest.mark.anyio
+    async def test_file_response_string_path(self, client_for, tmp_path):
+        """FileResponse accepts a string path, not just Path objects."""
+        test_file = tmp_path / "readme.txt"
+        test_file.write_text("readme content")
+
+        router = Router()
+
+        @router.get("/readme")
+        async def readme(req):
+            return FileResponse(str(test_file))
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/readme")
+
+        assert resp.status_code == 200
+        assert resp.text == "readme content"
+
+    def test_file_response_importable_from_wesktop(self):
+        """FileResponse is importable from wesktop."""
+        from wesktop import FileResponse as FR
+        assert FR is FileResponse

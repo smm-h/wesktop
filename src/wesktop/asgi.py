@@ -161,6 +161,24 @@ class StreamResponse:
         self.cookies = cookies or []
 
 
+class FileResponse:
+    """Serve a file from disk with MIME detection and Content-Length."""
+
+    def __init__(
+        self,
+        path: str | Path,
+        content_type: str | None = None,
+        status: int = 200,
+        headers: dict[str, str] | None = None,
+        cookies: list[str] | None = None,
+    ):
+        self.path = Path(path)
+        self.content_type = content_type
+        self.status = status
+        self.headers = headers or {}
+        self.cookies = cookies or []
+
+
 # ---------------------------------------------------------------------------
 # State wrapper
 # ---------------------------------------------------------------------------
@@ -396,6 +414,78 @@ class Request:
 
 
 # ---------------------------------------------------------------------------
+# WebSocket helper class
+# ---------------------------------------------------------------------------
+
+class WebSocket:
+    """Wraps the raw ASGI (scope, receive, send) triple for WebSocket connections.
+
+    Handlers receive a WebSocket instance instead of the raw triple, providing
+    convenient methods for accept/close/send/receive and properties for
+    path_params, headers, and query_string.
+    """
+
+    __slots__ = ("scope", "_receive", "_send")
+
+    def __init__(self, scope: dict, receive: Callable, send: Callable) -> None:
+        self.scope = scope
+        self._receive = receive
+        self._send = send
+
+    @property
+    def path_params(self) -> dict[str, Any]:
+        return self.scope.get("path_params", {})
+
+    @property
+    def headers(self) -> dict[str, str]:
+        """Parse ASGI headers into a case-preserving dict (first value wins)."""
+        result: dict[str, str] = {}
+        for k, v in self.scope.get("headers", []):
+            name = k.decode("latin-1")
+            if name not in result:
+                result[name] = v.decode("latin-1")
+        return result
+
+    @property
+    def query_string(self) -> str:
+        return self.scope.get("query_string", b"").decode()
+
+    async def accept(self, subprotocol: str | None = None) -> None:
+        # Consume the websocket.connect message per ASGI spec
+        await self._receive()
+        msg: dict[str, Any] = {"type": "websocket.accept"}
+        if subprotocol:
+            msg["subprotocol"] = subprotocol
+        await self._send(msg)
+
+    async def close(self, code: int = 1000) -> None:
+        await self._send({"type": "websocket.close", "code": code})
+
+    async def send_json(self, data: Any) -> None:
+        import json as _json
+        await self._send({"type": "websocket.send", "text": _json.dumps(data)})
+
+    async def send_bytes(self, data: bytes) -> None:
+        await self._send({"type": "websocket.send", "bytes": data})
+
+    async def send_text(self, text: str) -> None:
+        await self._send({"type": "websocket.send", "text": text})
+
+    async def receive_json(self) -> Any:
+        import json as _json
+        msg = await self._receive()
+        return _json.loads(msg.get("text", ""))
+
+    async def receive_bytes(self) -> bytes:
+        msg = await self._receive()
+        return msg.get("bytes", b"")
+
+    async def receive_text(self) -> str:
+        msg = await self._receive()
+        return msg.get("text", "")
+
+
+# ---------------------------------------------------------------------------
 # Path parameter type converters
 # ---------------------------------------------------------------------------
 
@@ -446,6 +536,8 @@ class Router:
     def __init__(self) -> None:
         # (method, parsed_segments, handler, dependencies)
         self._routes: list[tuple[str, list[ParsedSegment], Callable, list]] = []
+        # WebSocket routes: (parsed_segments, handler)
+        self._ws_routes: list[tuple[list[ParsedSegment], Callable]] = []
 
     def get(self, path: str) -> Callable:
         """Decorator to register a GET handler."""
@@ -488,6 +580,19 @@ class Router:
         parsed = [_parse_segment(s) for s in raw_segments]
         self._routes.append((method, parsed, handler, []))
 
+    def ws(self, path: str) -> Callable:
+        """Decorator to register a WebSocket handler."""
+        def decorator(fn: Callable) -> Callable:
+            self.add_ws_route(path, fn)
+            return fn
+        return decorator
+
+    def add_ws_route(self, path: str, handler: Callable) -> None:
+        """Register a WebSocket handler for a path pattern (supports {param})."""
+        raw_segments = path.strip("/").split("/")
+        parsed = [_parse_segment(s) for s in raw_segments]
+        self._ws_routes.append((parsed, handler))
+
     def include_router(
         self,
         other: Router,
@@ -513,6 +618,11 @@ class Router:
             merged_pattern = prefix_segs + pattern
             merged_deps = extra_deps + existing_deps
             self._routes.append((method, merged_pattern, handler, merged_deps))
+
+        # Copy WebSocket routes with prefix
+        for pattern, handler in other._ws_routes:
+            merged_pattern = prefix_segs + pattern
+            self._ws_routes.append((merged_pattern, handler))
 
     def match(self, method: str, path: str) -> tuple[Callable, dict[str, Any]] | None:
         """Return (handler, path_params) or None if no route matches.
@@ -618,6 +728,43 @@ class Router:
 
         return params
 
+    def match_ws(self, path: str) -> tuple[Callable, dict[str, Any]] | None:
+        """Return (handler, path_params) for a WebSocket path, or None."""
+        segments = path.strip("/").split("/")
+        for pattern, handler in self._ws_routes:
+            # Check for :path segments
+            path_seg_idx = None
+            for i, (lit, name, conv) in enumerate(pattern):
+                if name is not None and lit is None and conv is None:
+                    path_seg_idx = i
+                    break
+
+            if path_seg_idx is not None:
+                result = self._match_with_path_param(pattern, segments, path_seg_idx)
+                if result is not None:
+                    return handler, result
+                continue
+
+            if len(pattern) != len(segments):
+                continue
+
+            params: dict[str, Any] = {}
+            matched = True
+            for (lit, name, conv), req_seg in zip(pattern, segments):
+                if lit is not None:
+                    if lit != req_seg:
+                        matched = False
+                        break
+                else:
+                    try:
+                        params[name] = conv(req_seg)
+                    except (ValueError, TypeError):
+                        matched = False
+                        break
+            if matched:
+                return handler, params
+        return None
+
 
 # ---------------------------------------------------------------------------
 # ASGI send helpers
@@ -694,6 +841,16 @@ async def _send_result(send: Callable, result: Any) -> None:
         )
     elif isinstance(result, StreamResponse):
         await _send_stream(send, result)
+    elif isinstance(result, FileResponse):
+        content_type = result.content_type
+        if content_type is None:
+            mime, _ = mimetypes.guess_type(str(result.path))
+            content_type = mime or "application/octet-stream"
+        body = result.path.read_bytes()
+        await _send_response(
+            send, result.status, body, content_type,
+            extra_headers=result.headers, cookies=result.cookies,
+        )
     else:
         # Fallback: try JSON-encoding anything else
         await _send_response(send, 200, msgspec.json.encode(result), "application/json")
@@ -737,20 +894,6 @@ async def _serve_spa_fallback(send: Callable, spa_fallback: Path) -> None:
         await _send_response(send, 200, body, "text/html")
     else:
         await _send_response(send, 404, msgspec.json.encode({"detail": "Not found"}), "application/json")
-
-
-# ---------------------------------------------------------------------------
-# WebSocket route registry
-# ---------------------------------------------------------------------------
-
-# Maps exact paths (e.g. "/ws/echo") to raw ASGI WebSocket handlers
-# with signature (scope, receive, send) -> None.
-_ws_routes: dict[str, Callable] = {}
-
-
-def add_ws_route(path: str, handler: Callable) -> None:
-    """Register a WebSocket handler for an exact path."""
-    _ws_routes[path] = handler
 
 
 # ---------------------------------------------------------------------------
@@ -805,12 +948,15 @@ def create_app(
                 await send({"type": "lifespan.shutdown.complete"})
             return
 
-        # -- WebSocket routing --
+        # -- WebSocket routing (app-scoped via router) --
         if scope["type"] == "websocket":
             path = scope.get("path", "")
-            handler = _ws_routes.get(path)
-            if handler:
-                await handler(scope, receive, send)
+            ws_match = router.match_ws(path)
+            if ws_match:
+                ws_handler, ws_params = ws_match
+                scope["path_params"] = ws_params
+                ws = WebSocket(scope, receive, send)
+                await ws_handler(ws)
             else:
                 # Reject unknown WebSocket paths
                 await receive()  # consume websocket.connect per ASGI spec
