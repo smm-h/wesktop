@@ -39,6 +39,7 @@ def test_run_calls_webview(
         pid_path=None,
         name="WESKTOP",
         pre_serve=None,
+        reload=False,
     )
 
     # Window created with correct params
