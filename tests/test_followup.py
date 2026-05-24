@@ -451,16 +451,12 @@ class TestServeReload:
         mock_port.return_value = 9999
         mock_run = MagicMock(return_value=0)
 
-        with patch.dict(
-            "sys.modules",
-            {"watchfiles": MagicMock(run_process=mock_run, PythonFilter=MagicMock)},
-        ):
-            # Re-import so the lazy import inside serve() picks up the mock
-            import importlib
-            import wesktop.server as srv
-            importlib.reload(srv)
-
-            srv.serve(
+        # Mock watchfiles in sys.modules so the lazy import inside serve()
+        # picks it up without needing importlib.reload (which poisons later
+        # tests by replacing class objects on the shared module).
+        mock_wf = MagicMock(run_process=mock_run, PythonFilter=MagicMock)
+        with patch.dict("sys.modules", {"watchfiles": mock_wf}):
+            serve(
                 "myapp:app",
                 foreground=True,
                 reload=True,
