@@ -6,3 +6,4 @@
 {"commits":["1d554af12abef28ac54ec0e42e1cf5385a308221"],"user_facing":true,"description":"**Fix.** Replace private config path import with public `config_file_path` property.","type":"fix"}
 {"commits":["5a09af55a080e9a0616c7fe95022148d82e2a70e"],"user_facing":true,"description":"**Fix.** Document optional MCP dependency in docstring.","type":"fix"}
 {"commits":["fa5c35a5d86b1e520199c9d2921a3a4d5845ba8e"],"user_facing":false}
+{"commits":["497173da12c0f10c1d71b841c4647eaa2158b6aa"],"user_facing":false}
