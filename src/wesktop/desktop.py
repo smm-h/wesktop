@@ -19,6 +19,7 @@ def run(
     name: str = "WESKTOP",
     pre_serve: Callable[[], None] | None = None,
     reload: bool = False,
+    js_api: object | None = None,
 ) -> None:
     """Start server + open native desktop window. Blocks until window closes."""
     from wesktop.server import serve
@@ -42,6 +43,7 @@ def run(
         url=url,
         width=width,
         height=height,
+        js_api=js_api,
     )
 
     webview.start(icon=icon)

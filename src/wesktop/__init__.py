@@ -275,6 +275,7 @@ def run(
     name: str = "WESKTOP",
     pre_serve: Callable[[], None] | None = None,
     reload: bool = False,
+    js_api: object | None = None,
 ) -> None:
     """Start server + native desktop window."""
     from wesktop.desktop import run as _run
@@ -291,6 +292,7 @@ def run(
         name=name,
         pre_serve=pre_serve,
         reload=reload,
+        js_api=js_api,
     )
 
 
