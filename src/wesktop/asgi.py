@@ -867,6 +867,10 @@ async def _send_stream(send: Callable, resp: StreamResponse) -> None:
 
 async def _send_result(send: Callable, result: Any) -> None:
     """Dispatch a handler return value to the appropriate sender."""
+    # Pydantic BaseModel instances: serialize via model_dump before JSON encoding
+    if hasattr(result, "model_dump"):
+        result = result.model_dump(mode="json")
+
     # Auto-wrap plain dicts/lists as JSON responses
     if isinstance(result, (dict, list)):
         result = JSONResponse(result)
@@ -958,6 +962,7 @@ def create_app(
     static_dir: Path | None = None,
     static_path: str = "/assets",
     spa_fallback: Path | None = None,
+    api_prefix: str | None = None,
     lifespan: Callable | None = None,
     name: str | None = None,
     exception_handlers: dict[type, Callable] | None = None,
@@ -969,6 +974,10 @@ def create_app(
     vite_dev_port: int | None = None,
 ) -> Callable:
     """Create an ASGI application callable.
+
+    If *api_prefix* is set (e.g. ``"/api"``), the SPA fallback will not
+    serve index.html for paths that start with the prefix -- they fall
+    through to the 404 handler instead.
 
     Built-in middleware (applied when their parameters are truthy):
     - ``trusted_hosts``: TrustedHostMiddleware (outermost)
@@ -1153,18 +1162,22 @@ def create_app(
             if await _serve_static(send, static_dir, rel):
                 return
 
-        # -- SPA fallback (GET only) --
+        # -- SPA fallback (GET only, skip API paths) --
         if spa_fallback and method == "GET":
-            # Before returning index.html, check if the path maps to an
-            # actual file under the static root (spa_fallback's parent dir).
-            # This lets sub-directories be served without registering each
-            # one as a separate static_path prefix.
-            static_root = spa_fallback.parent
-            candidate = path.lstrip("/")
-            if candidate and await _serve_static(send, static_root, candidate):
+            # Never serve index.html for API paths -- they should 404
+            if api_prefix and path.startswith(api_prefix):
+                pass  # fall through to 404
+            else:
+                # Before returning index.html, check if the path maps to an
+                # actual file under the static root (spa_fallback's parent dir).
+                # This lets sub-directories be served without registering each
+                # one as a separate static_path prefix.
+                static_root = spa_fallback.parent
+                candidate = path.lstrip("/")
+                if candidate and await _serve_static(send, static_root, candidate):
+                    return
+                await _serve_spa_fallback(send, spa_fallback)
                 return
-            await _serve_spa_fallback(send, spa_fallback)
-            return
 
         # -- 404 --
         await _send_response(send, 404, msgspec.json.encode({"detail": "Not found"}), "application/json")
