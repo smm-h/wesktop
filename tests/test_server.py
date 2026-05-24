@@ -10,7 +10,7 @@ from wesktop.server import (
     _make_server,
     check_already_running,
     ensure_port_available,
-    start_server_in_background,
+    serve,
 )
 
 
@@ -72,8 +72,8 @@ def test_make_server_creates_granian(mock_granian_cls: MagicMock) -> None:
 
 
 @patch("wesktop.server.Granian")
-def test_start_server_in_background_returns_url(mock_granian_cls: MagicMock) -> None:
-    """Background start returns the correct URL and launches a daemon thread."""
+def test_serve_background_returns_url(mock_granian_cls: MagicMock) -> None:
+    """Background serve returns the correct URL and launches a daemon thread."""
     mock_instance = MagicMock()
     mock_granian_cls.return_value = mock_instance
 
@@ -82,6 +82,6 @@ def test_start_server_in_background_returns_url(mock_granian_cls: MagicMock) -> 
         s.bind(("127.0.0.1", 0))
         free_port = s.getsockname()[1]
 
-    url = start_server_in_background("myapp:app", "127.0.0.1", free_port)
+    url = serve("myapp:app", foreground=False, host="127.0.0.1", port=free_port)
     assert url == f"http://127.0.0.1:{free_port}"
     mock_instance.serve.assert_called_once()

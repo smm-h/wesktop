@@ -16,22 +16,30 @@ def _free_port() -> int:
 
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.start_server_in_background")
+@patch("wesktop.server.serve")
 def test_run_calls_webview(
-    mock_start: MagicMock,
+    mock_serve: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
 ) -> None:
     """Server starts before window; correct title/url/size passed to create_window; start() called."""
     port = _free_port()
-    mock_start.return_value = f"http://127.0.0.1:{port}"
+    mock_serve.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
-    run("myapp:app", title="Test", width=800, height=600, port=port)
+    run("myapp:app", title="Test", width=800, height=600, host="127.0.0.1", port=port)
 
-    # Server started first
-    mock_start.assert_called_once_with("myapp:app", "127.0.0.1", port, pid_path=None)
+    # Server started via serve(foreground=False)
+    mock_serve.assert_called_once_with(
+        "myapp:app",
+        foreground=False,
+        host="127.0.0.1",
+        port=port,
+        pid_path=None,
+        name="WESKTOP",
+        pre_serve=None,
+    )
 
     # Window created with correct params
     mock_create_window.assert_called_once_with(
@@ -47,19 +55,19 @@ def test_run_calls_webview(
 
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.start_server_in_background")
+@patch("wesktop.server.serve")
 def test_run_with_icon(
-    mock_start: MagicMock,
+    mock_serve: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
 ) -> None:
     """Icon path is forwarded to webview.start(icon=...)."""
     port = _free_port()
-    mock_start.return_value = f"http://127.0.0.1:{port}"
+    mock_serve.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
-    run("myapp:app", icon="/path/to/icon.png", port=port)
+    run("myapp:app", icon="/path/to/icon.png", host="127.0.0.1", port=port)
 
     mock_create_window.assert_called_once()
     mock_wv_start.assert_called_once_with(icon="/path/to/icon.png")
@@ -67,31 +75,31 @@ def test_run_with_icon(
 
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.start_server_in_background")
+@patch("wesktop.server.serve")
 def test_run_without_icon(
-    mock_start: MagicMock,
+    mock_serve: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
 ) -> None:
     """When no icon is provided, webview.start(icon=None) is called."""
     port = _free_port()
-    mock_start.return_value = f"http://127.0.0.1:{port}"
+    mock_serve.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
-    run("myapp:app", port=port)
+    run("myapp:app", host="127.0.0.1", port=port)
 
     mock_wv_start.assert_called_once_with(icon=None)
 
 
 @patch("wesktop.server.Granian")
-def test_serve_calls_start_server(mock_granian_cls: MagicMock) -> None:
-    """wesktop.serve() delegates to start_server with correct params."""
+def test_serve_calls_granian(mock_granian_cls: MagicMock) -> None:
+    """wesktop.serve() delegates to the server module with correct params."""
     mock_instance = MagicMock()
     mock_granian_cls.return_value = mock_instance
 
     port = _free_port()
-    wesktop.serve("myapp:app", host="127.0.0.1", port=port, name="test-svc")
+    wesktop.serve("myapp:app", foreground=False, host="127.0.0.1", port=port, name="TEST_SVC")
 
     mock_granian_cls.assert_called_once_with(
         target="myapp:app",

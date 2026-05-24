@@ -3,23 +3,34 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Callable
 
 
 def run(
-    target: str,
+    target: str | Callable,
     *,
     title: str = "wesktop",
     width: int = 1280,
     height: int = 800,
     icon: str | None = None,
-    host: str = "127.0.0.1",
-    port: int = 8000,
+    host: str | None = None,
+    port: int | None = None,
     pid_path: Path | None = None,
+    name: str = "WESKTOP",
+    pre_serve: Callable[[], None] | None = None,
 ) -> None:
     """Start server + open native desktop window. Blocks until window closes."""
-    from wesktop.server import start_server_in_background
+    from wesktop.server import serve
 
-    url = start_server_in_background(target, host, port, pid_path=pid_path)
+    url = serve(
+        target,
+        foreground=False,
+        host=host,
+        port=port,
+        pid_path=pid_path,
+        name=name,
+        pre_serve=pre_serve,
+    )
 
     # Late import so headless mode (serve) has no pywebview dependency
     import webview

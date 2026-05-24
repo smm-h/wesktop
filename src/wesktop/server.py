@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Granian ASGI server lifecycle -- PID file management, port checks, start/stop."""
+"""Granian ASGI server lifecycle -- PID file management, port checks, serve/stop/status."""
 
 import atexit
 import logging
@@ -9,11 +9,20 @@ import signal
 import socket
 import sys
 import threading
+import time
+import types
+import urllib.request
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 from granian import Granian
 
 log = logging.getLogger(__name__)
+
+# Counter for generating unique synthetic module names when serving callables.
+_callable_counter = 0
+_callable_counter_lock = threading.Lock()
 
 
 def _write_pid(pid_path: Path) -> None:
@@ -106,6 +115,62 @@ def ensure_port_available(host: str, port: int) -> int:
             sys.exit(1)
 
 
+def _resolve_target(target: str | Callable) -> str:
+    """Convert a target to a Granian-compatible string.
+
+    If target is already a string (e.g. "myapp:app"), return as-is.
+    If target is a callable, register it on a synthetic module so Granian
+    can import it via its string-based loader.
+    """
+    if isinstance(target, str):
+        return target
+    global _callable_counter
+    with _callable_counter_lock:
+        _callable_counter += 1
+        mod_name = f"_wesktop_target_{_callable_counter}"
+    mod = types.ModuleType(mod_name)
+    mod.app = target  # type: ignore[attr-defined]
+    sys.modules[mod_name] = mod
+    return f"{mod_name}:app"
+
+
+def _resolve_host_port(
+    host: str | None,
+    port: int | None,
+    name: str,
+) -> tuple[str, int]:
+    """Resolve host and port from explicit args or env vars.
+
+    Explicit args override env vars. If neither is provided, raise ValueError.
+    """
+    env_prefix = name.upper()
+
+    if host is None:
+        env_host = os.environ.get(f"{env_prefix}_HOST")
+        if env_host is not None:
+            host = env_host
+        else:
+            raise ValueError(
+                f"host must be provided explicitly or via {env_prefix}_HOST env var"
+            )
+
+    if port is None:
+        env_port = os.environ.get(f"{env_prefix}_PORT")
+        if env_port is not None:
+            try:
+                port = int(env_port)
+            except ValueError:
+                raise ValueError(
+                    f"{env_prefix}_PORT env var must be an integer, got {env_port!r}"
+                )
+        else:
+            raise ValueError(
+                f"port must be provided explicitly or via {env_prefix}_PORT env var"
+            )
+
+    return host, port
+
+
 def _make_server(target: str, host: str, port: int) -> Granian:
     """Create a Granian instance bound to *host* on *port*.
 
@@ -119,49 +184,186 @@ def _make_server(target: str, host: str, port: int) -> Granian:
     )
 
 
-def start_server(
-    target: str,
-    host: str = "127.0.0.1",
-    port: int = 8000,
+def serve(
+    target: str | Callable,
+    *,
+    foreground: bool,
+    host: str | None = None,
+    port: int | None = None,
     pid_path: Path | None = None,
-    name: str = "server",
-) -> None:
-    """Start Granian serving the ASGI app (blocks the calling thread).
+    name: str = "WESKTOP",
+    pre_serve: Callable[[], None] | None = None,
+) -> str | None:
+    """Start Granian serving the ASGI app.
 
-    If *pid_path* is given, PID file management is enabled: an existing
-    running instance is detected, the PID is written, and cleanup handlers
-    are registered.
+    Parameters
+    ----------
+    target:
+        ASGI application -- either a module path string (e.g. "myapp:app")
+        or a callable ASGI application object.
+    foreground:
+        Required. When True, blocks the calling thread. When False, spawns a
+        daemon thread and returns the URL string.
+    host:
+        Bind address. Falls back to {NAME}_HOST env var. ValueError if neither.
+    port:
+        Bind port. Falls back to {NAME}_PORT env var. ValueError if neither.
+    pid_path:
+        If given, enables PID file management (detect existing instances,
+        write PID, register cleanup).
+    name:
+        Application name for env var prefix (uppercased) and log messages.
+        Default "WESKTOP".
+    pre_serve:
+        Optional callable invoked synchronously after PID/port checks but
+        before Granian starts.
+
+    Returns
+    -------
+    str | None
+        When foreground=False, returns the URL string (e.g. "http://127.0.0.1:8000").
+        When foreground=True, returns None (blocks until server stops).
     """
+    resolved_host, resolved_port = _resolve_host_port(host, port, name)
+    target_str = _resolve_target(target)
+
     if pid_path is not None:
         check_already_running(pid_path, name)
-    ensure_port_available(host, port)
+    ensure_port_available(resolved_host, resolved_port)
     if pid_path is not None:
         _write_pid(pid_path)
-    server = _make_server(target, host, port)
-    log.info("Starting %s on http://%s:%d", name, host, port)
-    server.serve()
+
+    if pre_serve is not None:
+        pre_serve()
+
+    server = _make_server(target_str, resolved_host, resolved_port)
+    url = f"http://{resolved_host}:{resolved_port}"
+
+    if foreground:
+        log.info("Starting %s on %s", name, url)
+        server.serve()
+        return None
+    else:
+        thread = threading.Thread(target=server.serve, daemon=True)
+        thread.start()
+        log.info("%s started in background on %s", name, url)
+        return url
 
 
-def start_server_in_background(
-    target: str,
-    host: str = "127.0.0.1",
-    port: int = 8000,
-    pid_path: Path | None = None,
-    name: str = "server",
-) -> str:
-    """Start Granian in a daemon thread and return the URL it listens on.
+@dataclass
+class ServerStatus:
+    """Result of a status check on a server process."""
 
-    The daemon thread dies automatically when the main thread exits.
-    If *pid_path* is given, PID file management is enabled.
+    running: bool
+    pid: int | None
+    healthy: bool | None
+
+
+def stop(pid_path: Path) -> None:
+    """Stop a server by reading its PID file.
+
+    Sends SIGTERM, waits up to 10s polling with os.kill(pid, 0), then
+    escalates to SIGKILL. Cleans up the PID file.
+
+    Raises FileNotFoundError if PID file does not exist.
+    Raises ProcessLookupError if the process is already gone.
     """
-    if pid_path is not None:
-        check_already_running(pid_path, name)
-    ensure_port_available(host, port)
-    if pid_path is not None:
-        _write_pid(pid_path)
-    server = _make_server(target, host, port)
-    url = f"http://{host}:{port}"
-    thread = threading.Thread(target=server.serve, daemon=True)
-    thread.start()
-    log.info("%s started in background on %s", name, url)
-    return url
+    if not pid_path.exists():
+        raise FileNotFoundError(f"PID file not found: {pid_path}")
+
+    try:
+        pid = int(pid_path.read_text().strip())
+    except (ValueError, OSError) as exc:
+        _remove_pid(pid_path)
+        raise FileNotFoundError(f"Corrupt or unreadable PID file: {pid_path}") from exc
+
+    # Check if process is alive first
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        _remove_pid(pid_path)
+        raise ProcessLookupError(f"Process {pid} is not running (stale PID file)")
+    except PermissionError:
+        pass  # process exists but we can't probe -- proceed with SIGTERM
+
+    # Send SIGTERM
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        _remove_pid(pid_path)
+        return
+    except PermissionError:
+        _remove_pid(pid_path)
+        raise
+
+    # Wait up to 10s for process to exit
+    deadline = time.monotonic() + 10.0
+    while time.monotonic() < deadline:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            # Process exited cleanly
+            _remove_pid(pid_path)
+            return
+        except PermissionError:
+            break  # can't check -- fall through to SIGKILL
+        time.sleep(0.1)
+
+    # Escalate to SIGKILL
+    try:
+        os.kill(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        _remove_pid(pid_path)
+        return
+    except PermissionError:
+        _remove_pid(pid_path)
+        raise
+
+    _remove_pid(pid_path)
+
+
+def status(pid_path: Path, health_url: str | None = None) -> ServerStatus:
+    """Check the status of a server process.
+
+    Parameters
+    ----------
+    pid_path:
+        Path to the PID file.
+    health_url:
+        Optional URL to probe for health (e.g. "http://127.0.0.1:8000/health").
+        If provided and the process is running, an HTTP GET is attempted with
+        a short timeout.
+
+    Returns
+    -------
+    ServerStatus
+        Dataclass with running, pid, and healthy fields.
+    """
+    if not pid_path.exists():
+        return ServerStatus(running=False, pid=None, healthy=None)
+
+    try:
+        pid = int(pid_path.read_text().strip())
+    except (ValueError, OSError):
+        return ServerStatus(running=False, pid=None, healthy=None)
+
+    # Check liveness
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return ServerStatus(running=False, pid=pid, healthy=None)
+    except PermissionError:
+        # Process exists but can't signal -- still consider running
+        pass
+
+    # Process is running -- check health if URL provided
+    healthy: bool | None = None
+    if health_url is not None:
+        try:
+            req = urllib.request.Request(health_url, method="GET")
+            with urllib.request.urlopen(req, timeout=2) as resp:
+                healthy = 200 <= resp.status < 400
+        except Exception:
+            healthy = False
+
+    return ServerStatus(running=True, pid=pid, healthy=healthy)
