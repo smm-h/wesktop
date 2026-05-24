@@ -48,6 +48,7 @@ def test_run_calls_webview(
         url=f"http://127.0.0.1:{port}",
         width=800,
         height=600,
+        js_api=None,
     )
 
     # webview.start() called to enter the event loop with icon=None
@@ -91,6 +92,87 @@ def test_run_without_icon(
     run("myapp:app", host="127.0.0.1", port=port)
 
     mock_wv_start.assert_called_once_with(icon=None)
+
+
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve")
+def test_run_with_js_api(
+    mock_serve: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+) -> None:
+    """js_api object is forwarded to webview.create_window(js_api=...)."""
+    port = _free_port()
+    mock_serve.return_value = f"http://127.0.0.1:{port}"
+
+    class MyAPI:
+        def greet(self, name: str) -> str:
+            return f"Hello, {name}"
+
+    api = MyAPI()
+
+    from wesktop.desktop import run
+
+    run("myapp:app", host="127.0.0.1", port=port, js_api=api)
+
+    mock_create_window.assert_called_once_with(
+        title="wesktop",
+        url=f"http://127.0.0.1:{port}",
+        width=1280,
+        height=800,
+        js_api=api,
+    )
+
+
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve")
+def test_run_without_js_api(
+    mock_serve: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+) -> None:
+    """When no js_api is provided, webview.create_window(js_api=None) is called."""
+    port = _free_port()
+    mock_serve.return_value = f"http://127.0.0.1:{port}"
+
+    from wesktop.desktop import run
+
+    run("myapp:app", host="127.0.0.1", port=port)
+
+    mock_create_window.assert_called_once_with(
+        title="wesktop",
+        url=f"http://127.0.0.1:{port}",
+        width=1280,
+        height=800,
+        js_api=None,
+    )
+
+
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve")
+def test_run_js_api_via_wrapper(
+    mock_serve: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+) -> None:
+    """js_api passes through the wesktop.run() wrapper to desktop.run()."""
+    port = _free_port()
+    mock_serve.return_value = f"http://127.0.0.1:{port}"
+
+    class BridgeAPI:
+        def ping(self) -> str:
+            return "pong"
+
+    api = BridgeAPI()
+
+    wesktop.run("myapp:app", host="127.0.0.1", port=port, js_api=api)
+
+    mock_create_window.assert_called_once()
+    call_kwargs = mock_create_window.call_args[1]
+    assert call_kwargs["js_api"] is api
 
 
 @patch("wesktop.server.Granian")
