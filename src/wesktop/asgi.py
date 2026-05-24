@@ -5,6 +5,8 @@ Provides routing, static file serving, SPA fallback, middleware, and lifespan su
 
 from __future__ import annotations
 
+import asyncio
+import http.cookies
 import logging
 import mimetypes
 from pathlib import Path
@@ -13,17 +15,76 @@ from urllib.parse import parse_qs
 
 import msgspec
 
+# ---------------------------------------------------------------------------
+# ASGI type aliases
+# ---------------------------------------------------------------------------
+
+Scope = dict[str, Any]
+Receive = Any
+Send = Any
+
+
+# ---------------------------------------------------------------------------
+# Cookie helpers
+# ---------------------------------------------------------------------------
+
+def set_cookie(
+    name: str,
+    value: str,
+    *,
+    httponly: bool = False,
+    samesite: str = "lax",
+    max_age: int | None = None,
+    path: str = "/",
+    secure: bool = False,
+) -> str:
+    """Build a Set-Cookie header string."""
+    parts = [f"{name}={value}", f"Path={path}", f"SameSite={samesite}"]
+    if httponly:
+        parts.append("HttpOnly")
+    if secure:
+        parts.append("Secure")
+    if max_age is not None:
+        parts.append(f"Max-Age={max_age}")
+    return "; ".join(parts)
+
+
+def delete_cookie(name: str, *, path: str = "/") -> str:
+    """Build a Set-Cookie header string that clears the cookie."""
+    return f"{name}=; Path={path}; Max-Age=0"
+
+
+# ---------------------------------------------------------------------------
+# HTTPError exception
+# ---------------------------------------------------------------------------
+
+class HTTPError(Exception):
+    """Raise from handlers to return a specific HTTP error status."""
+
+    def __init__(self, status_code: int, detail: str = ""):
+        self.status_code = status_code
+        self.detail = detail
+        super().__init__(detail)
+
 
 # ---------------------------------------------------------------------------
 # Response types
 # ---------------------------------------------------------------------------
 
 class JSONResponse:
-    """JSON response with optional status code."""
+    """JSON response with optional status code, headers, and cookies."""
 
-    def __init__(self, data: Any, status: int = 200):
+    def __init__(
+        self,
+        data: Any,
+        status: int = 200,
+        headers: dict[str, str] | None = None,
+        cookies: list[str] | None = None,
+    ):
         self.data = data
         self.status = status
+        self.headers = headers or {}
+        self.cookies = cookies or []
 
 
 class TextResponse:
@@ -39,28 +100,47 @@ class TextResponse:
         content_type: str = "text/plain",
         status: int = 200,
         headers: dict[str, str] | None = None,
+        cookies: list[str] | None = None,
     ):
         self.text = text
         self.content_type = content_type
         self.status = status
         self.headers = headers or {}
+        self.cookies = cookies or []
 
 
 class HTMLResponse:
     """HTML response."""
 
-    def __init__(self, html: str, status: int = 200):
+    def __init__(
+        self,
+        html: str,
+        status: int = 200,
+        headers: dict[str, str] | None = None,
+        cookies: list[str] | None = None,
+    ):
         self.html = html
         self.status = status
+        self.headers = headers or {}
+        self.cookies = cookies or []
 
 
 class BytesResponse:
     """Raw bytes response with an explicit content type."""
 
-    def __init__(self, data: bytes, content_type: str = "application/octet-stream", status: int = 200):
+    def __init__(
+        self,
+        data: bytes,
+        content_type: str = "application/octet-stream",
+        status: int = 200,
+        headers: dict[str, str] | None = None,
+        cookies: list[str] | None = None,
+    ):
         self.data = data
         self.content_type = content_type
         self.status = status
+        self.headers = headers or {}
+        self.cookies = cookies or []
 
 
 class StreamResponse:
@@ -71,10 +151,52 @@ class StreamResponse:
         generator: AsyncGenerator,
         content_type: str,
         headers: dict[str, str] | None = None,
+        status: int = 200,
+        cookies: list[str] | None = None,
     ):
         self.generator = generator
         self.content_type = content_type
         self.headers = headers or {}
+        self.status = status
+        self.cookies = cookies or []
+
+
+# ---------------------------------------------------------------------------
+# State wrapper
+# ---------------------------------------------------------------------------
+
+class State:
+    """Dict-backed state that supports both attribute and dict access.
+
+    ``state.key``, ``state["key"]``, and ``state.get("key")`` all work.
+    Attribute assignment (``state.key = val``) also works.
+    """
+
+    def __init__(self, data: dict[str, Any] | None = None):
+        # Use object.__setattr__ to avoid triggering our custom __setattr__
+        object.__setattr__(self, "_data", data if data is not None else {})
+
+    def __getattr__(self, name: str) -> Any:
+        data = object.__getattribute__(self, "_data")
+        try:
+            return data[name]
+        except KeyError:
+            raise AttributeError(f"State has no attribute {name!r}") from None
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        object.__getattribute__(self, "_data")[name] = value
+
+    def __getitem__(self, key: str) -> Any:
+        return object.__getattribute__(self, "_data")[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        object.__getattribute__(self, "_data")[key] = value
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return object.__getattribute__(self, "_data").get(key, default)
+
+    def __contains__(self, key: str) -> bool:
+        return key in object.__getattribute__(self, "_data")
 
 
 # ---------------------------------------------------------------------------
@@ -84,14 +206,27 @@ class StreamResponse:
 class Request:
     """Wraps ASGI scope with parsed body and params."""
 
-    __slots__ = ("scope", "path_params", "_body", "_json", "_json_decoded")
+    __slots__ = (
+        "scope", "path_params", "_body", "_json", "_json_decoded",
+        "_receive", "_disconnected", "_cookies", "_cookies_parsed",
+    )
 
-    def __init__(self, scope: dict, path_params: dict, body: bytes | None):
+    def __init__(
+        self,
+        scope: dict,
+        path_params: dict,
+        body: bytes | None,
+        receive: Callable | None = None,
+    ):
         self.scope = scope
         self.path_params = path_params
         self._body = body
         self._json = None
         self._json_decoded = False
+        self._receive = receive
+        self._disconnected = False
+        self._cookies = None
+        self._cookies_parsed = False
 
     @property
     def json(self) -> dict | list | None:
@@ -139,6 +274,55 @@ class Request:
         """Length in bytes of the raw request body (0 if no body)."""
         return len(self._body) if self._body is not None else 0
 
+    @property
+    def state(self) -> State:
+        """Lifespan + per-request state, supporting both attribute and dict access."""
+        return State(self.scope.get("state", {}))
+
+    @property
+    def method(self) -> str:
+        """HTTP method (GET, POST, etc.)."""
+        return self.scope["method"]
+
+    @property
+    def path(self) -> str:
+        """Request path."""
+        return self.scope.get("path", "")
+
+    async def is_disconnected(self) -> bool:
+        """Check whether the client has disconnected."""
+        if self._disconnected:
+            return True
+        if self._receive is None:
+            return False
+        try:
+            msg = await asyncio.wait_for(self._receive(), timeout=0.0)
+            if msg.get("type") == "http.disconnect":
+                self._disconnected = True
+                return True
+        except (asyncio.TimeoutError, Exception):
+            pass
+        return False
+
+    @property
+    def cookies(self) -> dict[str, str]:
+        """Parse Cookie header and return a dict of cookie name-value pairs."""
+        if not self._cookies_parsed:
+            cookie_header = self.header("cookie", "")
+            result: dict[str, str] = {}
+            if cookie_header:
+                sc = http.cookies.SimpleCookie()
+                sc.load(cookie_header)
+                for key, morsel in sc.items():
+                    result[key] = morsel.value
+            self._cookies = result
+            self._cookies_parsed = True
+        return self._cookies  # type: ignore[return-value]
+
+    def cookie(self, name: str, default: str | None = None) -> str | None:
+        """Get a single cookie value by name."""
+        return self.cookies.get(name, default)
+
 
 # ---------------------------------------------------------------------------
 # Router
@@ -169,6 +353,20 @@ class Router:
         """Decorator to register a DELETE handler."""
         def decorator(fn: Callable) -> Callable:
             self.add_route("DELETE", path, fn)
+            return fn
+        return decorator
+
+    def put(self, path: str) -> Callable:
+        """Decorator to register a PUT handler."""
+        def decorator(fn: Callable) -> Callable:
+            self.add_route("PUT", path, fn)
+            return fn
+        return decorator
+
+    def patch(self, path: str) -> Callable:
+        """Decorator to register a PATCH handler."""
+        def decorator(fn: Callable) -> Callable:
+            self.add_route("PATCH", path, fn)
             return fn
         return decorator
 
@@ -206,6 +404,7 @@ async def _send_response(
     body: bytes,
     content_type: str,
     extra_headers: dict[str, str] | None = None,
+    cookies: list[str] | None = None,
 ) -> None:
     """Send a complete HTTP response (headers + body)."""
     headers: list[list[bytes]] = [
@@ -215,6 +414,9 @@ async def _send_response(
     if extra_headers:
         for k, v in extra_headers.items():
             headers.append([k.encode(), v.encode()])
+    if cookies:
+        for cookie in cookies:
+            headers.append([b"set-cookie", cookie.encode()])
     await send({
         "type": "http.response.start",
         "status": status,
@@ -230,7 +432,9 @@ async def _send_stream(send: Callable, resp: StreamResponse) -> None:
     ]
     for key, value in resp.headers.items():
         headers.append([key.encode(), value.encode()])
-    await send({"type": "http.response.start", "status": 200, "headers": headers})
+    for cookie in resp.cookies:
+        headers.append([b"set-cookie", cookie.encode()])
+    await send({"type": "http.response.start", "status": resp.status, "headers": headers})
     async for chunk in resp.generator:
         payload = chunk.encode() if isinstance(chunk, str) else chunk
         await send({"type": "http.response.body", "body": payload, "more_body": True})
@@ -244,21 +448,43 @@ async def _send_result(send: Callable, result: Any) -> None:
         result = JSONResponse(result)
 
     if isinstance(result, JSONResponse):
-        await _send_response(send, result.status, msgspec.json.encode(result.data), "application/json")
+        await _send_response(
+            send, result.status, msgspec.json.encode(result.data),
+            "application/json", extra_headers=result.headers, cookies=result.cookies,
+        )
     elif isinstance(result, TextResponse):
         await _send_response(
             send, result.status, result.text.encode(),
-            result.content_type, extra_headers=result.headers,
+            result.content_type, extra_headers=result.headers, cookies=result.cookies,
         )
     elif isinstance(result, HTMLResponse):
-        await _send_response(send, result.status, result.html.encode(), "text/html")
+        await _send_response(
+            send, result.status, result.html.encode(),
+            "text/html", extra_headers=result.headers, cookies=result.cookies,
+        )
     elif isinstance(result, BytesResponse):
-        await _send_response(send, result.status, result.data, result.content_type)
+        await _send_response(
+            send, result.status, result.data,
+            result.content_type, extra_headers=result.headers, cookies=result.cookies,
+        )
     elif isinstance(result, StreamResponse):
         await _send_stream(send, result)
     else:
         # Fallback: try JSON-encoding anything else
         await _send_response(send, 200, msgspec.json.encode(result), "application/json")
+
+
+async def send_error(send: Callable, status: int, detail: str) -> None:
+    """Send a complete JSON error response via raw ASGI send calls.
+
+    Intended for use by middleware that needs to short-circuit with an error
+    without constructing response objects.
+    """
+    await _send_response(
+        send, status,
+        msgspec.json.encode({"detail": detail}),
+        "application/json",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -285,7 +511,7 @@ async def _serve_spa_fallback(send: Callable, spa_fallback: Path) -> None:
         body = spa_fallback.read_bytes()
         await _send_response(send, 200, body, "text/html")
     else:
-        await _send_response(send, 404, msgspec.json.encode({"error": "not found"}), "application/json")
+        await _send_response(send, 404, msgspec.json.encode({"detail": "Not found"}), "application/json")
 
 
 # ---------------------------------------------------------------------------
@@ -308,7 +534,7 @@ def add_ws_route(path: str, handler: Callable) -> None:
 
 def create_app(
     router: Router,
-    middleware: list[type] | None = None,
+    middleware: list[Callable] | None = None,
     static_dir: Path | None = None,
     static_path: str = "/assets",
     spa_fallback: Path | None = None,
@@ -318,8 +544,11 @@ def create_app(
     """Create an ASGI application callable."""
 
     log = logging.getLogger(name or "wesktop.asgi")
+    _lifespan_state: dict[str, Any] = {}
 
     async def app(scope: dict, receive: Callable, send: Callable) -> None:
+        nonlocal _lifespan_state
+
         # -- Lifespan protocol --
         if scope["type"] == "lifespan":
             message = await receive()
@@ -327,7 +556,9 @@ def create_app(
                 if lifespan is not None:
                     # Enter the context manager; it stays open until shutdown
                     ctx = lifespan(app)
-                    await ctx.__aenter__()
+                    yielded = await ctx.__aenter__()
+                    if isinstance(yielded, dict):
+                        _lifespan_state = yielded
                     await send({"type": "lifespan.startup.complete"})
                     await receive()  # blocks until lifespan.shutdown
                     await ctx.__aexit__(None, None, None)
@@ -352,6 +583,11 @@ def create_app(
         if scope["type"] != "http":
             return
 
+        # Merge lifespan state into scope for every request
+        if "state" not in scope:
+            scope["state"] = {}
+        scope["state"].update(_lifespan_state)
+
         method = scope["method"]
         path = scope["path"]
 
@@ -360,24 +596,29 @@ def create_app(
         if match:
             handler, path_params = match
             try:
-                # Read body for POST, skip for GET/DELETE
-                body = None
-                if method == "POST":
-                    body = b""
-                    while True:
-                        msg = await receive()
-                        body += msg.get("body", b"")
-                        if not msg.get("more_body", False):
-                            break
+                # Read body for all methods (GET with empty body costs nothing)
+                body = b""
+                while True:
+                    msg = await receive()
+                    body += msg.get("body", b"")
+                    if not msg.get("more_body", False):
+                        break
+                body = body or None
 
-                request = Request(scope, path_params, body)
+                request = Request(scope, path_params, body, receive=receive)
                 result = await handler(request)
                 await _send_result(send, result)
+            except HTTPError as exc:
+                await _send_response(
+                    send, exc.status_code,
+                    msgspec.json.encode({"detail": exc.detail}),
+                    "application/json",
+                )
             except Exception as exc:
                 log.exception("Handler error on %s %s", method, path)
                 await _send_response(
                     send, 500,
-                    msgspec.json.encode({"error": str(exc)}),
+                    msgspec.json.encode({"detail": "Internal server error"}),
                     "application/json",
                 )
             return
@@ -402,7 +643,7 @@ def create_app(
             return
 
         # -- 404 --
-        await _send_response(send, 404, msgspec.json.encode({"error": "not found"}), "application/json")
+        await _send_response(send, 404, msgspec.json.encode({"detail": "Not found"}), "application/json")
 
     # -- Apply middleware in reverse so the first in the list is outermost --
     wrapped = app

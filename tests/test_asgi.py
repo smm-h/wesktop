@@ -477,7 +477,7 @@ async def test_404_on_unknown_route():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         resp = await c.get("/api/nonexistent")
     assert resp.status_code == 404
-    assert resp.json() == {"error": "not found"}
+    assert resp.json() == {"detail": "Not found"}
 
 
 @pytest.mark.anyio
@@ -495,7 +495,7 @@ async def test_handler_error_returns_500():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         resp = await c.get("/api/error")
     assert resp.status_code == 500
-    assert "boom" in resp.json()["error"]
+    assert resp.json() == {"detail": "Internal server error"}
 
 
 # ---------------------------------------------------------------------------
