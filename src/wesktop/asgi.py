@@ -6,6 +6,7 @@ Provides routing, static files, SPA fallback, WebSocket support, middleware, and
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import http.cookies
 import logging
 import mimetypes
@@ -977,27 +978,52 @@ async def _serve_spa_fallback(send: Callable, spa_fallback: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# App configuration
+# ---------------------------------------------------------------------------
+
+_SENTINEL = object()
+
+
+@dataclasses.dataclass
+class AppConfig:
+    """Configuration for :func:`create_app`.
+
+    All fields correspond to the keyword arguments of ``create_app``.
+    Pass an ``AppConfig`` instance as the *config* parameter, and/or
+    supply individual keyword arguments.  Keyword arguments override
+    matching fields on the config object.
+    """
+
+    middleware: list[Callable] | None = None
+    static_dir: Path | None = None
+    static_path: str = "/assets"
+    spa_fallback: Path | None = None
+    api_prefix: str | None = None
+    lifespan: Callable | None = None
+    name: str | None = None
+    exception_handlers: dict[type, Callable] | None = None
+    dependency_overrides: dict[Callable, Callable] | None = None
+    cors_origins: list[str] | None = None
+    trusted_hosts: list[str] | None = None
+    request_id: bool = True
+    request_timing: bool = True
+    vite_dev_port: int | None = None
+
+
+# ---------------------------------------------------------------------------
 # App factory
 # ---------------------------------------------------------------------------
 
 def create_app(
     router: Router,
-    middleware: list[Callable] | None = None,
-    static_dir: Path | None = None,
-    static_path: str = "/assets",
-    spa_fallback: Path | None = None,
-    api_prefix: str | None = None,
-    lifespan: Callable | None = None,
-    name: str | None = None,
-    exception_handlers: dict[type, Callable] | None = None,
-    dependency_overrides: dict[Callable, Callable] | None = None,
-    cors_origins: list[str] | None = None,
-    trusted_hosts: list[str] | None = None,
-    request_id: bool = True,
-    request_timing: bool = True,
-    vite_dev_port: int | None = None,
+    config: AppConfig | None = None,
+    **kwargs: Any,
 ) -> Callable:
     """Create an ASGI application callable.
+
+    Accepts an optional *config* (:class:`AppConfig`) and/or keyword
+    arguments.  Keyword arguments override matching fields on the config
+    object.  If neither is supplied, defaults from ``AppConfig`` are used.
 
     If *api_prefix* is set (e.g. ``"/api"``), the SPA fallback will not
     serve index.html for paths that start with the prefix -- they fall
@@ -1013,6 +1039,33 @@ def create_app(
     Custom middleware supplied via *middleware* wraps after built-in
     middleware (between the app and the built-in stack).
     """
+    # Build effective config: start from defaults, overlay config, overlay kwargs.
+    if config is None:
+        config = AppConfig()
+    _field_names = {f.name for f in dataclasses.fields(AppConfig)}
+    unknown = set(kwargs) - _field_names
+    if unknown:
+        raise TypeError(
+            f"create_app() got unexpected keyword argument(s): {', '.join(sorted(unknown))}"
+        )
+    # Merge: kwargs override config fields.
+    effective = dataclasses.replace(config, **kwargs)
+
+    middleware = effective.middleware
+    static_dir = effective.static_dir
+    static_path = effective.static_path
+    spa_fallback = effective.spa_fallback
+    api_prefix = effective.api_prefix
+    lifespan = effective.lifespan
+    name = effective.name
+    exception_handlers = effective.exception_handlers
+    dependency_overrides = effective.dependency_overrides
+    cors_origins = effective.cors_origins
+    trusted_hosts = effective.trusted_hosts
+    request_id = effective.request_id
+    request_timing = effective.request_timing
+    vite_dev_port = effective.vite_dev_port
+
     from wesktop.di import DependencyResolver
 
     log = logging.getLogger(name or "wesktop.asgi")

@@ -8,6 +8,7 @@ from typing import Callable
 
 from wesktop.entries import create_entry, remove_entry
 from wesktop.asgi import (
+    AppConfig,
     Router,
     Request,
     State,
@@ -57,6 +58,12 @@ from wesktop.sse import Broadcaster, sse_route
 from wesktop.features import FeatureFlags
 from wesktop.audit import AuditLog
 from wesktop.tasks import BackgroundTask, TaskRegistry
+from wesktop.mcp import (
+    ROLES,
+    DEFAULT_ROLE,
+    create_mcp_server,
+    register_tools_for_role,
+)
 from wesktop.sdui import (
     SDUINode,
     node,
@@ -123,6 +130,7 @@ __version__ = importlib.metadata.version("wesktop")
 
 __all__ = [
     # asgi
+    "AppConfig",
     "Router",
     "Request",
     "State",
@@ -244,6 +252,11 @@ __all__ = [
     "Drawer",
     "Popover",
     "Confirm",
+    # mcp
+    "ROLES",
+    "DEFAULT_ROLE",
+    "create_mcp_server",
+    "register_tools_for_role",
     # metadata
     "__version__",
 ]
