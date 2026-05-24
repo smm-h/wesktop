@@ -256,6 +256,17 @@ class Request:
         except (ValueError, TypeError):
             return default
 
+    def query_list(self, name: str, type_: type = str) -> list:
+        """Return all values for a multi-value query key with optional type coercion.
+
+        Returns an empty list if the key is absent.
+        """
+        qs = parse_qs(self.scope.get("query_string", b"").decode())
+        values = qs.get(name)
+        if not values:
+            return []
+        return [type_(v) for v in values]
+
     def header(self, name: str, default: str | None = None) -> str | None:
         """Return a request header by name (case-insensitive).
 

@@ -697,3 +697,70 @@ class TestMiddlewareConstructorAPI:
             resp = await client.get("/api/test")
         assert resp.status_code == 200
         assert "A" in invoked
+
+
+# ---------------------------------------------------------------------------
+# 1.2 query_list(name)
+# ---------------------------------------------------------------------------
+
+
+class TestQueryList:
+    @pytest.mark.anyio
+    async def test_multi_value_query_param(self, client_for):
+        """?tag=a&tag=b -> req.query_list("tag") returns ["a", "b"]."""
+        router = Router()
+
+        @router.get("/api/tags")
+        async def tags(req):
+            return JSONResponse({"tags": req.query_list("tag")})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/tags?tag=a&tag=b")
+        assert resp.status_code == 200
+        assert resp.json()["tags"] == ["a", "b"]
+
+    @pytest.mark.anyio
+    async def test_query_list_with_type_coercion(self, client_for):
+        """?n=1&n=2 with type_=int -> [1, 2]."""
+        router = Router()
+
+        @router.get("/api/numbers")
+        async def numbers(req):
+            return JSONResponse({"numbers": req.query_list("n", type_=int)})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/numbers?n=1&n=2")
+        assert resp.status_code == 200
+        assert resp.json()["numbers"] == [1, 2]
+
+    @pytest.mark.anyio
+    async def test_query_list_missing_key(self, client_for):
+        """Missing key -> empty list."""
+        router = Router()
+
+        @router.get("/api/empty")
+        async def empty(req):
+            return JSONResponse({"items": req.query_list("missing")})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/empty")
+        assert resp.status_code == 200
+        assert resp.json()["items"] == []
+
+    @pytest.mark.anyio
+    async def test_query_list_single_value(self, client_for):
+        """?tag=only -> returns ["only"]."""
+        router = Router()
+
+        @router.get("/api/single")
+        async def single(req):
+            return JSONResponse({"tags": req.query_list("tag")})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/single?tag=only")
+        assert resp.status_code == 200
+        assert resp.json()["tags"] == ["only"]
