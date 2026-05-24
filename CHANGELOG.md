@@ -2,6 +2,30 @@
 
 # Changelog
 
+## 0.3.0
+
+### Breaking
+
+- **Breaking.** serve() API redesigned: foreground parameter is required (no default), host/port have no implicit defaults (must be explicit or via env vars).
+- **Breaking.** Error response format changed from {"error": "..."} to {"detail": "..."}. Query parameter type coercion failure now raises 422 instead of silently returning default.
+- **Breaking.** Module-level add_ws_route() removed. Use Router.ws() or Router.add_ws_route() instead (WebSocket routes are now app-scoped).
+
+### Features
+
+- **Router.** Typed path parameters ({id:int}), greedy {key:path} matching, PUT/PATCH decorators, router composition with include_router (prefix mounting + router-level dependencies), app-scoped WebSocket routing with path params, WebSocket helper class.
+- **Request/Response.** Body reading for all HTTP methods, query_list() for multi-value params, query validation with constraints, cookie extraction, response headers/cookies with set_cookie/delete_cookie helpers, FileResponse, StreamResponse with configurable status, request.method/path/is_disconnected properties, State wrapper.
+- **Dependency injection.** Per-request DI with sync/async factory support, generator cleanup, dependency caching, dependency overrides for testing, router-level dependencies, feature-gated dependencies.
+- **Auth module.** JWT create/verify (HS256), bcrypt password hashing, JSONFileUserStore, get_current_user/require_role DI dependencies, CSRF double-submit middleware, session cookie helpers, decorator-based rate limiting.
+- **Middleware and observability.** structlog integration with auto-detect (JSON/console), RequestID/RequestTiming middleware, CORS and TrustedHost middleware, built-in middleware wiring in create_app, optional Sentry integration, SQLite error log for 5xx responses.
+- **Pydantic integration.** response_model parameter on route decorators for response validation, req.json_as(Model) for request body parsing with 422 error detail.
+- **Server lifecycle.** Unified serve() with stop()/status() utilities, pre_serve callback, app-namespaced env var settings, Vite dev proxy middleware.
+- **Dev experience.** TestClient (sync + async), TOML config loader with optional Pydantic validation.
+- **Advanced features.** Feature flags with JSON overrides, JSONL audit logging, background task registry with feature gating, 39 SDUI UI primitives with provider registry.
+
+### Fixes
+
+- **Fix.** Pydantic BaseModel auto-serialization in responses and api_prefix-aware SPA fallback.
+
 ## 0.2.1
 
 ### Fixes
