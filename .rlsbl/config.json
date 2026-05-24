@@ -1,5 +1,6 @@
 {
   "targets": [
     "pypi"
-  ]
+  ],
+  "private": false
 }
