@@ -739,3 +739,100 @@ class TestMCPToolModules:
         subprocess.run(["git", "init", str(tmp_path)], capture_output=True)
         result = git_status(str(tmp_path))
         assert "Error" not in result
+
+
+# ---------------------------------------------------------------------------
+# 2.1 query_list coercion failure
+# ---------------------------------------------------------------------------
+
+
+class TestQueryListCoercion:
+    @pytest.mark.anyio
+    async def test_query_list_invalid_type_returns_422(self, client_for):
+        """query_list with unconvertible values raises HTTPError(422)."""
+        router = Router()
+
+        @router.get("/api/nums")
+        async def nums(req):
+            values = req.query_list("n", type_=int)
+            return {"values": values}
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/nums?n=abc&n=2")
+        assert resp.status_code == 422
+        assert "cannot convert" in resp.json()["detail"]
+
+    @pytest.mark.anyio
+    async def test_query_list_valid_type_works(self, client_for):
+        """query_list with valid convertible values returns the list."""
+        router = Router()
+
+        @router.get("/api/nums")
+        async def nums(req):
+            values = req.query_list("n", type_=int)
+            return {"values": values}
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/nums?n=1&n=2&n=3")
+        assert resp.status_code == 200
+        assert resp.json()["values"] == [1, 2, 3]
+
+    @pytest.mark.anyio
+    async def test_query_list_absent_key_returns_empty(self, client_for):
+        """query_list for an absent key returns an empty list."""
+        router = Router()
+
+        @router.get("/api/nums")
+        async def nums(req):
+            values = req.query_list("n", type_=int)
+            return {"values": values}
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/nums")
+        assert resp.status_code == 200
+        assert resp.json()["values"] == []
+
+
+# ---------------------------------------------------------------------------
+# 2.2 Cache Request.state
+# ---------------------------------------------------------------------------
+
+
+class TestRequestStateCaching:
+    def test_state_identity(self):
+        """req.state is req.state -- the same object on repeated access."""
+        from wesktop.asgi import Request
+
+        scope = {"state": {"key": "value"}}
+        req = Request(scope, {}, None)
+        assert req.state is req.state
+
+    def test_state_preserves_mutations(self):
+        """Mutations on req.state persist across accesses."""
+        from wesktop.asgi import Request
+
+        scope = {"state": {}}
+        req = Request(scope, {}, None)
+        req.state.foo = "bar"
+        assert req.state.foo == "bar"
+
+
+# ---------------------------------------------------------------------------
+# 2.4 Forward reload to run()
+# ---------------------------------------------------------------------------
+
+
+class TestRunReload:
+    def test_run_accepts_reload_parameter(self):
+        """wesktop.run() accepts reload=True without TypeError."""
+        import inspect
+
+        from wesktop import run
+
+        sig = inspect.signature(run)
+        assert "reload" in sig.parameters
+        # Verify it has a default of False
+        assert sig.parameters["reload"].default is False
