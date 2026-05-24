@@ -78,9 +78,7 @@ def diagnose(**_kw: object) -> None:
     rows.append(("platform", f"{platform.system()} {platform.machine()}"))
 
     # Config path
-    from strictcli import _config_path
-
-    rows.append(("config", _config_path("wesktop")))
+    rows.append(("config", app.config_file_path))
 
     # Print table
     label_width = max(len(label) for label, _ in rows)
