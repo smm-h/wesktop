@@ -41,6 +41,14 @@ from wesktop.auth import (
     rate_limit,
 )
 from wesktop.di import DependencyResolver
+from wesktop.error_log import ErrorLog
+from wesktop.logging import configure_logging, get_logger, init_sentry
+from wesktop.middleware import (
+    CORSMiddleware,
+    RequestIDMiddleware,
+    RequestTimingMiddleware,
+    TrustedHostMiddleware,
+)
 from wesktop.server import ServerStatus
 from wesktop.sse import Broadcaster, sse_route
 
@@ -80,6 +88,17 @@ __all__ = [
     "rate_limit",
     # di
     "DependencyResolver",
+    # error_log
+    "ErrorLog",
+    # logging
+    "configure_logging",
+    "get_logger",
+    "init_sentry",
+    # middleware
+    "CORSMiddleware",
+    "RequestIDMiddleware",
+    "RequestTimingMiddleware",
+    "TrustedHostMiddleware",
     # sse
     "Broadcaster",
     "sse_route",

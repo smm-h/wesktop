@@ -13,6 +13,7 @@ dependencies = [
     "strictcli>=0.8.0",
     "pyjwt",
     "bcrypt",
+    "structlog",
 ]
 
 [project.scripts]

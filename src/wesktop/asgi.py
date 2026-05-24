@@ -953,8 +953,22 @@ def create_app(
     name: str | None = None,
     exception_handlers: dict[type, Callable] | None = None,
     dependency_overrides: dict[Callable, Callable] | None = None,
+    cors_origins: list[str] | None = None,
+    trusted_hosts: list[str] | None = None,
+    request_id: bool = True,
+    request_timing: bool = True,
 ) -> Callable:
-    """Create an ASGI application callable."""
+    """Create an ASGI application callable.
+
+    Built-in middleware (applied when their parameters are truthy):
+    - ``trusted_hosts``: TrustedHostMiddleware (outermost)
+    - ``cors_origins``: CORSMiddleware
+    - ``request_id``: RequestIDMiddleware
+    - ``request_timing``: RequestTimingMiddleware (innermost)
+
+    Custom middleware supplied via *middleware* wraps after built-in
+    middleware (between the app and the built-in stack).
+    """
     from wesktop.di import DependencyResolver
 
     log = logging.getLogger(name or "wesktop.asgi")
@@ -1111,5 +1125,22 @@ def create_app(
     wrapped = app
     for mw in reversed(middleware or []):
         wrapped = mw(wrapped)
+
+    # -- Built-in middleware (innermost first, outermost last) --
+    from wesktop.middleware import (
+        CORSMiddleware as _CORSMiddleware,
+        RequestIDMiddleware as _RequestIDMiddleware,
+        RequestTimingMiddleware as _RequestTimingMiddleware,
+        TrustedHostMiddleware as _TrustedHostMiddleware,
+    )
+
+    if request_timing:
+        wrapped = _RequestTimingMiddleware(wrapped)
+    if request_id:
+        wrapped = _RequestIDMiddleware(wrapped)
+    if cors_origins:
+        wrapped = _CORSMiddleware(wrapped, allow_origins=cors_origins)
+    if trusted_hosts:
+        wrapped = _TrustedHostMiddleware(wrapped, allowed_hosts=trusted_hosts)
 
     return wrapped
