@@ -32,37 +32,45 @@ class DependencyResolver:
         Returns ``(resolved, cleanups)`` where *resolved* is a
         ``{name: value}`` dict and *cleanups* is a list of
         ``("sync" | "async", generator)`` pairs to pass to :meth:`cleanup`.
+
+        If a factory raises during resolution, any generator cleanups
+        accumulated so far are run before the exception propagates.
         """
         resolved: dict[str, Any] = {}
         cleanups: list[tuple[str, Any]] = []
         cache: dict[int, Any] = {}  # id(actual_factory) -> resolved value
 
-        for name, factory in deps.items():
-            actual_factory = self._overrides.get(factory, factory)
-            factory_id = id(actual_factory)
+        try:
+            for name, factory in deps.items():
+                actual_factory = self._overrides.get(factory, factory)
+                factory_id = id(actual_factory)
 
-            if factory_id in cache:
-                resolved[name] = cache[factory_id]
-                continue
+                if factory_id in cache:
+                    resolved[name] = cache[factory_id]
+                    continue
 
-            result = actual_factory(request)
+                result = actual_factory(request)
 
-            # Handle awaitable (async def factory)
-            if inspect.isawaitable(result):
-                result = await result
+                # Handle awaitable (async def factory)
+                if inspect.isawaitable(result):
+                    result = await result
 
-            # Handle generators (sync and async)
-            if inspect.isgenerator(result):
-                value = next(result)
-                cleanups.append(("sync", result))
-            elif inspect.isasyncgen(result):
-                value = await result.__anext__()
-                cleanups.append(("async", result))
-            else:
-                value = result
+                # Handle generators (sync and async)
+                if inspect.isgenerator(result):
+                    value = next(result)
+                    cleanups.append(("sync", result))
+                elif inspect.isasyncgen(result):
+                    value = await result.__anext__()
+                    cleanups.append(("async", result))
+                else:
+                    value = result
 
-            cache[factory_id] = value
-            resolved[name] = value
+                cache[factory_id] = value
+                resolved[name] = value
+        except Exception:
+            # Clean up any generators that already yielded
+            await self.cleanup(cleanups)
+            raise
 
         return resolved, cleanups
 

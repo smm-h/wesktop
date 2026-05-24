@@ -1003,13 +1003,11 @@ def create_app(
                 scope["path_params"] = ws_params
                 ws = WebSocket(scope, receive, send)
                 if ws_deps:
-                    # Build a lightweight request-like object for dep factories.
-                    # WS deps receive the WebSocket instance itself.
                     resolved, cleanups = await _resolver.resolve(ws_deps, ws)
                     try:
                         await ws_handler(ws, **resolved)
                     finally:
-                        await _resolver.cleanup(cleanups)
+                        await DependencyResolver.cleanup(cleanups)
                 else:
                     await ws_handler(ws)
             else:
@@ -1052,7 +1050,7 @@ def create_app(
                     try:
                         result = await handler(request, **resolved)
                     finally:
-                        await _resolver.cleanup(cleanups)
+                        await DependencyResolver.cleanup(cleanups)
                 else:
                     result = await handler(request)
 

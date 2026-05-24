@@ -666,16 +666,9 @@ class TestFeatureGatedDeps:
             resp = await client.get("/data")
         assert resp.status_code == 401
         # The conn generator should have been cleaned up even though
-        # the auth dep raised an error. The HTTPError is raised during
-        # resolution, which is inside the try block. The cleanup happens
-        # because HTTPError propagates through the outer try/except in
-        # create_app, but the resolver's partial cleanups need handling.
-        # Actually, the resolver raises during resolution and the partial
-        # cleanups are lost. Let's verify the current behavior.
-        # Note: partial cleanup is a design choice. Currently the resolver
-        # raises immediately and the caller (create_app) catches HTTPError
-        # before cleanups run. This is acceptable -- the generator's
-        # __del__ will eventually close it, and the GC handles it.
+        # the auth dep raised. The resolver runs partial cleanup before
+        # re-raising the exception.
+        assert cleanup_ran
 
 
 # ---------------------------------------------------------------------------
