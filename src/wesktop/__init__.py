@@ -27,6 +27,7 @@ from wesktop.asgi import (
     set_cookie,
     delete_cookie,
 )
+from wesktop.di import DependencyResolver
 from wesktop.server import ServerStatus
 from wesktop.sse import Broadcaster, sse_route
 
@@ -52,6 +53,8 @@ __all__ = [
     "send_error",
     "set_cookie",
     "delete_cookie",
+    # di
+    "DependencyResolver",
     # sse
     "Broadcaster",
     "sse_route",

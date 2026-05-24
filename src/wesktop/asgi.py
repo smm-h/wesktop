@@ -534,95 +534,110 @@ class Router:
     """
 
     def __init__(self) -> None:
-        # (method, parsed_segments, handler, dependencies)
-        self._routes: list[tuple[str, list[ParsedSegment], Callable, list]] = []
-        # WebSocket routes: (parsed_segments, handler)
-        self._ws_routes: list[tuple[list[ParsedSegment], Callable]] = []
+        # (method, parsed_segments, handler, deps_dict)
+        self._routes: list[tuple[str, list[ParsedSegment], Callable, dict[str, Callable]]] = []
+        # WebSocket routes: (parsed_segments, handler, deps_dict)
+        self._ws_routes: list[tuple[list[ParsedSegment], Callable, dict[str, Callable]]] = []
 
-    def get(self, path: str) -> Callable:
+    def get(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
         """Decorator to register a GET handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_route("GET", path, fn)
+            self.add_route("GET", path, fn, deps=deps)
             return fn
         return decorator
 
-    def post(self, path: str) -> Callable:
+    def post(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
         """Decorator to register a POST handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_route("POST", path, fn)
+            self.add_route("POST", path, fn, deps=deps)
             return fn
         return decorator
 
-    def delete(self, path: str) -> Callable:
+    def delete(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
         """Decorator to register a DELETE handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_route("DELETE", path, fn)
+            self.add_route("DELETE", path, fn, deps=deps)
             return fn
         return decorator
 
-    def put(self, path: str) -> Callable:
+    def put(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
         """Decorator to register a PUT handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_route("PUT", path, fn)
+            self.add_route("PUT", path, fn, deps=deps)
             return fn
         return decorator
 
-    def patch(self, path: str) -> Callable:
+    def patch(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
         """Decorator to register a PATCH handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_route("PATCH", path, fn)
+            self.add_route("PATCH", path, fn, deps=deps)
             return fn
         return decorator
 
-    def add_route(self, method: str, path: str, handler: Callable) -> None:
+    def add_route(
+        self,
+        method: str,
+        path: str,
+        handler: Callable,
+        *,
+        deps: dict[str, Callable] | None = None,
+    ) -> None:
         """Programmatic route registration."""
         raw_segments = path.strip("/").split("/")
         parsed = [_parse_segment(s) for s in raw_segments]
-        self._routes.append((method, parsed, handler, []))
+        self._routes.append((method, parsed, handler, deps or {}))
 
-    def ws(self, path: str) -> Callable:
+    def ws(self, path: str, *, deps: dict[str, Callable] | None = None) -> Callable:
         """Decorator to register a WebSocket handler."""
         def decorator(fn: Callable) -> Callable:
-            self.add_ws_route(path, fn)
+            self.add_ws_route(path, fn, deps=deps)
             return fn
         return decorator
 
-    def add_ws_route(self, path: str, handler: Callable) -> None:
+    def add_ws_route(
+        self,
+        path: str,
+        handler: Callable,
+        *,
+        deps: dict[str, Callable] | None = None,
+    ) -> None:
         """Register a WebSocket handler for a path pattern (supports {param})."""
         raw_segments = path.strip("/").split("/")
         parsed = [_parse_segment(s) for s in raw_segments]
-        self._ws_routes.append((parsed, handler))
+        self._ws_routes.append((parsed, handler, deps or {}))
 
     def include_router(
         self,
         other: Router,
         prefix: str | None = None,
-        dependencies: list[Callable] | None = None,
+        deps: dict[str, Callable] | None = None,
     ) -> None:
         """Copy all routes from *other* into this router.
 
         If *prefix* is given (e.g. ``"/api/v1"``), its segments are
         prepended to every copied route's pattern.
 
-        If *dependencies* is given, the list is stored alongside each
-        copied route (merged with any deps the route already carries).
-        DI resolution is not wired yet (Phase 3 scaffolding).
+        If *deps* is given (a dict mapping names to factory callables),
+        they are merged into each copied route's deps. Router-level deps
+        are listed first so that per-handler deps can override them.
         """
         prefix_segs: list[ParsedSegment] = []
         if prefix:
             prefix_segs = [_parse_segment(s) for s in prefix.strip("/").split("/")]
 
-        extra_deps = dependencies or []
+        extra_deps = deps or {}
 
         for method, pattern, handler, existing_deps in other._routes:
             merged_pattern = prefix_segs + pattern
-            merged_deps = extra_deps + existing_deps
+            # Router-level deps first, per-handler deps override
+            merged_deps = {**extra_deps, **existing_deps}
             self._routes.append((method, merged_pattern, handler, merged_deps))
 
-        # Copy WebSocket routes with prefix
-        for pattern, handler in other._ws_routes:
+        # Copy WebSocket routes with prefix and deps
+        for pattern, handler, existing_ws_deps in other._ws_routes:
             merged_pattern = prefix_segs + pattern
-            self._ws_routes.append((merged_pattern, handler))
+            merged_ws_deps = {**extra_deps, **existing_ws_deps}
+            self._ws_routes.append((merged_pattern, handler, merged_ws_deps))
 
     def match(self, method: str, path: str) -> tuple[Callable, dict[str, Any]] | None:
         """Return (handler, path_params) or None if no route matches.
@@ -631,8 +646,23 @@ class Router:
         {id:int} produces an int).  If coercion fails the route does not
         match, allowing fall-through to 404.
         """
+        result = self._match_with_deps(method, path)
+        if result is None:
+            return None
+        handler, params, _deps = result
+        return handler, params
+
+    def _match_with_deps(
+        self, method: str, path: str,
+    ) -> tuple[Callable, dict[str, Any], dict[str, Callable]] | None:
+        """Return (handler, path_params, deps) or None.
+
+        Internal variant of :meth:`match` that also returns the merged
+        dependency dict for the matched route. Used by ``create_app``
+        for DI resolution.
+        """
         segments = path.strip("/").split("/")
-        for route_method, pattern, handler, _deps in self._routes:
+        for route_method, pattern, handler, route_deps in self._routes:
             if route_method != method:
                 continue
 
@@ -649,7 +679,7 @@ class Router:
                     pattern, segments, path_seg_idx
                 )
                 if result is not None:
-                    return handler, result
+                    return handler, result, route_deps
                 continue
 
             # Normal segment-count matching
@@ -672,7 +702,7 @@ class Router:
                         matched = False
                         break
             if matched:
-                return handler, params
+                return handler, params, route_deps
         return None
 
     @staticmethod
@@ -730,8 +760,21 @@ class Router:
 
     def match_ws(self, path: str) -> tuple[Callable, dict[str, Any]] | None:
         """Return (handler, path_params) for a WebSocket path, or None."""
+        result = self._match_ws_with_deps(path)
+        if result is None:
+            return None
+        handler, params, _deps = result
+        return handler, params
+
+    def _match_ws_with_deps(
+        self, path: str,
+    ) -> tuple[Callable, dict[str, Any], dict[str, Callable]] | None:
+        """Return (handler, path_params, deps) for a WebSocket path, or None.
+
+        Internal variant of :meth:`match_ws` that also returns deps.
+        """
         segments = path.strip("/").split("/")
-        for pattern, handler in self._ws_routes:
+        for pattern, handler, route_deps in self._ws_routes:
             # Check for :path segments
             path_seg_idx = None
             for i, (lit, name, conv) in enumerate(pattern):
@@ -742,7 +785,7 @@ class Router:
             if path_seg_idx is not None:
                 result = self._match_with_path_param(pattern, segments, path_seg_idx)
                 if result is not None:
-                    return handler, result
+                    return handler, result, route_deps
                 continue
 
             if len(pattern) != len(segments):
@@ -762,7 +805,7 @@ class Router:
                         matched = False
                         break
             if matched:
-                return handler, params
+                return handler, params, route_deps
         return None
 
 
@@ -909,10 +952,13 @@ def create_app(
     lifespan: Callable | None = None,
     name: str | None = None,
     exception_handlers: dict[type, Callable] | None = None,
+    dependency_overrides: dict[Callable, Callable] | None = None,
 ) -> Callable:
     """Create an ASGI application callable."""
+    from wesktop.di import DependencyResolver
 
     log = logging.getLogger(name or "wesktop.asgi")
+    _resolver = DependencyResolver(overrides=dependency_overrides)
 
     # Pre-sort exception handlers by MRO depth (most specific first) so
     # that a handler for a subclass is checked before a handler for its
@@ -951,12 +997,21 @@ def create_app(
         # -- WebSocket routing (app-scoped via router) --
         if scope["type"] == "websocket":
             path = scope.get("path", "")
-            ws_match = router.match_ws(path)
+            ws_match = router._match_ws_with_deps(path)
             if ws_match:
-                ws_handler, ws_params = ws_match
+                ws_handler, ws_params, ws_deps = ws_match
                 scope["path_params"] = ws_params
                 ws = WebSocket(scope, receive, send)
-                await ws_handler(ws)
+                if ws_deps:
+                    # Build a lightweight request-like object for dep factories.
+                    # WS deps receive the WebSocket instance itself.
+                    resolved, cleanups = await _resolver.resolve(ws_deps, ws)
+                    try:
+                        await ws_handler(ws, **resolved)
+                    finally:
+                        await _resolver.cleanup(cleanups)
+                else:
+                    await ws_handler(ws)
             else:
                 # Reject unknown WebSocket paths
                 await receive()  # consume websocket.connect per ASGI spec
@@ -975,9 +1030,9 @@ def create_app(
         path = scope["path"]
 
         # -- Route matching --
-        match = router.match(method, path)
+        match = router._match_with_deps(method, path)
         if match:
-            handler, path_params = match
+            handler, path_params, route_deps = match
             try:
                 # Read body for all methods (GET with empty body costs nothing)
                 body = b""
@@ -989,7 +1044,18 @@ def create_app(
                 body = body or None
 
                 request = Request(scope, path_params, body, receive=receive)
-                result = await handler(request)
+
+                if route_deps:
+                    resolved, cleanups = await _resolver.resolve(
+                        route_deps, request,
+                    )
+                    try:
+                        result = await handler(request, **resolved)
+                    finally:
+                        await _resolver.cleanup(cleanups)
+                else:
+                    result = await handler(request)
+
                 await _send_result(send, result)
             except HTTPError as exc:
                 await _send_response(

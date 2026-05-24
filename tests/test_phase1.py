@@ -1377,28 +1377,30 @@ class TestRouterComposition:
 
     @pytest.mark.anyio
     async def test_dependencies_stored_on_route(self, client_for):
-        """Dependencies parameter is accepted and stored (scaffolding for Phase 3)."""
+        """Dependencies parameter is accepted and stored on the route."""
         main = Router()
         sub = Router()
 
         @sub.get("/secured")
-        async def secured(req):
-            return JSONResponse({"ok": True})
+        async def secured(req, user=None):
+            return JSONResponse({"ok": True, "user": user})
 
-        def fake_auth():
-            pass
+        def fake_auth(request):
+            return "test_user"
 
-        main.include_router(sub, prefix="/api", dependencies=[fake_auth])
+        main.include_router(sub, prefix="/api", deps={"user": fake_auth})
 
         # Verify the dependency was stored on the route tuple
-        method, pattern, handler, deps = main._routes[0]
-        assert fake_auth in deps
+        method, pattern, handler, route_deps = main._routes[0]
+        assert "user" in route_deps
+        assert route_deps["user"] is fake_auth
 
-        # Route still works (deps are stored but not resolved yet)
+        # Route works and deps are resolved
         app = create_app(main)
         async with client_for(app) as client:
             resp = await client.get("/api/secured")
         assert resp.status_code == 200
+        assert resp.json()["user"] == "test_user"
 
     @pytest.mark.anyio
     async def test_main_router_routes_still_work(self, client_for):
