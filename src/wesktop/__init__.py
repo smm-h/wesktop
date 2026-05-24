@@ -27,6 +27,19 @@ from wesktop.asgi import (
     set_cookie,
     delete_cookie,
 )
+from wesktop.auth import (
+    create_token,
+    verify_token,
+    hash_password,
+    verify_password,
+    JSONFileUserStore,
+    get_current_user,
+    require_role,
+    CSRFMiddleware,
+    set_session_cookies,
+    clear_session_cookies,
+    rate_limit,
+)
 from wesktop.di import DependencyResolver
 from wesktop.server import ServerStatus
 from wesktop.sse import Broadcaster, sse_route
@@ -53,6 +66,18 @@ __all__ = [
     "send_error",
     "set_cookie",
     "delete_cookie",
+    # auth
+    "create_token",
+    "verify_token",
+    "hash_password",
+    "verify_password",
+    "JSONFileUserStore",
+    "get_current_user",
+    "require_role",
+    "CSRFMiddleware",
+    "set_session_cookies",
+    "clear_session_cookies",
+    "rate_limit",
     # di
     "DependencyResolver",
     # sse
