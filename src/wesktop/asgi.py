@@ -739,10 +739,22 @@ def create_app(
     spa_fallback: Path | None = None,
     lifespan: Callable | None = None,
     name: str | None = None,
+    exception_handlers: dict[type, Callable] | None = None,
 ) -> Callable:
     """Create an ASGI application callable."""
 
     log = logging.getLogger(name or "wesktop.asgi")
+
+    # Pre-sort exception handlers by MRO depth (most specific first) so
+    # that a handler for a subclass is checked before a handler for its
+    # parent.  Ties are broken by insertion order.
+    _exc_handlers: list[tuple[type, Callable]] = []
+    if exception_handlers:
+        _exc_handlers = sorted(
+            exception_handlers.items(),
+            key=lambda pair: len(pair[0].__mro__),
+            reverse=True,
+        )
     _lifespan_state: dict[str, Any] = {}
 
     async def app(scope: dict, receive: Callable, send: Callable) -> None:
@@ -814,12 +826,27 @@ def create_app(
                     "application/json",
                 )
             except Exception as exc:
-                log.exception("Handler error on %s %s", method, path)
-                await _send_response(
-                    send, 500,
-                    msgspec.json.encode({"detail": "Internal server error"}),
-                    "application/json",
-                )
+                # Check registered exception handlers (most specific first)
+                handled = False
+                for exc_type, exc_handler in _exc_handlers:
+                    if isinstance(exc, exc_type):
+                        try:
+                            result = await exc_handler(request, exc)
+                            await _send_result(send, result)
+                            handled = True
+                        except Exception:
+                            log.exception(
+                                "Exception handler error on %s %s",
+                                method, path,
+                            )
+                        break
+                if not handled:
+                    log.exception("Handler error on %s %s", method, path)
+                    await _send_response(
+                        send, 500,
+                        msgspec.json.encode({"detail": "Internal server error"}),
+                        "application/json",
+                    )
             return
 
         # -- Static files --

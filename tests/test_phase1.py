@@ -1173,3 +1173,118 @@ class TestPathParameterTypeCoercion:
         router = Router()
         with pytest.raises(ValueError, match="Unknown path parameter type"):
             router.add_route("GET", "/items/{id:float}", lambda r: None)
+
+
+# ---------------------------------------------------------------------------
+# 1.6 Exception handler registry
+# ---------------------------------------------------------------------------
+
+
+class TestExceptionHandlerRegistry:
+    @pytest.mark.anyio
+    async def test_registered_handler_for_valueerror(self, client_for):
+        """Register handler for ValueError -> 422. Handler raises ValueError."""
+        router = Router()
+
+        @router.get("/api/validate")
+        async def validate(req):
+            raise ValueError("bad value")
+
+        async def handle_value_error(request, exc):
+            return JSONResponse({"detail": str(exc)}, status=422)
+
+        app = create_app(
+            router,
+            exception_handlers={ValueError: handle_value_error},
+        )
+        async with client_for(app) as client:
+            resp = await client.get("/api/validate")
+        assert resp.status_code == 422
+        assert resp.json()["detail"] == "bad value"
+
+    @pytest.mark.anyio
+    async def test_unregistered_exception_falls_through_to_500(self, client_for):
+        """Exception type not in registry -> generic 500."""
+        router = Router()
+
+        @router.get("/api/crash")
+        async def crash(req):
+            raise RuntimeError("boom")
+
+        async def handle_value_error(request, exc):
+            return JSONResponse({"detail": str(exc)}, status=422)
+
+        app = create_app(
+            router,
+            exception_handlers={ValueError: handle_value_error},
+        )
+        async with client_for(app) as client:
+            resp = await client.get("/api/crash")
+        assert resp.status_code == 500
+        assert resp.json()["detail"] == "Internal server error"
+
+    @pytest.mark.anyio
+    async def test_most_specific_handler_wins(self, client_for):
+        """Subclass handler takes priority over parent handler."""
+        router = Router()
+
+        class CustomError(ValueError):
+            pass
+
+        @router.get("/api/specific")
+        async def specific(req):
+            raise CustomError("specific error")
+
+        async def handle_value_error(request, exc):
+            return JSONResponse({"detail": "generic ValueError"}, status=400)
+
+        async def handle_custom_error(request, exc):
+            return JSONResponse({"detail": "specific CustomError"}, status=422)
+
+        app = create_app(
+            router,
+            exception_handlers={
+                ValueError: handle_value_error,
+                CustomError: handle_custom_error,
+            },
+        )
+        async with client_for(app) as client:
+            resp = await client.get("/api/specific")
+        assert resp.status_code == 422
+        assert resp.json()["detail"] == "specific CustomError"
+
+    @pytest.mark.anyio
+    async def test_httperror_still_takes_priority(self, client_for):
+        """HTTPError is caught before checking exception_handlers."""
+        router = Router()
+
+        @router.get("/api/http-error")
+        async def http_error(req):
+            raise HTTPError(403, "forbidden")
+
+        async def handle_all(request, exc):
+            return JSONResponse({"detail": "caught by handler"}, status=500)
+
+        app = create_app(
+            router,
+            exception_handlers={Exception: handle_all},
+        )
+        async with client_for(app) as client:
+            resp = await client.get("/api/http-error")
+        assert resp.status_code == 403
+        assert resp.json()["detail"] == "forbidden"
+
+    @pytest.mark.anyio
+    async def test_no_exception_handlers_parameter(self, client_for):
+        """create_app with no exception_handlers still works normally."""
+        router = Router()
+
+        @router.get("/api/ok")
+        async def ok(req):
+            return JSONResponse({"ok": True})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/ok")
+        assert resp.status_code == 200
+        assert resp.json() == {"ok": True}
