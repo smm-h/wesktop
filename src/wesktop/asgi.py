@@ -11,6 +11,7 @@ import http.cookies
 import logging
 import mimetypes
 from pathlib import Path
+from collections.abc import Awaitable
 from typing import Any, AsyncGenerator, Callable
 from urllib.parse import parse_qs
 
@@ -21,8 +22,8 @@ import msgspec
 # ---------------------------------------------------------------------------
 
 Scope = dict[str, Any]
-Receive = Any
-Send = Any
+Receive = Callable[[], Awaitable[dict[str, Any]]]
+Send = Callable[[dict[str, Any]], Awaitable[None]]
 
 
 # ---------------------------------------------------------------------------
@@ -235,7 +236,7 @@ class Request:
     __slots__ = (
         "scope", "path_params", "_body", "_json", "_json_decoded",
         "_receive", "_disconnected", "_cookies", "_cookies_parsed",
-        "_query_params",
+        "_query_params", "_state",
     )
 
     def __init__(
@@ -255,6 +256,7 @@ class Request:
         self._cookies = None
         self._cookies_parsed = False
         self._query_params = None
+        self._state = None
 
     @property
     def json(self) -> dict | list | None:
@@ -330,13 +332,20 @@ class Request:
     def query_list(self, name: str, type_: type = str) -> list:
         """Return all values for a multi-value query key with optional type coercion.
 
-        Returns an empty list if the key is absent.
+        Returns an empty list if the key is absent.  Raises
+        ``HTTPError(422)`` if any value cannot be converted to *type_*.
         """
         qs = parse_qs(self.scope.get("query_string", b"").decode())
         values = qs.get(name)
         if not values:
             return []
-        return [type_(v) for v in values]
+        try:
+            return [type_(v) for v in values]
+        except (ValueError, TypeError):
+            raise HTTPError(
+                422,
+                f"Query parameter '{name}': cannot convert values to {type_.__name__}",
+            )
 
     @property
     def query_params(self) -> dict[str, str]:
@@ -366,8 +375,10 @@ class Request:
 
     @property
     def state(self) -> State:
-        """Lifespan + per-request state, supporting both attribute and dict access."""
-        return State(self.scope.get("state", {}))
+        """Lifespan + per-request state, supporting both attribute and dict access. Cached."""
+        if self._state is None:
+            self._state = State(self.scope.get("state", {}))
+        return self._state
 
     @property
     def method(self) -> str:
