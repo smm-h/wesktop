@@ -1437,3 +1437,113 @@ class TestRouterComposition:
         async with client_for(app) as client:
             resp = await client.get("/api/v2/status")
         assert resp.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# 1.16 {key:path} path converter
+# ---------------------------------------------------------------------------
+
+
+class TestPathConverter:
+    @pytest.mark.anyio
+    async def test_path_param_with_suffix(self, client_for):
+        """/api/services/{key:path}/start matches multi-segment key."""
+        router = Router()
+
+        @router.get("/api/services/{key:path}/start")
+        async def start_service(req):
+            return JSONResponse({"key": req.path_params["key"]})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/services/main/vite-app/start")
+        assert resp.status_code == 200
+        assert resp.json()["key"] == "main/vite-app"
+
+    @pytest.mark.anyio
+    async def test_path_param_greedy_all(self, client_for):
+        """/{rest:path} matches /a/b/c with rest="a/b/c"."""
+        router = Router()
+
+        @router.get("/{rest:path}")
+        async def catch_all(req):
+            return JSONResponse({"rest": req.path_params["rest"]})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/a/b/c")
+        assert resp.status_code == 200
+        assert resp.json()["rest"] == "a/b/c"
+
+    @pytest.mark.anyio
+    async def test_path_param_no_key_returns_404(self, client_for):
+        """/api/services/{key:path}/start does NOT match /api/services/start (no key)."""
+        router = Router()
+
+        @router.get("/api/services/{key:path}/start")
+        async def start_service(req):
+            return JSONResponse({"key": req.path_params["key"]})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/services/start")
+        assert resp.status_code == 404
+
+    @pytest.mark.anyio
+    async def test_path_param_single_segment(self, client_for):
+        """Path param with a single segment still works."""
+        router = Router()
+
+        @router.get("/api/services/{key:path}/start")
+        async def start_service(req):
+            return JSONResponse({"key": req.path_params["key"]})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/services/myapp/start")
+        assert resp.status_code == 200
+        assert resp.json()["key"] == "myapp"
+
+    @pytest.mark.anyio
+    async def test_path_param_deep_nesting(self, client_for):
+        """Path param consuming many segments."""
+        router = Router()
+
+        @router.get("/files/{path:path}")
+        async def serve_file(req):
+            return JSONResponse({"path": req.path_params["path"]})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/files/a/b/c/d/e.txt")
+        assert resp.status_code == 200
+        assert resp.json()["path"] == "a/b/c/d/e.txt"
+
+    @pytest.mark.anyio
+    async def test_path_param_with_prefix_and_suffix(self, client_for):
+        """Multiple literal segments before and after :path."""
+        router = Router()
+
+        @router.get("/api/v1/services/{key:path}/actions/start")
+        async def start(req):
+            return JSONResponse({"key": req.path_params["key"]})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/v1/services/org/project/app/actions/start")
+        assert resp.status_code == 200
+        assert resp.json()["key"] == "org/project/app"
+
+    @pytest.mark.anyio
+    async def test_path_param_suffix_mismatch(self, client_for):
+        """If the suffix literal doesn't match, route doesn't match."""
+        router = Router()
+
+        @router.get("/api/services/{key:path}/start")
+        async def start(req):
+            return JSONResponse({"key": req.path_params["key"]})
+
+        app = create_app(router)
+        async with client_for(app) as client:
+            resp = await client.get("/api/services/myapp/stop")
+        assert resp.status_code == 404
