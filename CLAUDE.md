@@ -39,6 +39,12 @@ src/wesktop/
 | `msgspec` | Fast JSON serialization/deserialization. Used in the ASGI layer for request parsing and response encoding. |
 | `strictcli` | CLI framework with built-in config management. Powers the `wesktop` CLI. |
 
+**Optional:**
+
+| Package | Why |
+|---------|-----|
+| `mcp` | MCP server support for role-based agent tool provisioning. Only needed if using `create_mcp_server`. Install with `pip install mcp`. |
+
 Dev dependencies: `pytest`, `httpx` (async test client). 122 tests across 7 test modules.
 
 ## Consumer Patterns
