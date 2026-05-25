@@ -376,7 +376,7 @@ class ViteDevProxy:
 
         path = scope.get("path", "/")
         qs = scope.get("query_string", b"")
-        target = f"http://127.0.0.1:{self.vite_port}{path}"
+        target = f"http://localhost:{self.vite_port}{path}"
         if qs:
             target += f"?{qs.decode('latin-1')}"
 
@@ -477,7 +477,7 @@ class ViteDevProxy:
             if subprotocol:
                 ws_kwargs["subprotocols"] = [subprotocol]
 
-            ws_url = f"ws://127.0.0.1:{self.vite_port}{target_path}"
+            ws_url = f"ws://localhost:{self.vite_port}{target_path}"
             async with connect(ws_url, **ws_kwargs) as vite_ws:
 
                 async def client_to_vite() -> None:

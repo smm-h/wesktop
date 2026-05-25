@@ -59,7 +59,7 @@ def dev(
     ready = False
     while time.monotonic() < deadline:
         try:
-            sock = socket.create_connection(("127.0.0.1", vite_port), timeout=1)
+            sock = socket.create_connection(("localhost", vite_port), timeout=1)
             sock.close()
             ready = True
             break
