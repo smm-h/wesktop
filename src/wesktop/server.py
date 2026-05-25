@@ -274,8 +274,19 @@ def serve(
         server.serve()
         return None
     else:
+        # Granian registers signal handlers in startup(), which fails in
+        # daemon threads.  Signal handling is unnecessary here -- the daemon
+        # thread dies when the main thread exits.
+        from granian import _signals
+
+        _original = _signals.set_main_signals
+        _signals.set_main_signals = lambda *a, **kw: None
+
         thread = threading.Thread(target=server.serve, daemon=True)
         thread.start()
+
+        _signals.set_main_signals = _original
+
         log.info("%s started in background on %s", name, url)
         return url
 
