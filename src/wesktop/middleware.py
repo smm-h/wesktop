@@ -308,16 +308,22 @@ class TrustedHostMiddleware:
 # ---------------------------------------------------------------------------
 
 class ViteDevProxy:
-    """ASGI middleware that proxies non-API requests to a Vite dev server.
+    """ASGI middleware that proxies unmatched requests to a Vite dev server.
 
-    Handles both HTTP requests and WebSocket upgrades (for HMR).
+    Uses a backend-first routing strategy for HTTP: every request hits the
+    backend first.  If the backend returns 404 (no route matched), the
+    request is proxied to Vite instead.  This means backend routes like
+    ``/health`` or ``/metrics`` work without being under an API prefix.
+
+    WebSocket upgrades cannot be retried, so they still use prefix-based
+    routing: paths matching *api_prefix* or ``/events`` go to the backend;
+    everything else is proxied to Vite (for HMR).
 
     Args:
         app: The inner ASGI application.
         vite_port: Port the Vite dev server is listening on.
-        api_prefix: Path prefix for API requests (default ``"/api"``).
-            Requests whose path starts with this prefix or ``/events``
-            pass through to the inner app; everything else is proxied.
+        api_prefix: Path prefix for backend WebSocket routes (default
+            ``"/api"``).  Only used for WebSocket routing decisions.
     """
 
     def __init__(
@@ -355,10 +361,37 @@ class ViteDevProxy:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "http":
-            path = scope.get("path", "")
-            if not self._is_api_request(path):
-                await self._proxy_http(scope, receive, send)
-                return
+            # Backend-first: buffer the response to check the status code.
+            # If the backend returns 404, proxy to Vite instead.
+            #
+            # We also capture the request body via a wrapping receive so it
+            # can be replayed to Vite when the backend doesn't match.
+            response_parts: list[dict[str, Any]] = []
+            captured_body = bytearray()
+
+            async def capture_receive() -> dict[str, Any]:
+                msg = await receive()
+                if msg.get("type") == "http.request":
+                    captured_body.extend(msg.get("body", b""))
+                return msg
+
+            async def buffer_send(message: dict[str, Any]) -> None:
+                response_parts.append(message)
+
+            await self.app(scope, capture_receive, buffer_send)
+
+            status = None
+            for part in response_parts:
+                if part["type"] == "http.response.start":
+                    status = part["status"]
+                    break
+
+            if status == 404:
+                await self._proxy_http(scope, send, body=bytes(captured_body))
+            else:
+                for part in response_parts:
+                    await send(part)
+            return
 
         elif scope["type"] == "websocket":
             path = scope.get("path", "")
@@ -369,9 +402,13 @@ class ViteDevProxy:
         await self.app(scope, receive, send)
 
     async def _proxy_http(
-        self, scope: Scope, receive: Receive, send: Send,
+        self, scope: Scope, send: Send, *, body: bytes = b"",
     ) -> None:
-        """Forward an HTTP request to the Vite dev server."""
+        """Forward an HTTP request to the Vite dev server.
+
+        The *body* parameter contains the pre-captured request body (already
+        consumed from ``receive`` by the backend during the try-first phase).
+        """
         import httpx as _httpx
 
         path = scope.get("path", "/")
@@ -381,14 +418,6 @@ class ViteDevProxy:
             target += f"?{qs.decode('latin-1')}"
 
         method = scope.get("method", "GET")
-
-        # Collect request body.
-        body = b""
-        while True:
-            msg = await receive()
-            body += msg.get("body", b"")
-            if not msg.get("more_body", False):
-                break
 
         # Forward a subset of headers.
         fwd_headers: dict[str, str] = {}
