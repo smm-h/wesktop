@@ -2,6 +2,14 @@
 
 # Changelog
 
+## 0.4.1
+
+### Fixes
+
+- **Fix.** `serve(foreground=False)` no longer crashes with granian's signal handler registration in daemon threads. Fixes desktop mode (`run()`) and any background-server usage.
+- **Fix.** ViteDevProxy and `dev()` now use `localhost` instead of `127.0.0.1`, fixing connectivity when Vite binds to IPv6 only.
+- **Fix.** ViteDevProxy now tries the backend first for all HTTP requests and only proxies to Vite on 404. Backend routes outside `/api` (like `/health`) are no longer incorrectly proxied.
+
 ## 0.4.0
 
 ### Features
