@@ -1,2 +1,3 @@
 {"commits":["be870a9f1bf8e89d54b819e5bc08191a0e9bc6f5"],"user_facing":true,"description":"**New feature.** `run()` accepts a `js_api` parameter, passed through to pywebview's `create_window()` for exposing Python methods to JavaScript.","type":"feature"}
 {"commits":["6b2f343b0a419b86a68bbe1774243b803ffa7ffc"],"user_facing":false}
+{"commits":["81c19888eb4ab2945245f841802b0a537fd3f90d"],"user_facing":false}
