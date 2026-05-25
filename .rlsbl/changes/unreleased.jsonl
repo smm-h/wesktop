@@ -1,1 +1,2 @@
 {"commits":["73943d8d68268fec172c5b358345a7b6c8f36ed8"],"user_facing":true,"description":"**Fix.** `serve(foreground=False)` no longer crashes with granian's signal handler registration in daemon threads. Fixes desktop mode (`run()`) and any background-server usage.","type":"fix"}
+{"commits":["b5b828cd942373fcb3486423f3c04f9421e4af2a"],"user_facing":true,"description":"**Fix.** ViteDevProxy and `dev()` now use `localhost` instead of `127.0.0.1`, fixing connectivity when Vite binds to IPv6 only.","type":"fix"}
