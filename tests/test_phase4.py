@@ -70,8 +70,13 @@ class TestJWTTokens:
     def test_tampered_token_returns_none(self):
         secret = "test-secret-key-that-is-at-least-thirty-two-bytes-long"
         token = create_token("alice", "admin", secret)
-        # Flip a character in the signature
-        tampered = token[:-1] + ("A" if token[-1] != "A" else "B")
+        # Flip a character in the middle of the signature (not the end,
+        # where base64url padding bits can absorb the change)
+        parts = token.split(".")
+        sig = list(parts[2])
+        mid = len(sig) // 2
+        sig[mid] = "X" if sig[mid] != "X" else "Y"
+        tampered = parts[0] + "." + parts[1] + "." + "".join(sig)
         assert verify_token(tampered, secret) is None
 
     def test_wrong_secret_returns_none(self):
