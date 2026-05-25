@@ -2,6 +2,13 @@
 
 # Changelog
 
+## 0.4.0
+
+### Features
+
+- **New feature.** `run()` accepts a `js_api` parameter, passed through to pywebview's `create_window()` for exposing Python methods to JavaScript.
+- **New feature.** `dev()` starts a Vite dev server alongside the wesktop server in a single command, with ViteDevProxy for unified port access and automatic Vite lifecycle management.
+
 ## 0.3.2
 
 ### Features
