@@ -2,3 +2,4 @@
 {"commits":["6b2f343b0a419b86a68bbe1774243b803ffa7ffc"],"user_facing":false}
 {"commits":["81c19888eb4ab2945245f841802b0a537fd3f90d"],"user_facing":false}
 {"commits":["a9108962c657aec782b52a67fc6a45cd2dfb346f"],"user_facing":true,"description":"**New feature.** `dev()` starts a Vite dev server alongside the wesktop server in a single command, with ViteDevProxy for unified port access and automatic Vite lifecycle management.","type":"feature"}
+{"commits":["e16c8adee976582c1a68d94c16089598eb13ffaf"],"user_facing":false}
