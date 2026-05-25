@@ -1,0 +1,1 @@
+{"commits":["73943d8d68268fec172c5b358345a7b6c8f36ed8"],"user_facing":true,"description":"**Fix.** `serve(foreground=False)` no longer crashes with granian's signal handler registration in daemon threads. Fixes desktop mode (`run()`) and any background-server usage.","type":"fix"}
