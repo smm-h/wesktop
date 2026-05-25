@@ -192,6 +192,7 @@ __all__ = [
     "status",
     "ServerStatus",
     "run",
+    "dev",
     # features
     "FeatureFlags",
     # audit
@@ -334,3 +335,29 @@ def status(pid_path: Path, health_url: str | None = None) -> ServerStatus:
     from wesktop.server import status as _status
 
     return _status(pid_path, health_url=health_url)
+
+
+def dev(
+    target: str | Callable,
+    *,
+    vite_command: str = "npm run dev",
+    vite_port: int = 5173,
+    host: str | None = None,
+    port: int | None = None,
+    pid_path: Path | None = None,
+    name: str = "WESKTOP",
+    pre_serve: Callable[[], None] | None = None,
+) -> None:
+    """Development mode: Vite + server. See :func:`wesktop.dev.dev`."""
+    from wesktop.dev import dev as _dev
+
+    _dev(
+        target,
+        vite_command=vite_command,
+        vite_port=vite_port,
+        host=host,
+        port=port,
+        pid_path=pid_path,
+        name=name,
+        pre_serve=pre_serve,
+    )
