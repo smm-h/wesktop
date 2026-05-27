@@ -1,0 +1,1 @@
+{"commits":["3f5fdfa6358268fa5858292e97bfb9dffb98411b"],"user_facing":true,"description":"**Fix.** `run()` no longer crashes when pywebview has no GUI backend available (e.g., missing GTK/Qt in uv virtual environments).","type":"fix"}
