@@ -1,17 +1,45 @@
 {
+  "defaults": {
+    "app": {
+      "env_prefix": null,
+      "config": false,
+      "global_flags": [],
+      "commands": {},
+      "groups": {},
+      "deprecated": {}
+    },
+    "flag": {
+      "short": null,
+      "default": null,
+      "env": null,
+      "choices": null,
+      "repeatable": false,
+      "negatable": null,
+      "hidden": false
+    },
+    "arg": {
+      "required": true,
+      "variadic": false
+    },
+    "command": {
+      "passthrough": false,
+      "flags": [],
+      "args": []
+    },
+    "group": {
+      "commands": {},
+      "groups": {},
+      "deprecated": {}
+    }
+  },
   "name": "wesktop",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "help": "A Python framework for building web-based desktop applications",
-  "env_prefix": null,
   "config": true,
-  "global_flags": [],
   "commands": {
     "diagnose": {
       "name": "diagnose",
-      "help": "Check runtime environment and dependencies",
-      "flags": [],
-      "args": [],
-      "passthrough": false
+      "help": "Check runtime environment and dependencies"
     }
   },
   "groups": {
@@ -21,49 +49,31 @@
       "commands": {
         "path": {
           "name": "path",
-          "help": "Print the config file path",
-          "flags": [],
-          "args": [],
-          "passthrough": false
+          "help": "Print the config file path"
         },
         "show": {
           "name": "show",
-          "help": "Show all config values with source attribution",
-          "flags": [],
-          "args": [],
-          "passthrough": false
+          "help": "Show all config values with source attribution"
         },
         "set": {
           "name": "set",
           "help": "Set a config value",
-          "flags": [],
           "args": [
             {
               "name": "key",
-              "help": "Config key to set",
-              "required": true,
-              "variadic": false
+              "help": "Config key to set"
             },
             {
               "name": "value",
-              "help": "Value to set",
-              "required": true,
-              "variadic": false
+              "help": "Value to set"
             }
-          ],
-          "passthrough": false
+          ]
         },
         "edit": {
           "name": "edit",
-          "help": "Open the config file in $EDITOR",
-          "flags": [],
-          "args": [],
-          "passthrough": false
+          "help": "Open the config file in $EDITOR"
         }
-      },
-      "groups": {},
-      "deprecated": {}
+      }
     }
-  },
-  "deprecated": {}
+  }
 }
