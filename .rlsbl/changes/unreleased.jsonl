@@ -1,3 +1,4 @@
 {"commits":["2f8324d5c49da11628b1efb016ccfc9680747141"],"user_facing":false}
 {"commits":["ad39a610a91db62ce6642c8cba5e68db4c7f8327"],"user_facing":true,"description":"**Fix.** `serve(foreground=False)` signal handler patch now survives thread start race condition. Previous fix was ineffective because the noop was restored before the daemon thread executed startup.","type":"fix"}
 {"commits":["7b12c3c937671b5ed6b5c83a06fbb9cefd722e4a"],"user_facing":false}
+{"commits":["ecd619cf4ce0539d740a8e4880811f9efea01920"],"user_facing":false}
