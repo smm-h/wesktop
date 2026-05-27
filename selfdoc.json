@@ -1,11 +1,11 @@
 {
-  "version": "0.4.2",
+  "version": "0.4.3",
   "language": "python",
   "source": ["src/wesktop/"],
   "docs": "docs/",
   "output": "docs/_build/",
   "base_url": "https://wesktop.smmh.dev",
-  "versions": [{"version": "0.4.2", "indexed": true}],
+  "versions": [{"version": "0.4.3", "indexed": true}],
   "locales": [{"code": "en", "label": "English", "default": true}],
   "deploy": {
     "provider": "cloudflare-pages",
