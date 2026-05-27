@@ -2,13 +2,52 @@
 
 from __future__ import annotations
 
+import glob
 import logging
+import os
 import signal
+import sys
 import webbrowser
 from pathlib import Path
 from typing import Callable
 
 log = logging.getLogger(__name__)
+
+
+def ensure_gui_backend() -> bool:
+    """Make pywebview's GUI backend importable in isolated venvs.
+
+    If gi (PyGObject) is not importable, searches common system
+    site-packages locations and adds the first one found to sys.path.
+    Returns True if a backend is available, False otherwise.
+    """
+    try:
+        import gi  # noqa: F401
+
+        return True
+    except ImportError:
+        pass
+
+    # gi not in venv -- search system site-packages
+    patterns = [
+        "/usr/lib64/python3.*/site-packages",
+        "/usr/lib/python3.*/site-packages",
+        "/usr/lib/python3/dist-packages",  # Debian/Ubuntu
+    ]
+
+    for pattern in patterns:
+        for path in sorted(glob.glob(pattern), reverse=True):
+            gi_path = os.path.join(path, "gi")
+            if os.path.isdir(gi_path) and path not in sys.path:
+                sys.path.insert(0, path)
+                try:
+                    import gi  # noqa: F401
+
+                    return True
+                except ImportError:
+                    sys.path.remove(path)
+
+    return False
 
 
 def _has_gui_backend() -> bool:
@@ -106,6 +145,9 @@ def run(
         pre_serve=pre_serve,
         reload=reload,
     )
+
+    # Make system PyGObject visible in isolated venvs before importing webview
+    ensure_gui_backend()
 
     # Late import so headless mode (serve) has no pywebview dependency
     try:

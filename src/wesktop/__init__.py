@@ -193,6 +193,8 @@ __all__ = [
     "ServerStatus",
     "run",
     "dev",
+    # desktop
+    "ensure_gui_backend",
     # features
     "FeatureFlags",
     # audit
@@ -261,6 +263,13 @@ __all__ = [
     # metadata
     "__version__",
 ]
+
+
+def ensure_gui_backend() -> bool:
+    """Make pywebview's GUI backend importable in isolated venvs."""
+    from wesktop.desktop import ensure_gui_backend as _ensure_gui_backend
+
+    return _ensure_gui_backend()
 
 
 def run(
