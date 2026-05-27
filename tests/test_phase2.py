@@ -175,11 +175,10 @@ class TestStop:
             stop(pid_path)
 
     def test_stop_stale_pid_file(self, tmp_path: Path) -> None:
-        """Raises ProcessLookupError when PID file contains a dead process."""
+        """Returns normally and removes stale PID file when process is dead."""
         pid_path = tmp_path / "stale.pid"
         pid_path.write_text("999999999")  # almost certainly not running
-        with pytest.raises(ProcessLookupError):
-            stop(pid_path)
+        stop(pid_path)  # should not raise
         # PID file should be cleaned up
         assert not pid_path.exists()
 

@@ -307,7 +307,8 @@ def stop(pid_path: Path) -> None:
     escalates to SIGKILL. Cleans up the PID file.
 
     Raises FileNotFoundError if PID file does not exist.
-    Raises ProcessLookupError if the process is already gone.
+    If the process is already gone (stale PID file), removes the PID file
+    and returns normally.
     """
     if not pid_path.exists():
         raise FileNotFoundError(f"PID file not found: {pid_path}")
@@ -322,8 +323,9 @@ def stop(pid_path: Path) -> None:
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
-        _remove_pid(pid_path)
-        raise ProcessLookupError(f"Process {pid} is not running (stale PID file)")
+        pid_path.unlink(missing_ok=True)
+        log.info("Process %d is not running (stale PID file removed)", pid)
+        return
     except PermissionError:
         pass  # process exists but we can't probe -- proceed with SIGTERM
 
