@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 0.4.4
+
+### Features
+
+- **Feature.** `ensure_gui_backend()` finds and loads system PyGObject in isolated venvs. Called automatically by `run()`.
+
 ## 0.4.3
 
 ### Fixes
