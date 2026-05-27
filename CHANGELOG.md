@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 0.4.2
+
+### Fixes
+
+- **Fix.** `run()` no longer crashes when pywebview has no GUI backend available (e.g., missing GTK/Qt in uv virtual environments).
+
 ## 0.4.1
 
 ### Fixes
