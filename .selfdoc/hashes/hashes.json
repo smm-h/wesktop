@@ -3,6 +3,18 @@
     "content": "39c61c6f2bc4e59de860e321e70180e102ea68a80cc7460c6ae956612e9f0637",
     "description": "36bd87a3b946034b6437a68b01f9cc86e77e2714410c594847ed184ed8d086a9"
   },
+  "cli-config.md": {
+    "content": "c4d5e3d3b99bf98a83ae229bbee684defdc9c87e45fdcf6367f1074104617ab6",
+    "description": "93ccee7eb335efe047e27977b968297bbf58300dc5dfc27ff3de7bb5f7de83ed"
+  },
+  "cli-diagnose.md": {
+    "content": "f449548090ae0d4d485b26af6bdb8447539d3b492b45efb10dff426df95f18c5",
+    "description": "3d5281d2398fdfd3797661b5a27cbbf1bcfb7672e0dc7593edfe887fde57c9c4"
+  },
+  "cli-index.md": {
+    "content": "4b621158082758133bec3a20d1a8de97613128dc90d4d3359e50b6a97086c4da",
+    "description": "eb7d99d2e046110a9cad0e28ea4636e1fa5269bf53c7727a6385e3962beedd53"
+  },
   "en/api.md": {
     "content": "39c61c6f2bc4e59de860e321e70180e102ea68a80cc7460c6ae956612e9f0637",
     "description": "36bd87a3b946034b6437a68b01f9cc86e77e2714410c594847ed184ed8d086a9"
@@ -11,8 +23,124 @@
     "content": "5d35369ec067a399897e7b6f71c60194125182f18a87f1f1fb9b4f807c3626c9",
     "description": "271b2ab9cfae2d030b11117f3f5abe9d7c9aaf076c57816afc86ec1cfc8f8627"
   },
+  "gen-index.md": {
+    "content": "d0892ed8bf3ec6996272f18ce5d388205ac98e33a4158c58faf0b36fe9c1fb38",
+    "description": "bb3cd9d34f014c0674a9285c25ee14b5b4abc5cf941f0d83594c301405e8f3b6"
+  },
   "index.md": {
     "content": "5d35369ec067a399897e7b6f71c60194125182f18a87f1f1fb9b4f807c3626c9",
     "description": "271b2ab9cfae2d030b11117f3f5abe9d7c9aaf076c57816afc86ec1cfc8f8627"
+  },
+  "src-wesktop-__main__.md": {
+    "content": "285a1af394ed48d58cf23698ce8800c0c27b6840d3cb43febf177e5e65823384",
+    "description": "a3b6f8a2d6d5816ba0a5c9b9ddfc06cf56c258b3b431902d8ea6f7e282b83280"
+  },
+  "src-wesktop-asgi.md": {
+    "content": "041112d45ab46759730e4fe618d19c889fdb2d33032a2e3040f662fb8655ffe4",
+    "description": "c46924692242ac1b8ad7fe058e723e3ef2bc6dfa5a63aa9c0e8ee73124817ba8"
+  },
+  "src-wesktop-audit.md": {
+    "content": "56a7a2487619b75b46b188a758678d2742c2e4f11055fb5633829e10506e79d9",
+    "description": "29e374e33a513e2256cb7517f12e99fe33ffe9da5a0817ef575d72317a113dc0"
+  },
+  "src-wesktop-auth.md": {
+    "content": "88600680c8a8f33dca00bee559d888b07744648104a096553a07ec889657b222",
+    "description": "98d4d92b47eead030c50425c002e3ba55068f403a9a329ac41e537c4fd26f248"
+  },
+  "src-wesktop-cli.md": {
+    "content": "26c72b8d0e5c6907d77ffb8b1f142a68b906ed7a3a557cb33dbafe3ae1a02d66",
+    "description": "6fb0d02003959890c555327557cbe316a6bde91e9684d53453bf8bc144f93c39"
+  },
+  "src-wesktop-config.md": {
+    "content": "1611f86e0777512dd1958cd04a103dff181b855779c9f4d92318282f70148854",
+    "description": "a845d0e6199b15cb03e8f3be172de7d59ea3076039bb2dee4af03a1178f1780f"
+  },
+  "src-wesktop-desktop.md": {
+    "content": "5bf4f1a6264195aaac494e6cf89e8cf90b218a5d259f253528e27d5af643d2d3",
+    "description": "e9839f6cb1270a463ba16d41b5afd1020800331b819d5ebb1f6a67cd21a83340"
+  },
+  "src-wesktop-dev.md": {
+    "content": "a24f83447988176fc4f234b37460e66cbc692bfd39ca7c956588fc11ff108414",
+    "description": "45f1e8030f572d9fa1628c142ea79d8d7257ddea13669f93c24264965c1f3d9e"
+  },
+  "src-wesktop-di.md": {
+    "content": "d2e33a3b8139fc337588bb630c6063e96f1dbc899fff7aec5effe9685c87de6d",
+    "description": "a1f397682124fd3303ff7a31bd723177969d61572cd31fb5f8f13a26b9c5f122"
+  },
+  "src-wesktop-entries.md": {
+    "content": "57a05aec07f2ef59a83e37a3c8eef86658944079528db051273c53dd0dd45c50",
+    "description": "2ebfb5bd7fb89563cee3a0205706a92b6f15fa757526358dc19828cbecd4b4da"
+  },
+  "src-wesktop-error_log.md": {
+    "content": "62d9886f955556c5d8595e406f4d75fe8539ad31c9034891a0bf7022f7335161",
+    "description": "05f731b9e690acb1ff5f560f738703b2cb6d5c217e33e480378ce51a3c3a026b"
+  },
+  "src-wesktop-features.md": {
+    "content": "6f275ebf9da6e26bdd5f431a36f39f8c464c4ad5d1d41811862e6b29e4458ff8",
+    "description": "2cb8ab6bf4024bdca7791554a4c3f1904529a03374669fc4f4298ef79d8eefda"
+  },
+  "src-wesktop-logging.md": {
+    "content": "4396a734595c48a544a83adfe0c195a1c0c95e4b91f0e24d995b6e129c715f96",
+    "description": "c38d17e63b56a08639bd69955bbe6e957a0fad3fe338a99a455478a36c83e5b8"
+  },
+  "src-wesktop-mcp.md": {
+    "content": "0d24e4ee516a24283f3eb7accf0d005aa413f9629e55ab31b1181701dd66dd33",
+    "description": "c4a4258b7961485ce00f7971adc61f81a95100a6329e07ecc5dd28cbe857cb52"
+  },
+  "src-wesktop-mcp_tools-ask_user.md": {
+    "content": "ad4d4cc33805503c095d9415514942cd7cc4c9e49c8dbdc2b966a7ce7c363f72",
+    "description": "ea55cb248cac4ad86c74f497fc291c4740803d927013fc540c376c9c59067965"
+  },
+  "src-wesktop-mcp_tools-deployment.md": {
+    "content": "872b5bf93bf1ad45dc48024eb7fe77ecd9091be1cc891efb1ae2293eb29aa875",
+    "description": "e1d7cbd92e8ca666272de8a76d49eec67a9db5af24df0236b922720d6c4c2a4b"
+  },
+  "src-wesktop-mcp_tools-filesystem.md": {
+    "content": "a3507e52196c9dffbaba8f6124f955f671c501c94859aa34a5f5c00fa692dc67",
+    "description": "43a73d21df500740750a4c33ba46eded0f5346c03a4eb0ad733f6617f29c8654"
+  },
+  "src-wesktop-mcp_tools-git.md": {
+    "content": "16c749455ae126a5f37a63a85149e2b6b304f4990d391bd6f33188ae18ae2f11",
+    "description": "ccef39713170bf90db955cb7153119b9c24d37f1d4afeaf73067ab9b6a6f205f"
+  },
+  "src-wesktop-mcp_tools-review.md": {
+    "content": "6a21bba845ca40be0552987dc535767c285d44554a20b41ee17e93f3f8549f00",
+    "description": "10abe43dbfa2f3a664001e8add04ca25864931de5afa5af6c71541767870cd59"
+  },
+  "src-wesktop-mcp_tools-testing.md": {
+    "content": "2d0a5dae22327b6ea51c17f916bcc3869896df6596aabdb24d0bca52adade3f2",
+    "description": "d173d48fe50a63642c256c08c8eda09fa9a07f457f4c59fff5b75054b56cb833"
+  },
+  "src-wesktop-mcp_tools.md": {
+    "content": "d034614df2f1fd6b93b9cf04f64050cc0b09af310a8c248e20753b6e9d0aff49",
+    "description": "7630fa102066da2c8c538d4e49c0edddd32d350b503784158d8027579bd0ac72"
+  },
+  "src-wesktop-middleware.md": {
+    "content": "720d06fdbce11040d94fd635d0d6986a2c3d3190afb64268c12e4d0a89ce0869",
+    "description": "89224af09ee12f55d9c1c2391d10a00ed861dbfc2f0fd37b6af0507e5eba5377"
+  },
+  "src-wesktop-sdui.md": {
+    "content": "4a0bce5c23e520a734fbc7266a80c0daf767fa5c7176c3af0a8b9f8bf6f3ffcf",
+    "description": "b67beab91a93f88e924fd3af9e227793240ce9ef2b50d24648bbfaf1eeb81546"
+  },
+  "src-wesktop-server.md": {
+    "content": "60b1528ef4e9671c777e61997b33a7e75265b5c56c8c49fc82c8594d21dd5257",
+    "description": "191bc725c563b260c93add9cf32eddf1e28be0676d40f41225af6df967105477"
+  },
+  "src-wesktop-sse.md": {
+    "content": "e0193b203bed7073174eaa244cbd6d318f0b2e3c89f1e2458f25b833569e5404",
+    "description": "50451041a10aab4d2ded48a39f21e99f87c3532994c798c6b47f6e707bd16c67"
+  },
+  "src-wesktop-tasks.md": {
+    "content": "f995cf0c93b700ac9b8020a4c26253e6273118729f473ce97f2e57237a4c3373",
+    "description": "ce77759ce5d8a0f504f61004e2c001433d4edab8e67374bf68b6f405dc92ff0c"
+  },
+  "src-wesktop-testing.md": {
+    "content": "f89c1009a0b453b6b0280948b82a637e29c819602f81cb6bfe0408bf1b377561",
+    "description": "8f9b1d5078c4c523c5e346f478af2d571065613cb8e562a71d1c9c3ddeaccc73"
+  },
+  "src-wesktop.md": {
+    "content": "2aa767b12b24bc8eb8dbb1d22d288780e2c742ef74db97494665f840cbb1709d",
+    "description": "efa694eed1f01acd89f1ccd505c0810c9820e27c53c1857edbe635bd3c5e0474"
   }
 }
