@@ -28,11 +28,23 @@ def ensure_gui_backend() -> bool:
     except ImportError:
         pass
 
+    # On Windows, PyGObject is typically installed via pip or MSYS2
+    # and already on the path. If gi isn't importable, there's nothing
+    # to search for.
+    if sys.platform == "win32":
+        return False
+
     # gi not in venv -- search system site-packages
     patterns = [
+        # Linux
         "/usr/lib64/python3.*/site-packages",
         "/usr/lib/python3.*/site-packages",
         "/usr/lib/python3/dist-packages",  # Debian/Ubuntu
+        # macOS (Homebrew)
+        "/opt/homebrew/lib/python3.*/site-packages",
+        "/usr/local/lib/python3.*/site-packages",
+        # macOS (Framework)
+        "/Library/Frameworks/Python.framework/Versions/3.*/lib/python3.*/site-packages",
     ]
 
     for pattern in patterns:
