@@ -280,17 +280,12 @@ def serve(
         from granian import _signals
         from granian.server import common as _granian_common
 
-        _orig_signals = _signals.set_main_signals
-        _orig_common = _granian_common.set_main_signals
         _noop = lambda *a, **kw: None
         _signals.set_main_signals = _noop
         _granian_common.set_main_signals = _noop
 
         thread = threading.Thread(target=server.serve, daemon=True)
         thread.start()
-
-        _signals.set_main_signals = _orig_signals
-        _granian_common.set_main_signals = _orig_common
 
         log.info("%s started in background on %s", name, url)
         return url
