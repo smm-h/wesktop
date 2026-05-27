@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 0.4.3
+
+### Fixes
+
+- **Fix.** `serve(foreground=False)` signal handler patch now survives thread start race condition. Previous fix was ineffective because the noop was restored before the daemon thread executed startup.
+
 ## 0.4.2
 
 ### Fixes
