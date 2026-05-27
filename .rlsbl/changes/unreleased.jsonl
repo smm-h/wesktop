@@ -1,2 +1,3 @@
 {"commits":["2816ad70db01fb893b36bfd47832845ca890a6ed"],"user_facing":true,"description":"**Feature.** `ensure_gui_backend()` finds and loads system PyGObject in isolated venvs. Called automatically by `run()`.","type":"feature"}
 {"commits":["d2eb0dcc8a74e8245486abbf03ae723fc3f39182"],"user_facing":false}
+{"commits":["4ff7529eb66e6ecc20ccbf3402b522d56b20dbcb"],"user_facing":false}
