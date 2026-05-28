@@ -2,6 +2,22 @@
 
 # Changelog
 
+## 0.5.0
+
+### Breaking
+
+- **Remove browser fallback from run().** run() no longer silently falls back to opening a browser when pywebview is unavailable. It now raises RuntimeError, making the failure explicit. Use serve() for headless/browser workflows.
+
+### Features
+
+- **Auto-register desktop entry.** run() now automatically creates a desktop entry on first launch, removing the need for manual install commands.
+- **PID resilience and single-instance mode.** run() and serve() now handle stale PID files gracefully and support a single_instance parameter to prevent duplicate server instances.
+- **Multi-window support.** A second invocation of run() now opens a new native window connected to the existing server instead of restarting the server.
+
+### Fixes
+
+- **Resilient port check.** Server startup now probes /health on the target port and can detect and kill stale server processes blocking the port, preventing silent startup failures.
+
 ## 0.4.5
 
 ### Features

@@ -826,7 +826,7 @@ wheels = [
 
 [[package]]
 name = "wesktop"
-version = "0.4.5"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "bcrypt" },
