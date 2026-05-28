@@ -33,7 +33,7 @@
     }
   },
   "name": "wesktop",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "help": "A Python framework for building web-based desktop applications",
   "config": true,
   "commands": {
