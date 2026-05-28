@@ -2,3 +2,4 @@
 {"commits":["95172abcefdc87ee4f9c4ef07da07e7a6ad5b553"],"user_facing":true,"description":"**Fix.** Desktop entry launcher scripts no longer hardcode the working directory. Apps resolve paths from their package install location.","type":"fix"}
 {"commits":["a91c31a533a92c196930ea0fcd3da991a41b790a"],"user_facing":false}
 {"commits":["e6161d24c2b98ab5a1c97bad18a612c4beeeb51d"],"user_facing":false}
+{"commits":["9c0c6f2bcbdde74c6c660bc723ad087806e18e05"],"user_facing":false}
