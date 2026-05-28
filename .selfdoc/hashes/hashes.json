@@ -12,7 +12,7 @@
     "description": "3d5281d2398fdfd3797661b5a27cbbf1bcfb7672e0dc7593edfe887fde57c9c4"
   },
   "cli-index.md": {
-    "content": "865d9c5877b554398e4223257450df9bc78ecfff539345fc1243f417c967f2a1",
+    "content": "f166a8e3d8fa00e601856e6fe6f98b034f49d9aa4332fdfe4eebf42aae04e292",
     "description": "eb7d99d2e046110a9cad0e28ea4636e1fa5269bf53c7727a6385e3962beedd53"
   },
   "en/api.md": {
@@ -56,7 +56,7 @@
     "description": "a845d0e6199b15cb03e8f3be172de7d59ea3076039bb2dee4af03a1178f1780f"
   },
   "src-wesktop-desktop.md": {
-    "content": "a8692b5a12c2c71fca09c1e083072ee028c39fc1531b6b14e34b720819ec5b34",
+    "content": "a5b42b33b7496e2f858b270e1aebf10f3f2c488f4b8e9cdd1aa393aada816f1e",
     "description": "e9839f6cb1270a463ba16d41b5afd1020800331b819d5ebb1f6a67cd21a83340"
   },
   "src-wesktop-dev.md": {
@@ -124,7 +124,7 @@
     "description": "b67beab91a93f88e924fd3af9e227793240ce9ef2b50d24648bbfaf1eeb81546"
   },
   "src-wesktop-server.md": {
-    "content": "6c1850b5d9694a1ffc05ab92271fbd0b5cfda6a8f184272ae509ca05b84174ee",
+    "content": "6b7c518c62b7c3afbe569b1c18dc3fa57d4be40a8cd955c8aa923304c4dbea5d",
     "description": "191bc725c563b260c93add9cf32eddf1e28be0676d40f41225af6df967105477"
   },
   "src-wesktop-sse.md": {
@@ -140,7 +140,7 @@
     "description": "8f9b1d5078c4c523c5e346f478af2d571065613cb8e562a71d1c9c3ddeaccc73"
   },
   "src-wesktop.md": {
-    "content": "09aa24170e09a40f949ae6d783a0d24dbb7c3d4347ca706c9e5af070e4c26cd4",
+    "content": "b2f137589992fae8b5916f8b8307f9005059b43fd4a1edd38a0542fa339edf9c",
     "description": "efa694eed1f01acd89f1ccd505c0810c9820e27c53c1857edbe635bd3c5e0474"
   }
 }
