@@ -2,6 +2,16 @@
 
 # Changelog
 
+## 0.6.0
+
+### Features
+
+- **Feature.** `serve_background()` runs the server as an independent subprocess that survives the parent process exiting. `run()` now uses this for full window/server lifecycle separation.
+
+### Fixes
+
+- **Fix.** Desktop entry launcher scripts no longer hardcode the working directory. Apps resolve paths from their package install location.
+
 ## 0.5.0
 
 ### Breaking
