@@ -46,6 +46,7 @@ def test_run_calls_webview(
         name="WESKTOP",
         pre_serve=None,
         reload=False,
+        single_instance=False,
     )
 
     # Window created with correct params
@@ -518,3 +519,97 @@ def test_auto_register_swallows_exceptions(
 
     # Must not raise
     _auto_register_entry("MyApp", None)
+
+
+# --- single_instance tests ---
+
+
+@patch("wesktop.desktop.webbrowser")
+@patch("wesktop.server.check_already_running", return_value=42)
+def test_run_single_instance_opens_browser_on_conflict(
+    mock_check: MagicMock,
+    mock_webbrowser: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """run() with single_instance=True and existing PID opens browser instead of crashing."""
+    port = _free_port()
+    pid_path = tmp_path / "test.pid"
+    pid_path.write_text("42")
+
+    from wesktop.desktop import run
+
+    run(
+        "myapp:app",
+        host="127.0.0.1",
+        port=port,
+        pid_path=pid_path,
+        single_instance=True,
+    )
+
+    mock_webbrowser.open.assert_called_once_with(f"http://127.0.0.1:{port}")
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve")
+@patch("wesktop.server.check_already_running", return_value=42)
+def test_run_single_instance_false_proceeds_with_conflict(
+    mock_check: MagicMock,
+    mock_serve: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """run() with single_instance=False proceeds even with an existing PID."""
+    port = _free_port()
+    pid_path = tmp_path / "test.pid"
+    pid_path.write_text("42")
+    mock_serve.return_value = f"http://127.0.0.1:{port}"
+
+    from wesktop.desktop import run
+
+    run(
+        "myapp:app",
+        host="127.0.0.1",
+        port=port,
+        pid_path=pid_path,
+        single_instance=False,
+    )
+
+    # serve() should be called (not short-circuited)
+    mock_serve.assert_called_once()
+    mock_create_window.assert_called_once()
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve")
+@patch("wesktop.server.check_already_running", return_value=None)
+def test_run_single_instance_no_conflict_proceeds(
+    mock_check: MagicMock,
+    mock_serve: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """run() with single_instance=True and no existing instance proceeds normally."""
+    port = _free_port()
+    pid_path = tmp_path / "test.pid"
+    mock_serve.return_value = f"http://127.0.0.1:{port}"
+
+    from wesktop.desktop import run
+
+    run(
+        "myapp:app",
+        host="127.0.0.1",
+        port=port,
+        pid_path=pid_path,
+        single_instance=True,
+    )
+
+    mock_serve.assert_called_once()
+    mock_create_window.assert_called_once()

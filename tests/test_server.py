@@ -15,25 +15,35 @@ from wesktop.server import (
 
 
 def test_check_already_running_no_pid(tmp_path: Path) -> None:
-    """No PID file -- returns normally without error."""
+    """No PID file -- returns None."""
     pid_path = tmp_path / "test.pid"
-    check_already_running(pid_path)  # should not raise or exit
+    assert check_already_running(pid_path) is None
 
 
 def test_check_already_running_stale_pid(tmp_path: Path) -> None:
-    """PID file exists but the process is dead -- stale file is removed."""
+    """PID file exists but the process is dead -- returns None and cleans up."""
     pid_path = tmp_path / "test.pid"
     pid_path.write_text("999999999")  # almost certainly not running
-    check_already_running(pid_path)
+    assert check_already_running(pid_path) is None
     assert not pid_path.exists(), "Stale PID file should be cleaned up"
 
 
 def test_check_already_running_corrupt_pid(tmp_path: Path) -> None:
-    """PID file has non-numeric content -- treated as stale."""
+    """PID file has non-numeric content -- returns None and cleans up."""
     pid_path = tmp_path / "test.pid"
     pid_path.write_text("not-a-number")
-    check_already_running(pid_path)
+    assert check_already_running(pid_path) is None
     assert not pid_path.exists()
+
+
+def test_check_already_running_live_process(tmp_path: Path) -> None:
+    """PID file points to a running process -- returns the PID."""
+    import os
+    pid_path = tmp_path / "test.pid"
+    pid_path.write_text(str(os.getpid()))  # current process is alive
+    result = check_already_running(pid_path)
+    assert result == os.getpid()
+    assert pid_path.exists(), "PID file should NOT be removed for a live process"
 
 
 def test_ensure_port_available_free() -> None:
@@ -83,5 +93,53 @@ def test_serve_background_returns_url(mock_granian_cls: MagicMock) -> None:
         free_port = s.getsockname()[1]
 
     url = serve("myapp:app", foreground=False, host="127.0.0.1", port=free_port)
+    assert url == f"http://127.0.0.1:{free_port}"
+    mock_instance.serve.assert_called_once()
+
+
+def test_serve_single_instance_true_exits_on_conflict(tmp_path: Path) -> None:
+    """serve() with single_instance=True exits when an instance is already running."""
+    import os
+    pid_path = tmp_path / "test.pid"
+    pid_path.write_text(str(os.getpid()))  # current process is alive
+
+    with pytest.raises(SystemExit) as exc_info:
+        serve(
+            "myapp:app",
+            foreground=False,
+            host="127.0.0.1",
+            port=9999,
+            pid_path=pid_path,
+            single_instance=True,
+        )
+    assert exc_info.value.code == 1
+
+
+@patch("wesktop.server.Granian")
+def test_serve_single_instance_false_skips_pid_check(
+    mock_granian_cls: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """serve() with single_instance=False does not check for existing instances."""
+    import os
+    mock_instance = MagicMock()
+    mock_granian_cls.return_value = mock_instance
+
+    pid_path = tmp_path / "test.pid"
+    pid_path.write_text(str(os.getpid()))  # current process is alive
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        free_port = s.getsockname()[1]
+
+    # Should NOT exit despite existing PID
+    url = serve(
+        "myapp:app",
+        foreground=False,
+        host="127.0.0.1",
+        port=free_port,
+        pid_path=pid_path,
+        single_instance=False,
+    )
     assert url == f"http://127.0.0.1:{free_port}"
     mock_instance.serve.assert_called_once()

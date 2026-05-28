@@ -65,31 +65,28 @@ def _signal_handler(signum: int, _frame: object, pid_path: Path) -> None:
     sys.exit(0)
 
 
-def check_already_running(pid_path: Path, name: str = "server") -> None:
-    """Exit if another instance is already running (based on the PID file)."""
+def check_already_running(pid_path: Path, name: str = "server") -> int | None:
+    """Check if another instance is running. Returns the PID if running, None otherwise.
+
+    Stale PID files (process dead) are cleaned up automatically.
+    """
     if not pid_path.exists():
-        return
+        return None
     try:
         pid = int(pid_path.read_text().strip())
     except (ValueError, OSError):
         # Corrupt or unreadable PID file -- treat as stale.
         _remove_pid(pid_path)
-        return
+        return None
     try:
         os.kill(pid, 0)  # probe whether the process is alive
     except ProcessLookupError:
         # Process is dead; stale PID file.
         _remove_pid(pid_path)
-        return
+        return None
     except PermissionError:
-        # Process exists but we can't signal it -- still running.
-        pass
-    log.error(
-        "%s is already running (PID %d). Stop it before starting another.",
-        name,
-        pid,
-    )
-    sys.exit(1)
+        pass  # Process exists but we can't signal it
+    return pid  # Process is alive
 
 
 def ensure_port_available(host: str, port: int) -> int:
@@ -200,6 +197,7 @@ def serve(
     name: str = "WESKTOP",
     pre_serve: Callable[[], None] | None = None,
     reload: bool = False,
+    single_instance: bool = True,
 ) -> str | None:
     """Start Granian serving the ASGI app.
 
@@ -227,6 +225,10 @@ def serve(
     reload:
         When True, watches .py files in the current working directory and
         restarts the server on changes. Requires foreground=True.
+    single_instance:
+        When True (default), checks for an existing running instance via the
+        PID file and exits with an error if one is found. When False, skips
+        the PID check (but still writes the PID file if pid_path is given).
 
     Returns
     -------
@@ -240,8 +242,15 @@ def serve(
     resolved_host, resolved_port = _resolve_host_port(host, port, name)
     target_str = _resolve_target(target)
 
-    if pid_path is not None:
-        check_already_running(pid_path, name)
+    if pid_path is not None and single_instance:
+        existing_pid = check_already_running(pid_path, name)
+        if existing_pid is not None:
+            log.error(
+                "%s is already running (PID %d). Stop it before starting another.",
+                name,
+                existing_pid,
+            )
+            sys.exit(1)
     ensure_port_available(resolved_host, resolved_port)
     if pid_path is not None:
         _write_pid(pid_path)

@@ -286,6 +286,7 @@ def run(
     pre_serve: Callable[[], None] | None = None,
     reload: bool = False,
     js_api: object | None = None,
+    single_instance: bool = True,
 ) -> None:
     """Start server + native desktop window."""
     from wesktop.desktop import run as _run
@@ -303,6 +304,7 @@ def run(
         pre_serve=pre_serve,
         reload=reload,
         js_api=js_api,
+        single_instance=single_instance,
     )
 
 
@@ -316,6 +318,7 @@ def serve(
     name: str = "WESKTOP",
     pre_serve: Callable[[], None] | None = None,
     reload: bool = False,
+    single_instance: bool = True,
 ) -> str | None:
     """Start server. Blocks if foreground=True, returns URL if foreground=False."""
     from wesktop.server import serve as _serve
@@ -329,6 +332,7 @@ def serve(
         name=name,
         pre_serve=pre_serve,
         reload=reload,
+        single_instance=single_instance,
     )
 
 

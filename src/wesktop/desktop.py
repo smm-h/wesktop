@@ -202,8 +202,26 @@ def run(
     pre_serve: Callable[[], None] | None = None,
     reload: bool = False,
     js_api: object | None = None,
+    single_instance: bool = True,
 ) -> None:
     """Start server + open native desktop window. Blocks until window closes."""
+    if pid_path and single_instance:
+        from wesktop.server import check_already_running, _resolve_host_port
+
+        existing_pid = check_already_running(pid_path, name)
+        if existing_pid is not None:
+            # Instance already running -- open browser to it instead of dying
+            resolved_host, resolved_port = _resolve_host_port(host, port, name)
+            url = f"http://{resolved_host}:{resolved_port}"
+            log.info(
+                "%s is already running (PID %d). Opening %s in browser.",
+                name,
+                existing_pid,
+                url,
+            )
+            webbrowser.open(url)
+            return
+
     from wesktop.server import serve
 
     url = serve(
@@ -215,6 +233,7 @@ def run(
         name=name,
         pre_serve=pre_serve,
         reload=reload,
+        single_instance=False,  # run() already handled the check
     )
 
     # Make system PyGObject visible in isolated venvs before importing webview
