@@ -1,2 +1,3 @@
 {"commits":["9c4fa8e5963f6657ed6341f09275100a22faeb94"],"user_facing":true,"description":"**Fix.** `stop()` now handles stale PID files gracefully instead of crashing with ProcessLookupError.","type":"fix"}
 {"commits":["d61fb9ce5c1d49a11fc80c71a2a6fec1d5a1b863"],"user_facing":true,"description":"**Feature.** `ensure_gui_backend()` now searches macOS paths (Homebrew and Framework) for system PyGObject.","type":"feature"}
+{"commits":["8efdd3e264544c72d7626b15b98b0c402b20eb24"],"user_facing":false}
