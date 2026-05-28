@@ -163,7 +163,7 @@ def _auto_register_entry(title: str, icon: str | None) -> None:
         launcher_name = title.lower().replace(" ", "-") + "-open"
         launcher = Path.home() / ".local" / "bin" / launcher_name
         launcher.parent.mkdir(parents=True, exist_ok=True)
-        launcher.write_text(f"#!/bin/sh\ncd {Path.cwd()}\nexec {full_command}\n")
+        launcher.write_text(f"#!/bin/sh\nexec {full_command}\n")
         launcher.chmod(launcher.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
         icon_path: str | None = None
