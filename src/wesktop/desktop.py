@@ -5,7 +5,10 @@ from __future__ import annotations
 import glob
 import logging
 import os
+import platform
+import shutil
 import signal
+import stat
 import sys
 import webbrowser
 from pathlib import Path
@@ -129,6 +132,62 @@ def _browser_fallback(url: str) -> None:
         pass
 
 
+def _entry_exists(name: str) -> bool:
+    """Check whether a desktop entry already exists for *name* on the current platform."""
+    system = platform.system()
+    if system == "Linux":
+        return (Path.home() / ".local" / "share" / "applications" / f"{name}.desktop").exists()
+    elif system == "Darwin":
+        return (Path.home() / "Applications" / f"{name}.app").exists()
+    elif system == "Windows":
+        appdata = os.environ.get("APPDATA", "")
+        if appdata:
+            return (
+                Path(appdata) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / f"{name}.lnk"
+            ).exists()
+    return False
+
+
+def _auto_register_entry(title: str, icon: str | None) -> None:
+    """Create a desktop entry for this app if one doesn't exist."""
+    try:
+        if _entry_exists(title):
+            return
+
+        # Resolve the command that launched us (sys.argv[0]) to an absolute path
+        command = sys.argv[0]
+        if not Path(command).is_absolute():
+            found = shutil.which(command)
+            if found:
+                command = found
+
+        # Reconstruct the full launch command from sys.argv
+        argv_rest = " ".join(sys.argv[1:])
+        full_command = f"{command} {argv_rest}".strip()
+
+        # Create a launcher script so .desktop Exec= and venv binaries work reliably
+        launcher_name = title.lower().replace(" ", "-") + "-open"
+        launcher = Path.home() / ".local" / "bin" / launcher_name
+        launcher.parent.mkdir(parents=True, exist_ok=True)
+        launcher.write_text(f"#!/bin/sh\ncd {Path.cwd()}\nexec {full_command}\n")
+        launcher.chmod(launcher.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+        icon_path: str | None = None
+        if icon and Path(icon).is_file():
+            icon_path = str(Path(icon).resolve())
+
+        from wesktop.entries import create_entry
+
+        create_entry(
+            name=title,
+            command=str(launcher),
+            icon=icon_path,
+            comment="",
+        )
+    except Exception:
+        pass  # Never fail the app launch over a desktop entry
+
+
 def run(
     target: str | Callable,
     *,
@@ -160,6 +219,9 @@ def run(
 
     # Make system PyGObject visible in isolated venvs before importing webview
     ensure_gui_backend()
+
+    # Auto-register desktop entry if not already present
+    _auto_register_entry(title, icon)
 
     # Late import so headless mode (serve) has no pywebview dependency
     try:

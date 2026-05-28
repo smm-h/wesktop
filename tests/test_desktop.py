@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import socket
 import sys
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import wesktop
@@ -442,3 +443,78 @@ def test_has_gui_backend_pywebview_gui_env_gtk_missing() -> None:
         patch("builtins.__import__", side_effect=fake_import),
     ):
         assert _has_gui_backend() is False
+
+
+# --- _auto_register_entry tests ---
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve")
+@patch("wesktop.desktop._auto_register_entry")
+def test_run_calls_auto_register_entry(
+    mock_auto_register: MagicMock,
+    mock_serve: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+) -> None:
+    """run() calls _auto_register_entry with the title and icon."""
+    port = _free_port()
+    mock_serve.return_value = f"http://127.0.0.1:{port}"
+
+    from wesktop.desktop import run
+
+    run("myapp:app", title="MyApp", icon="/path/icon.png", host="127.0.0.1", port=port)
+
+    mock_auto_register.assert_called_once_with("MyApp", "/path/icon.png")
+
+
+@patch("wesktop.entries.create_entry")
+@patch("wesktop.desktop._entry_exists", return_value=False)
+def test_auto_register_creates_entry_when_missing(
+    mock_exists: MagicMock,
+    mock_create: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """_auto_register_entry creates a desktop entry when none exists."""
+    from wesktop.desktop import _auto_register_entry
+
+    with (
+        patch("wesktop.desktop.Path.home", return_value=tmp_path),
+        patch("wesktop.desktop.Path.cwd", return_value=tmp_path),
+        patch("sys.argv", ["/usr/bin/myapp", "open"]),
+    ):
+        _auto_register_entry("MyApp", None)
+
+    mock_create.assert_called_once()
+    call_kwargs = mock_create.call_args
+    assert call_kwargs[1]["name"] == "MyApp"
+    assert call_kwargs[1]["icon"] is None
+    assert call_kwargs[1]["comment"] == ""
+
+
+@patch("wesktop.entries.create_entry")
+@patch("wesktop.desktop._entry_exists", return_value=True)
+def test_auto_register_skips_when_exists(
+    mock_exists: MagicMock,
+    mock_create: MagicMock,
+) -> None:
+    """_auto_register_entry does nothing when the entry already exists."""
+    from wesktop.desktop import _auto_register_entry
+
+    _auto_register_entry("MyApp", None)
+
+    mock_create.assert_not_called()
+
+
+@patch("wesktop.desktop._entry_exists", side_effect=OSError("disk on fire"))
+def test_auto_register_swallows_exceptions(
+    mock_exists: MagicMock,
+) -> None:
+    """_auto_register_entry never raises, even on unexpected errors."""
+    from wesktop.desktop import _auto_register_entry
+
+    # Must not raise
+    _auto_register_entry("MyApp", None)
