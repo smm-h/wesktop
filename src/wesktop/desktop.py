@@ -129,10 +129,24 @@ def _entry_exists(name: str) -> bool:
 
 
 def _auto_register_entry(title: str, icon: str | None) -> None:
-    """Create a desktop entry for this app if one doesn't exist."""
+    """Create a desktop entry for this app if one doesn't exist.
+
+    Self-heals: if an existing entry points to a missing launcher script
+    (e.g. the package was reinstalled to a different venv), remove the
+    broken entry so it can be recreated with the current launcher path.
+    """
     try:
+        # Self-heal: remove desktop entry if its launcher is broken
         if _entry_exists(title):
-            return
+            launcher_name = title.lower().replace(" ", "-") + "-open"
+            launcher = Path.home() / ".local" / "bin" / launcher_name
+            if not launcher.exists():
+                # Launcher is gone (package uninstalled/moved). Clean up.
+                from wesktop.entries import remove_entry
+
+                remove_entry(title)
+            else:
+                return  # Entry exists and is valid
 
         # Resolve the command that launched us (sys.argv[0]) to an absolute path
         command = sys.argv[0]
@@ -204,27 +218,37 @@ def run(
         )
 
     if pid_path and single_instance:
-        from wesktop.server import check_already_running, _resolve_host_port
+        from wesktop.server import check_already_running, read_port_file
 
         existing_pid = check_already_running(pid_path, name)
         if existing_pid is not None:
-            # Server already running — open a new window to the existing server
-            resolved_host, resolved_port = _resolve_host_port(host, port, name)
-            url = f"http://{resolved_host}:{resolved_port}"
-            log.info("Joining existing instance (PID %d) at %s", existing_pid, url)
-            window = webview.create_window(
-                title=title, url=url, width=width, height=height, js_api=js_api,
+            # Server already running -- read the port from the port file
+            existing_port = read_port_file(pid_path)
+            if existing_port is not None:
+                resolved_host = host or "127.0.0.1"
+                url = f"http://{resolved_host}:{existing_port}"
+                log.info("Joining existing instance (PID %d) at %s", existing_pid, url)
+                window = webview.create_window(
+                    title=title, url=url, width=width, height=height, js_api=js_api,
+                )
+                webview.start(icon=icon)
+                return
+            # No port file -- can't join. Fall through to start a new server.
+            log.warning(
+                "Existing instance (PID %d) has no port file. Starting new server.",
+                existing_pid,
             )
-            webview.start(icon=icon)
-            return
 
     from wesktop.server import serve
+
+    # Desktop mode: default to a random port when none specified
+    effective_port = port if port is not None else 0
 
     url = serve(
         target,
         foreground=False,
         host=host,
-        port=port,
+        port=effective_port,
         pid_path=pid_path,
         name=name,
         pre_serve=pre_serve,

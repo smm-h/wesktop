@@ -473,13 +473,46 @@ def test_auto_register_creates_entry_when_missing(
 def test_auto_register_skips_when_exists(
     mock_exists: MagicMock,
     mock_create: MagicMock,
+    tmp_path: Path,
 ) -> None:
-    """_auto_register_entry does nothing when the entry already exists."""
+    """_auto_register_entry does nothing when the entry exists and launcher is valid."""
     from wesktop.desktop import _auto_register_entry
 
-    _auto_register_entry("MyApp", None)
+    # Create a fake launcher so the self-healing check passes
+    launcher = tmp_path / ".local" / "bin" / "myapp-open"
+    launcher.parent.mkdir(parents=True, exist_ok=True)
+    launcher.touch()
+
+    with patch("wesktop.desktop.Path.home", return_value=tmp_path):
+        _auto_register_entry("MyApp", None)
 
     mock_create.assert_not_called()
+
+
+@patch("wesktop.entries.create_entry")
+@patch("wesktop.entries.remove_entry")
+@patch("wesktop.desktop._entry_exists", return_value=True)
+def test_auto_register_self_heals_broken_launcher(
+    mock_exists: MagicMock,
+    mock_remove: MagicMock,
+    mock_create: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """_auto_register_entry removes and recreates entry when launcher is missing."""
+    from wesktop.desktop import _auto_register_entry
+
+    # No launcher exists at ~/.local/bin/myapp-open -- simulates uninstall
+    with (
+        patch("wesktop.desktop.Path.home", return_value=tmp_path),
+        patch("wesktop.desktop.Path.cwd", return_value=tmp_path),
+        patch("sys.argv", ["/usr/bin/myapp", "open"]),
+    ):
+        _auto_register_entry("MyApp", None)
+
+    # The broken entry should have been removed
+    mock_remove.assert_called_once_with("MyApp")
+    # And a new entry should have been created
+    mock_create.assert_called_once()
 
 
 @patch("wesktop.desktop._entry_exists", side_effect=OSError("disk on fire"))
@@ -515,13 +548,15 @@ def test_run_single_instance_joins_existing(
     port = _free_port()
     pid_path = tmp_path / "test.pid"
     pid_path.write_text("42")
+    # Write a port file so the join path can discover the port
+    port_path = pid_path.with_suffix(".port")
+    port_path.write_text(str(port))
 
     from wesktop.desktop import run
 
     run(
         "myapp:app",
         host="127.0.0.1",
-        port=port,
         pid_path=pid_path,
         single_instance=True,
     )

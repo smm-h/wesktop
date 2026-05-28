@@ -9,10 +9,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from wesktop.server import (
+    _find_free_port,
     _kill_port_holder,
     _make_server,
+    _port_file_path,
     check_already_running,
     ensure_port_available,
+    read_port_file,
     serve,
 )
 
@@ -180,3 +183,79 @@ def test_serve_single_instance_false_skips_pid_check(
     )
     assert url == f"http://127.0.0.1:{free_port}"
     mock_instance.serve.assert_called_once()
+
+
+# --- Port file tests ---
+
+
+def test_find_free_port_returns_nonzero() -> None:
+    """_find_free_port returns a valid port number."""
+    port = _find_free_port("127.0.0.1")
+    assert 1 <= port <= 65535
+
+
+def test_port_file_path_derives_from_pid_path(tmp_path: Path) -> None:
+    """Port file path replaces .pid suffix with .port."""
+    pid_path = tmp_path / "app.pid"
+    assert _port_file_path(pid_path) == tmp_path / "app.port"
+
+
+def test_read_port_file_returns_port(tmp_path: Path) -> None:
+    """read_port_file reads the port from a companion .port file."""
+    pid_path = tmp_path / "app.pid"
+    port_path = pid_path.with_suffix(".port")
+    port_path.write_text("9876")
+    assert read_port_file(pid_path) == 9876
+
+
+def test_read_port_file_returns_none_when_missing(tmp_path: Path) -> None:
+    """read_port_file returns None when no port file exists."""
+    pid_path = tmp_path / "app.pid"
+    assert read_port_file(pid_path) is None
+
+
+def test_read_port_file_returns_none_on_corrupt(tmp_path: Path) -> None:
+    """read_port_file returns None when port file is not a valid integer."""
+    pid_path = tmp_path / "app.pid"
+    port_path = pid_path.with_suffix(".port")
+    port_path.write_text("not-a-number")
+    assert read_port_file(pid_path) is None
+
+
+@patch("wesktop.server.Granian")
+def test_serve_port_zero_picks_random_port(mock_granian_cls: MagicMock) -> None:
+    """serve() with port=0 assigns a random free port."""
+    mock_instance = MagicMock()
+    mock_granian_cls.return_value = mock_instance
+
+    url = serve("myapp:app", foreground=False, host="127.0.0.1", port=0)
+    assert url is not None
+    assert url.startswith("http://127.0.0.1:")
+    # Port should not be 0 in the URL
+    actual_port = int(url.rsplit(":", 1)[1])
+    assert actual_port > 0
+
+
+@patch("wesktop.server.Granian")
+def test_serve_writes_port_file(mock_granian_cls: MagicMock, tmp_path: Path) -> None:
+    """serve() writes a port file alongside the PID file."""
+    mock_instance = MagicMock()
+    mock_granian_cls.return_value = mock_instance
+
+    pid_path = tmp_path / "test.pid"
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        free_port = s.getsockname()[1]
+
+    serve(
+        "myapp:app",
+        foreground=False,
+        host="127.0.0.1",
+        port=free_port,
+        pid_path=pid_path,
+    )
+
+    port_path = pid_path.with_suffix(".port")
+    assert port_path.exists()
+    assert int(port_path.read_text().strip()) == free_port

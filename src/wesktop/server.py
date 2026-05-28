@@ -62,6 +62,7 @@ def _signal_handler(signum: int, _frame: object, pid_path: Path) -> None:
     except (ProcessLookupError, PermissionError):
         pass
     _remove_pid(pid_path)
+    _remove_port_file(_port_file_path(pid_path))
     sys.exit(0)
 
 
@@ -197,6 +198,47 @@ def _resolve_target(target: str | Callable) -> str:
     return f"{mod_name}:app"
 
 
+def _find_free_port(host: str = "127.0.0.1") -> int:
+    """Find an ephemeral port that is currently free on *host*."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((host, 0))
+        return s.getsockname()[1]
+
+
+def _port_file_path(pid_path: Path) -> Path:
+    """Derive the port file path from a PID file path.
+
+    E.g. ``.pixelweaver.pid`` -> ``.pixelweaver.port``.
+    """
+    return pid_path.with_suffix(".port")
+
+
+def _write_port_file(pid_path: Path, port: int) -> None:
+    """Write the bound port alongside the PID file."""
+    port_path = _port_file_path(pid_path)
+    port_path.write_text(str(port))
+    atexit.register(_remove_port_file, port_path)
+
+
+def _remove_port_file(port_path: Path) -> None:
+    """Remove a port file if it exists."""
+    try:
+        port_path.unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
+def read_port_file(pid_path: Path) -> int | None:
+    """Read the port stored alongside a PID file. Returns None if missing or unreadable."""
+    port_path = _port_file_path(pid_path)
+    if not port_path.exists():
+        return None
+    try:
+        return int(port_path.read_text().strip())
+    except (ValueError, OSError):
+        return None
+
+
 def _resolve_host_port(
     host: str | None,
     port: int | None,
@@ -308,6 +350,10 @@ def serve(
     resolved_host, resolved_port = _resolve_host_port(host, port, name)
     target_str = _resolve_target(target)
 
+    # Port 0 means "pick a random free port"
+    if resolved_port == 0:
+        resolved_port = _find_free_port(resolved_host)
+
     if pid_path is not None and single_instance:
         existing_pid = check_already_running(pid_path, name)
         if existing_pid is not None:
@@ -320,6 +366,7 @@ def serve(
     ensure_port_available(resolved_host, resolved_port, name)
     if pid_path is not None:
         _write_pid(pid_path)
+        _write_port_file(pid_path, resolved_port)
 
     if pre_serve is not None:
         pre_serve()
@@ -375,11 +422,17 @@ class ServerStatus:
     healthy: bool | None
 
 
+def _cleanup_pid_and_port(pid_path: Path) -> None:
+    """Remove both the PID file and its companion port file."""
+    _remove_pid(pid_path)
+    _remove_port_file(_port_file_path(pid_path))
+
+
 def stop(pid_path: Path) -> None:
     """Stop a server by reading its PID file.
 
     Sends SIGTERM, waits up to 10s polling with os.kill(pid, 0), then
-    escalates to SIGKILL. Cleans up the PID file.
+    escalates to SIGKILL. Cleans up the PID file and port file.
 
     Raises FileNotFoundError if PID file does not exist.
     If the process is already gone (stale PID file), removes the PID file
@@ -391,7 +444,7 @@ def stop(pid_path: Path) -> None:
     try:
         pid = int(pid_path.read_text().strip())
     except (ValueError, OSError) as exc:
-        _remove_pid(pid_path)
+        _cleanup_pid_and_port(pid_path)
         raise FileNotFoundError(f"Corrupt or unreadable PID file: {pid_path}") from exc
 
     # Check if process is alive first
@@ -399,6 +452,7 @@ def stop(pid_path: Path) -> None:
         os.kill(pid, 0)
     except ProcessLookupError:
         pid_path.unlink(missing_ok=True)
+        _remove_port_file(_port_file_path(pid_path))
         log.info("Process %d is not running (stale PID file removed)", pid)
         return
     except PermissionError:
@@ -408,10 +462,10 @@ def stop(pid_path: Path) -> None:
     try:
         os.kill(pid, signal.SIGTERM)
     except ProcessLookupError:
-        _remove_pid(pid_path)
+        _cleanup_pid_and_port(pid_path)
         return
     except PermissionError:
-        _remove_pid(pid_path)
+        _cleanup_pid_and_port(pid_path)
         raise
 
     # Wait up to 10s for process to exit
@@ -421,7 +475,7 @@ def stop(pid_path: Path) -> None:
             os.kill(pid, 0)
         except ProcessLookupError:
             # Process exited cleanly
-            _remove_pid(pid_path)
+            _cleanup_pid_and_port(pid_path)
             return
         except PermissionError:
             break  # can't check -- fall through to SIGKILL
@@ -431,13 +485,13 @@ def stop(pid_path: Path) -> None:
     try:
         os.kill(pid, signal.SIGKILL)
     except ProcessLookupError:
-        _remove_pid(pid_path)
+        _cleanup_pid_and_port(pid_path)
         return
     except PermissionError:
-        _remove_pid(pid_path)
+        _cleanup_pid_and_port(pid_path)
         raise
 
-    _remove_pid(pid_path)
+    _cleanup_pid_and_port(pid_path)
 
 
 def status(pid_path: Path, health_url: str | None = None) -> ServerStatus:
