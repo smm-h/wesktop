@@ -12,7 +12,7 @@ order: 91
 
 A Python framework for building web-based desktop applications
 
-Version: 0.4.5
+Version: 0.5.0
 
 ## Commands
 

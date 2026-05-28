@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.server
-description: "API reference for the src.wesktop.server module — auto-generated documentation covering public functions, classes, and type signatures."
+description: "Granian ASGI server lifecycle — PID/port file management, port checks, serve_background subprocess mode, start/stop/status."
 generated: true
 nav_group: "API Reference"
 nav_order: 25
