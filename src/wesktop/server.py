@@ -89,8 +89,12 @@ def check_already_running(pid_path: Path, name: str = "server") -> int | None:
     return pid  # Process is alive
 
 
-def ensure_port_available(host: str, port: int) -> int:
-    """Check that *port* on *host* is available; exit with a diagnostic error if not.
+def ensure_port_available(host: str, port: int, name: str = "server") -> int:
+    """Ensure port is available. If occupied by a previous instance, stop it.
+
+    Probes the port. If something responds to GET /health with {"status":"ok"},
+    it's likely our own stale server -- kill it via the OS.
+    Otherwise, exit with a diagnostic error.
 
     Returns *port* on success.
     """
@@ -103,13 +107,75 @@ def ensure_port_available(host: str, port: int) -> int:
             s.bind((host, port))
             return port
         except OSError:
-            log.error(
-                "Port %d on %s is already in use. Use a different port "
-                "or stop the process holding it.",
-                port,
-                host,
+            pass  # Port in use -- investigate
+
+    # Port is occupied. Try health check to see if it's our server.
+    try:
+        resp = urllib.request.urlopen(f"http://{host}:{port}/health", timeout=2)
+        data = resp.read()
+        if b'"ok"' in data:
+            # It's our server. Find and kill it.
+            log.warning("Port %d has a stale %s instance. Stopping it.", port, name)
+            _kill_port_holder(host, port)
+            # Verify port is now free
+            for _ in range(10):
+                time.sleep(0.5)
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s2:
+                    s2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    try:
+                        s2.bind((host, port))
+                        return port
+                    except OSError:
+                        continue
+    except Exception:
+        pass
+
+    log.error(
+        "Port %d on %s is already in use. Use a different port "
+        "or stop the process holding it.",
+        port,
+        host,
+    )
+    sys.exit(1)
+
+
+def _kill_port_holder(host: str, port: int) -> None:
+    """Kill the process holding a port."""
+    import subprocess
+
+    try:
+        # Use lsof to find the PID
+        result = subprocess.run(
+            ["lsof", "-ti", f"tcp:{port}"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            for pid_str in result.stdout.strip().split("\n"):
+                pid_str = pid_str.strip()
+                if pid_str and pid_str.isdigit():
+                    pid = int(pid_str)
+                    try:
+                        os.kill(pid, signal.SIGTERM)
+                    except (ProcessLookupError, PermissionError):
+                        pass
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        # lsof not available -- try fuser
+        try:
+            result = subprocess.run(
+                ["fuser", f"{port}/tcp"],
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
-            sys.exit(1)
+            if result.returncode == 0:
+                for pid_str in result.stdout.strip().split():
+                    pid_str = pid_str.strip()
+                    if pid_str.isdigit():
+                        os.kill(int(pid_str), signal.SIGTERM)
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
 
 
 def _resolve_target(target: str | Callable) -> str:
@@ -251,7 +317,7 @@ def serve(
                 existing_pid,
             )
             sys.exit(1)
-    ensure_port_available(resolved_host, resolved_port)
+    ensure_port_available(resolved_host, resolved_port, name)
     if pid_path is not None:
         _write_pid(pid_path)
 

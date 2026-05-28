@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import http.server
 import socket
+import threading
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from wesktop.server import (
+    _kill_port_holder,
     _make_server,
     check_already_running,
     ensure_port_available,
@@ -56,8 +59,8 @@ def test_ensure_port_available_free() -> None:
     assert result == free_port
 
 
-def test_ensure_port_available_occupied() -> None:
-    """An occupied port causes sys.exit(1)."""
+def test_ensure_port_available_occupied_unknown_process() -> None:
+    """An occupied port with no health endpoint causes sys.exit(1)."""
     # Hold the port open for the duration of the test
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -67,6 +70,40 @@ def test_ensure_port_available_occupied() -> None:
         with pytest.raises(SystemExit) as exc_info:
             ensure_port_available("127.0.0.1", occupied_port)
         assert exc_info.value.code == 1
+
+
+def test_ensure_port_available_kills_stale_server() -> None:
+    """When a stale server responds to /health with 'ok', kill it and reclaim the port."""
+
+    class _HealthHandler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            if self.path == "/health":
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"status":"ok"}')
+            else:
+                self.send_response(404)
+                self.end_headers()
+
+        def log_message(self, *args: object) -> None:
+            pass  # suppress stderr output during tests
+
+    # Start a temporary HTTP server on a random port to simulate a stale instance.
+    httpd = http.server.HTTPServer(("127.0.0.1", 0), _HealthHandler)
+    port = httpd.server_address[1]
+    server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    server_thread.start()
+
+    # Mock _kill_port_holder to shut down our test server instead of using lsof/kill.
+    def _fake_kill(host: str, p: int) -> None:
+        httpd.shutdown()
+        httpd.server_close()
+
+    with patch("wesktop.server._kill_port_holder", side_effect=_fake_kill):
+        result = ensure_port_available("127.0.0.1", port, name="test")
+
+    assert result == port
 
 
 @patch("wesktop.server.Granian")
