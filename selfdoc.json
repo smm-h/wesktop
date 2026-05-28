@@ -1,5 +1,5 @@
 {
-  "version": "0.4.4",
+  "version": "0.4.5",
   "language": "python",
   "source": [
     "src/wesktop/"
@@ -9,7 +9,7 @@
   "base_url": "https://wesktop.smmh.dev",
   "versions": [
     {
-      "version": "0.4.4",
+      "version": "0.4.5",
       "indexed": true
     }
   ],

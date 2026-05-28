@@ -2,6 +2,16 @@
 
 # Changelog
 
+## 0.4.5
+
+### Features
+
+- **Feature.** `ensure_gui_backend()` now searches macOS paths (Homebrew and Framework) for system PyGObject.
+
+### Fixes
+
+- **Fix.** `stop()` now handles stale PID files gracefully instead of crashing with ProcessLookupError.
+
 ## 0.4.4
 
 ### Features
