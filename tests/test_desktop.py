@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 import wesktop
 
 
@@ -235,80 +237,53 @@ def test_run_late_imports_webview() -> None:
     importlib.reload(wesktop.desktop)
 
 
-# --- Fallback tests ---
+# --- Error tests (no browser fallback) ---
 
-@patch("wesktop.desktop._browser_fallback")
 @patch("wesktop.desktop._has_gui_backend", return_value=False)
 @patch("wesktop.server.serve")
-def test_run_fallback_no_gui_backend(
+def test_run_raises_on_no_gui_backend(
     mock_serve: MagicMock,
     _mock_gui: MagicMock,
-    mock_fallback: MagicMock,
 ) -> None:
-    """When _has_gui_backend() returns False, fall back to browser without touching webview."""
+    """When _has_gui_backend() returns False, raise RuntimeError."""
     port = _free_port()
     url = f"http://127.0.0.1:{port}"
     mock_serve.return_value = url
 
     from wesktop.desktop import run
 
-    run("myapp:app", host="127.0.0.1", port=port)
+    with pytest.raises(RuntimeError, match="pywebview GUI backend not available"):
+        run("myapp:app", host="127.0.0.1", port=port)
 
-    mock_fallback.assert_called_once_with(url)
 
-
-@patch("wesktop.desktop._browser_fallback")
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start", side_effect=__import__("webview").WebViewException("No GUI"))
 @patch("webview.create_window")
 @patch("wesktop.server.serve")
-def test_run_fallback_webview_exception(
+def test_run_propagates_webview_exception(
     mock_serve: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
-    mock_fallback: MagicMock,
 ) -> None:
-    """When webview.start() raises WebViewException, fall back to browser."""
+    """When webview.start() raises WebViewException, it propagates."""
     port = _free_port()
     url = f"http://127.0.0.1:{port}"
     mock_serve.return_value = url
 
+    import webview as wv
+
     from wesktop.desktop import run
 
-    run("myapp:app", host="127.0.0.1", port=port)
-
-    mock_fallback.assert_called_once_with(url)
-
-
-@patch("wesktop.desktop.signal")
-@patch("wesktop.desktop.webbrowser")
-def test_browser_fallback_opens_browser(
-    mock_webbrowser: MagicMock,
-    mock_signal: MagicMock,
-    capsys: object,
-) -> None:
-    """_browser_fallback opens the URL in a browser and prints a message."""
-    mock_signal.pause.side_effect = KeyboardInterrupt
-
-    from wesktop.desktop import _browser_fallback
-
-    _browser_fallback("http://127.0.0.1:9999")
-
-    mock_webbrowser.open.assert_called_once_with("http://127.0.0.1:9999")
-    import _pytest.capture
-    captured = capsys.readouterr()  # type: ignore[union-attr]
-    assert "pywebview GUI backend not available" in captured.out
-    assert "http://127.0.0.1:9999" in captured.out
+    with pytest.raises(wv.WebViewException):
+        run("myapp:app", host="127.0.0.1", port=port)
 
 
-@patch("wesktop.desktop._browser_fallback")
 @patch("wesktop.server.serve")
-def test_run_fallback_webview_not_installed(
+def test_run_raises_on_webview_not_installed(
     mock_serve: MagicMock,
-    mock_fallback: MagicMock,
 ) -> None:
-    """When webview is not importable at all, fall back to browser."""
+    """When webview is not importable at all, raise RuntimeError."""
     port = _free_port()
     url = f"http://127.0.0.1:{port}"
     mock_serve.return_value = url
@@ -328,12 +303,9 @@ def test_run_fallback_webview_not_installed(
     importlib.reload(wesktop.desktop)
 
     with patch("builtins.__import__", side_effect=fake_import):
-        # Re-patch _browser_fallback on the reloaded module
-        with patch.object(wesktop.desktop, "_browser_fallback") as reloaded_fallback:
-            # Also re-patch serve on the reloaded module's import path
-            with patch("wesktop.server.serve", return_value=url):
+        with patch("wesktop.server.serve", return_value=url):
+            with pytest.raises(RuntimeError, match="pywebview is not installed"):
                 wesktop.desktop.run("myapp:app", host="127.0.0.1", port=port)
-                reloaded_fallback.assert_called_once_with(url)
 
     # Clean up
     importlib.reload(wesktop.desktop)
@@ -524,17 +496,26 @@ def test_auto_register_swallows_exceptions(
 # --- single_instance tests ---
 
 
-@patch("wesktop.desktop.webbrowser")
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve")
+@patch("wesktop.server.stop")
 @patch("wesktop.server.check_already_running", return_value=42)
-def test_run_single_instance_opens_browser_on_conflict(
+def test_run_single_instance_stops_old_and_restarts(
     mock_check: MagicMock,
-    mock_webbrowser: MagicMock,
+    mock_stop: MagicMock,
+    mock_serve: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
     tmp_path: Path,
 ) -> None:
-    """run() with single_instance=True and existing PID opens browser instead of crashing."""
+    """run() with single_instance=True and existing PID stops old instance and starts fresh."""
     port = _free_port()
     pid_path = tmp_path / "test.pid"
     pid_path.write_text("42")
+    mock_serve.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
@@ -546,7 +527,9 @@ def test_run_single_instance_opens_browser_on_conflict(
         single_instance=True,
     )
 
-    mock_webbrowser.open.assert_called_once_with(f"http://127.0.0.1:{port}")
+    mock_stop.assert_called_once_with(pid_path)
+    mock_serve.assert_called_once()
+    mock_create_window.assert_called_once()
 
 
 @patch("wesktop.desktop._has_gui_backend", return_value=True)

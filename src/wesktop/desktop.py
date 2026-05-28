@@ -7,10 +7,8 @@ import logging
 import os
 import platform
 import shutil
-import signal
 import stat
 import sys
-import webbrowser
 from pathlib import Path
 from typing import Callable
 
@@ -114,24 +112,6 @@ def _has_gui_backend() -> bool:
     return False
 
 
-def _browser_fallback(url: str) -> None:
-    """Open the URL in the default browser and block until interrupted."""
-    log.warning(
-        "pywebview GUI backend not available (install PyGObject or qtpy). "
-        "Opened in browser instead."
-    )
-    print(
-        "pywebview GUI backend not available (install PyGObject or qtpy). "
-        f"Opened in browser instead: {url}"
-    )
-    webbrowser.open(url)
-    # Block the main thread until Ctrl+C so the daemon server thread stays alive.
-    try:
-        signal.pause()
-    except KeyboardInterrupt:
-        pass
-
-
 def _entry_exists(name: str) -> bool:
     """Check whether a desktop entry already exists for *name* on the current platform."""
     system = platform.system()
@@ -206,21 +186,13 @@ def run(
 ) -> None:
     """Start server + open native desktop window. Blocks until window closes."""
     if pid_path and single_instance:
-        from wesktop.server import check_already_running, _resolve_host_port
+        from wesktop.server import check_already_running, stop
 
         existing_pid = check_already_running(pid_path, name)
         if existing_pid is not None:
-            # Instance already running -- open browser to it instead of dying
-            resolved_host, resolved_port = _resolve_host_port(host, port, name)
-            url = f"http://{resolved_host}:{resolved_port}"
-            log.info(
-                "%s is already running (PID %d). Opening %s in browser.",
-                name,
-                existing_pid,
-                url,
-            )
-            webbrowser.open(url)
-            return
+            log.info("Stopping previous instance (PID %d)", existing_pid)
+            stop(pid_path)
+            # Fall through to normal startup
 
     from wesktop.server import serve
 
@@ -246,12 +218,17 @@ def run(
     try:
         import webview
     except ImportError:
-        _browser_fallback(url)
-        return
+        raise RuntimeError(
+            "pywebview is not installed. Install it: pip install pywebview"
+        )
 
     if not _has_gui_backend():
-        _browser_fallback(url)
-        return
+        raise RuntimeError(
+            "pywebview GUI backend not available. "
+            "Install PyGObject: pip install PyGObject pycairo "
+            "(requires gobject-introspection-devel on Fedora, "
+            "libgirepository1.0-dev on Debian/Ubuntu)"
+        )
 
     window = webview.create_window(
         title=title,
@@ -261,12 +238,6 @@ def run(
         js_api=js_api,
     )
 
-    try:
-        webview.start(icon=icon)
-    except webview.WebViewException:
-        # Runtime failure loading the GUI backend (e.g. system packages
-        # installed but invisible from inside a venv). Fall back to browser.
-        _browser_fallback(url)
-        return
+    webview.start(icon=icon)
     # When webview.start() returns, the window was closed.
     # Daemon thread (server) auto-exits with main thread.
