@@ -53,7 +53,7 @@ from wesktop.middleware import (
 )
 from wesktop.config import load_config
 from wesktop.testing import AsyncTestClient, TestClient
-from wesktop.server import ServerStatus
+from wesktop.server import ServerStatus, serve_background
 from wesktop.sse import Broadcaster, sse_route
 from wesktop.features import FeatureFlags
 from wesktop.audit import AuditLog
@@ -188,6 +188,7 @@ __all__ = [
     "remove_entry",
     # server lifecycle
     "serve",
+    "serve_background",
     "stop",
     "status",
     "ServerStatus",

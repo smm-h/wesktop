@@ -295,6 +295,97 @@ def _run_server(target: str, host: str, port: int) -> None:
     server.serve()
 
 
+def _serve_subprocess(target: str, host: str, port: int, pid_path_str: str, name: str) -> None:
+    """Entry point for the server subprocess. Runs granian in foreground mode."""
+    pid_path = Path(pid_path_str)
+    _write_pid(pid_path)
+    _write_port_file(pid_path, port)
+    server = _make_server(target, host, port)
+    server.serve()
+
+
+def serve_background(
+    target: str | Callable,
+    *,
+    host: str,
+    port: int,
+    pid_path: Path,
+    name: str = "WESKTOP",
+) -> str:
+    """Start the server as an independent background process. Returns the URL.
+
+    Unlike ``serve(foreground=False)`` which uses a daemon thread (dies with the
+    parent), this spawns a fully detached subprocess that survives the parent
+    exiting. The subprocess writes its own PID and port files.
+
+    Parameters
+    ----------
+    target:
+        ASGI application -- either a module path string (e.g. "myapp:app")
+        or a callable ASGI application object.
+    host:
+        Bind address.
+    port:
+        Bind port. Pass 0 to pick a random free port.
+    pid_path:
+        Path for the PID file. The subprocess writes this, not the caller.
+    name:
+        Application name for log messages.
+
+    Returns
+    -------
+    str
+        The URL the server is listening on (e.g. "http://127.0.0.1:8000").
+
+    Raises
+    ------
+    RuntimeError
+        If the server process exits prematurely or fails to start within 10s.
+    """
+    import subprocess as _subprocess
+
+    target_str = _resolve_target(target)
+
+    # Find a free port if port is 0
+    if port == 0:
+        port = _find_free_port(host)
+
+    # Spawn server subprocess, fully detached from the parent process group
+    proc = _subprocess.Popen(
+        [
+            sys.executable, "-c",
+            f"from wesktop.server import _serve_subprocess; "
+            f"_serve_subprocess({target_str!r}, {host!r}, {port!r}, "
+            f"{str(pid_path)!r}, {name!r})",
+        ],
+        stdin=_subprocess.DEVNULL,
+        stdout=_subprocess.DEVNULL,
+        stderr=_subprocess.DEVNULL,
+        start_new_session=True,
+    )
+
+    # Wait for server to be ready by polling the health endpoint
+    url = f"http://{host}:{port}"
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        try:
+            resp = urllib.request.urlopen(f"{url}/health", timeout=1)
+            if resp.status == 200:
+                break
+        except Exception:
+            if proc.poll() is not None:
+                raise RuntimeError(
+                    f"Server process exited with code {proc.returncode}"
+                )
+            time.sleep(0.3)
+    else:
+        proc.terminate()
+        raise RuntimeError("Server did not start within 10 seconds")
+
+    log.info("%s started as background process (PID %d) on %s", name, proc.pid, url)
+    return url
+
+
 def serve(
     target: str | Callable,
     *,

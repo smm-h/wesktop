@@ -239,21 +239,21 @@ def run(
                 existing_pid,
             )
 
-    from wesktop.server import serve
+    from wesktop.server import serve_background
 
     # Desktop mode: default to a random port when none specified
     effective_port = port if port is not None else 0
+    effective_host = host or "127.0.0.1"
 
-    url = serve(
+    if pre_serve is not None:
+        pre_serve()
+
+    url = serve_background(
         target,
-        foreground=False,
-        host=host,
+        host=effective_host,
         port=effective_port,
-        pid_path=pid_path,
+        pid_path=pid_path or Path(".wesktop.pid"),
         name=name,
-        pre_serve=pre_serve,
-        reload=reload,
-        single_instance=False,
     )
 
     # Auto-register desktop entry if not already present
@@ -269,4 +269,4 @@ def run(
 
     webview.start(icon=icon)
     # When webview.start() returns, the window was closed.
-    # Daemon thread (server) auto-exits with main thread.
+    # The server process keeps running independently.

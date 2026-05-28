@@ -23,32 +23,28 @@ def _free_port() -> int:
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 def test_run_calls_webview(
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
 ) -> None:
     """Server starts before window; correct title/url/size passed to create_window; start() called."""
     port = _free_port()
-    mock_serve.return_value = f"http://127.0.0.1:{port}"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
     run("myapp:app", title="Test", width=800, height=600, host="127.0.0.1", port=port)
 
-    # Server started via serve(foreground=False)
-    mock_serve.assert_called_once_with(
+    # Server started via serve_background() as an independent process
+    mock_serve_bg.assert_called_once_with(
         "myapp:app",
-        foreground=False,
         host="127.0.0.1",
         port=port,
-        pid_path=None,
+        pid_path=Path(".wesktop.pid"),
         name="WESKTOP",
-        pre_serve=None,
-        reload=False,
-        single_instance=False,
     )
 
     # Window created with correct params
@@ -67,16 +63,16 @@ def test_run_calls_webview(
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 def test_run_with_icon(
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
 ) -> None:
     """Icon path is forwarded to webview.start(icon=...)."""
     port = _free_port()
-    mock_serve.return_value = f"http://127.0.0.1:{port}"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
@@ -89,16 +85,16 @@ def test_run_with_icon(
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 def test_run_without_icon(
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
 ) -> None:
     """When no icon is provided, webview.start(icon=None) is called."""
     port = _free_port()
-    mock_serve.return_value = f"http://127.0.0.1:{port}"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
@@ -110,16 +106,16 @@ def test_run_without_icon(
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 def test_run_with_js_api(
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
 ) -> None:
     """js_api object is forwarded to webview.create_window(js_api=...)."""
     port = _free_port()
-    mock_serve.return_value = f"http://127.0.0.1:{port}"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
 
     class MyAPI:
         def greet(self, name: str) -> str:
@@ -143,16 +139,16 @@ def test_run_with_js_api(
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 def test_run_without_js_api(
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
 ) -> None:
     """When no js_api is provided, webview.create_window(js_api=None) is called."""
     port = _free_port()
-    mock_serve.return_value = f"http://127.0.0.1:{port}"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
@@ -170,16 +166,16 @@ def test_run_without_js_api(
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 def test_run_js_api_via_wrapper(
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
 ) -> None:
     """js_api passes through the wesktop.run() wrapper to desktop.run()."""
     port = _free_port()
-    mock_serve.return_value = f"http://127.0.0.1:{port}"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
 
     class BridgeAPI:
         def ping(self) -> str:
@@ -240,15 +236,15 @@ def test_run_late_imports_webview() -> None:
 # --- Error tests (no browser fallback) ---
 
 @patch("wesktop.desktop._has_gui_backend", return_value=False)
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 def test_run_raises_on_no_gui_backend(
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     _mock_gui: MagicMock,
 ) -> None:
     """When _has_gui_backend() returns False, raise RuntimeError."""
     port = _free_port()
     url = f"http://127.0.0.1:{port}"
-    mock_serve.return_value = url
+    mock_serve_bg.return_value = url
 
     from wesktop.desktop import run
 
@@ -259,9 +255,9 @@ def test_run_raises_on_no_gui_backend(
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start", side_effect=__import__("webview").WebViewException("No GUI"))
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 def test_run_propagates_webview_exception(
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
@@ -269,7 +265,7 @@ def test_run_propagates_webview_exception(
     """When webview.start() raises WebViewException, it propagates."""
     port = _free_port()
     url = f"http://127.0.0.1:{port}"
-    mock_serve.return_value = url
+    mock_serve_bg.return_value = url
 
     import webview as wv
 
@@ -279,14 +275,14 @@ def test_run_propagates_webview_exception(
         run("myapp:app", host="127.0.0.1", port=port)
 
 
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 def test_run_raises_on_webview_not_installed(
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
 ) -> None:
     """When webview is not importable at all, raise RuntimeError."""
     port = _free_port()
     url = f"http://127.0.0.1:{port}"
-    mock_serve.return_value = url
+    mock_serve_bg.return_value = url
 
     import builtins
     import importlib
@@ -303,7 +299,7 @@ def test_run_raises_on_webview_not_installed(
     importlib.reload(wesktop.desktop)
 
     with patch("builtins.__import__", side_effect=fake_import):
-        with patch("wesktop.server.serve", return_value=url):
+        with patch("wesktop.server.serve_background", return_value=url):
             with pytest.raises(RuntimeError, match="pywebview is not installed"):
                 wesktop.desktop.run("myapp:app", host="127.0.0.1", port=port)
 
@@ -424,18 +420,18 @@ def test_has_gui_backend_pywebview_gui_env_gtk_missing() -> None:
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 @patch("wesktop.desktop._auto_register_entry")
 def test_run_calls_auto_register_entry(
     mock_auto_register: MagicMock,
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
 ) -> None:
     """run() calls _auto_register_entry with the title and icon."""
     port = _free_port()
-    mock_serve.return_value = f"http://127.0.0.1:{port}"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
@@ -532,13 +528,13 @@ def test_auto_register_swallows_exceptions(
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 @patch("wesktop.server.stop")
 @patch("wesktop.server.check_already_running", return_value=42)
 def test_run_single_instance_joins_existing(
     mock_check: MagicMock,
     mock_stop: MagicMock,
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
@@ -562,7 +558,7 @@ def test_run_single_instance_joins_existing(
     )
 
     mock_stop.assert_not_called()
-    mock_serve.assert_not_called()
+    mock_serve_bg.assert_not_called()
     mock_create_window.assert_called_once()
     call_kwargs = mock_create_window.call_args
     assert f":{port}" in call_kwargs.kwargs.get("url", call_kwargs.args[1] if len(call_kwargs.args) > 1 else "")
@@ -571,11 +567,11 @@ def test_run_single_instance_joins_existing(
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 @patch("wesktop.server.check_already_running", return_value=42)
 def test_run_single_instance_false_proceeds_with_conflict(
     mock_check: MagicMock,
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
@@ -585,7 +581,7 @@ def test_run_single_instance_false_proceeds_with_conflict(
     port = _free_port()
     pid_path = tmp_path / "test.pid"
     pid_path.write_text("42")
-    mock_serve.return_value = f"http://127.0.0.1:{port}"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
@@ -597,19 +593,19 @@ def test_run_single_instance_false_proceeds_with_conflict(
         single_instance=False,
     )
 
-    # serve() should be called (not short-circuited)
-    mock_serve.assert_called_once()
+    # serve_background() should be called (not short-circuited)
+    mock_serve_bg.assert_called_once()
     mock_create_window.assert_called_once()
 
 
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
-@patch("wesktop.server.serve")
+@patch("wesktop.server.serve_background")
 @patch("wesktop.server.check_already_running", return_value=None)
 def test_run_single_instance_no_conflict_proceeds(
     mock_check: MagicMock,
-    mock_serve: MagicMock,
+    mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
@@ -618,7 +614,7 @@ def test_run_single_instance_no_conflict_proceeds(
     """run() with single_instance=True and no existing instance proceeds normally."""
     port = _free_port()
     pid_path = tmp_path / "test.pid"
-    mock_serve.return_value = f"http://127.0.0.1:{port}"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
@@ -630,5 +626,5 @@ def test_run_single_instance_no_conflict_proceeds(
         single_instance=True,
     )
 
-    mock_serve.assert_called_once()
+    mock_serve_bg.assert_called_once()
     mock_create_window.assert_called_once()

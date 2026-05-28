@@ -123,7 +123,7 @@ def test_run_calls_ensure_gui_backend_before_webview() -> None:
         patch("wesktop.desktop._has_gui_backend", return_value=True),
         patch("webview.start"),
         patch("webview.create_window"),
-        patch("wesktop.server.serve", return_value=f"http://127.0.0.1:{port}"),
+        patch("wesktop.server.serve_background", return_value=f"http://127.0.0.1:{port}"),
     ):
         from wesktop.desktop import run
 
