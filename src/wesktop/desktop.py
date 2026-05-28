@@ -185,36 +185,9 @@ def run(
     single_instance: bool = True,
 ) -> None:
     """Start server + open native desktop window. Blocks until window closes."""
-    if pid_path and single_instance:
-        from wesktop.server import check_already_running, stop
-
-        existing_pid = check_already_running(pid_path, name)
-        if existing_pid is not None:
-            log.info("Stopping previous instance (PID %d)", existing_pid)
-            stop(pid_path)
-            # Fall through to normal startup
-
-    from wesktop.server import serve
-
-    url = serve(
-        target,
-        foreground=False,
-        host=host,
-        port=port,
-        pid_path=pid_path,
-        name=name,
-        pre_serve=pre_serve,
-        reload=reload,
-        single_instance=False,  # run() already handled the check
-    )
-
     # Make system PyGObject visible in isolated venvs before importing webview
     ensure_gui_backend()
 
-    # Auto-register desktop entry if not already present
-    _auto_register_entry(title, icon)
-
-    # Late import so headless mode (serve) has no pywebview dependency
     try:
         import webview
     except ImportError:
@@ -229,6 +202,38 @@ def run(
             "(requires gobject-introspection-devel on Fedora, "
             "libgirepository1.0-dev on Debian/Ubuntu)"
         )
+
+    if pid_path and single_instance:
+        from wesktop.server import check_already_running, _resolve_host_port
+
+        existing_pid = check_already_running(pid_path, name)
+        if existing_pid is not None:
+            # Server already running — open a new window to the existing server
+            resolved_host, resolved_port = _resolve_host_port(host, port, name)
+            url = f"http://{resolved_host}:{resolved_port}"
+            log.info("Joining existing instance (PID %d) at %s", existing_pid, url)
+            window = webview.create_window(
+                title=title, url=url, width=width, height=height, js_api=js_api,
+            )
+            webview.start(icon=icon)
+            return
+
+    from wesktop.server import serve
+
+    url = serve(
+        target,
+        foreground=False,
+        host=host,
+        port=port,
+        pid_path=pid_path,
+        name=name,
+        pre_serve=pre_serve,
+        reload=reload,
+        single_instance=False,
+    )
+
+    # Auto-register desktop entry if not already present
+    _auto_register_entry(title, icon)
 
     window = webview.create_window(
         title=title,

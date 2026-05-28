@@ -502,7 +502,7 @@ def test_auto_register_swallows_exceptions(
 @patch("wesktop.server.serve")
 @patch("wesktop.server.stop")
 @patch("wesktop.server.check_already_running", return_value=42)
-def test_run_single_instance_stops_old_and_restarts(
+def test_run_single_instance_joins_existing(
     mock_check: MagicMock,
     mock_stop: MagicMock,
     mock_serve: MagicMock,
@@ -511,11 +511,10 @@ def test_run_single_instance_stops_old_and_restarts(
     _mock_gui: MagicMock,
     tmp_path: Path,
 ) -> None:
-    """run() with single_instance=True and existing PID stops old instance and starts fresh."""
+    """run() with single_instance=True and existing PID opens a window to the existing server."""
     port = _free_port()
     pid_path = tmp_path / "test.pid"
     pid_path.write_text("42")
-    mock_serve.return_value = f"http://127.0.0.1:{port}"
 
     from wesktop.desktop import run
 
@@ -527,9 +526,11 @@ def test_run_single_instance_stops_old_and_restarts(
         single_instance=True,
     )
 
-    mock_stop.assert_called_once_with(pid_path)
-    mock_serve.assert_called_once()
+    mock_stop.assert_not_called()
+    mock_serve.assert_not_called()
     mock_create_window.assert_called_once()
+    call_kwargs = mock_create_window.call_args
+    assert f":{port}" in call_kwargs.kwargs.get("url", call_kwargs.args[1] if len(call_kwargs.args) > 1 else "")
 
 
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
