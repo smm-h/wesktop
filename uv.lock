@@ -684,10 +684,15 @@ wheels = [
 [[package]]
 name = "strictcli"
 version = "0.12.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/14/55/ebaebe272f5c3b15de6b73116c307867e39b829aa737091846199b137a6d/strictcli-0.12.0.tar.gz", hash = "sha256:72dd8cfa567116e20a23664e2bbe37a7b4bb3b984bf38f7e211aa26718833e51", size = 102551, upload-time = "2026-05-29T17:18:59.676Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/eb/70/279f7d7cbad9b0f66389580cd58597b8ffce16b4ca7613174229fe6d3bcf/strictcli-0.12.0-py3-none-any.whl", hash = "sha256:4fe8caa1d40f89fda46f6221ae22ee67dbfc969c09edddbe816bdf5826e6c420", size = 29992, upload-time = "2026-05-29T17:18:58.384Z" },
+source = { editable = "../strictcli/python" }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "allpairspy" },
+    { name = "jsonschema" },
+    { name = "pytest" },
 ]
 
 [[package]]
@@ -854,7 +859,7 @@ requires-dist = [
     { name = "pydantic" },
     { name = "pyjwt" },
     { name = "pywebview", specifier = ">=6.2.1" },
-    { name = "strictcli" },
+    { name = "strictcli", editable = "../strictcli/python" },
     { name = "structlog" },
     { name = "watchfiles" },
 ]
