@@ -10,7 +10,7 @@ dependencies = [
     "granian>=2.7.4",
     "pywebview>=6.2.1",
     "msgspec>=0.21.1",
-    "strictcli>=0.8.0",
+    "strictcli",
     "pyjwt",
     "bcrypt",
     "structlog",
