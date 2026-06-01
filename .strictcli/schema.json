@@ -32,8 +32,9 @@
       "deprecated": {}
     }
   },
+  "project_id": "wesktop",
   "name": "wesktop",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "help": "A Python framework for building web-based desktop applications",
   "config": true,
   "commands": {
