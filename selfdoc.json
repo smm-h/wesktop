@@ -20,6 +20,11 @@
       "default": true
     }
   ],
+  "gen": {
+    "exclude": [
+      "src.wesktop"
+    ]
+  },
   "deploy": {
     "provider": "cloudflare-pages",
     "project": "wesktop"

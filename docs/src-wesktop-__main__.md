@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.__main__
-description: "API reference for the src.wesktop.__main__ module — auto-generated documentation covering public functions, classes, and type signatures."
+description: "CLI entry point for wesktop — invokes the main command-line interface."
 generated: true
 nav_group: "API Reference"
 nav_order: 2

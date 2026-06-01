@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.mcp_tools
-description: "API reference for the src.wesktop.mcp_tools module — auto-generated documentation covering public functions, classes, and type signatures."
+description: "MCP tool implementations — ask_user, deployment, filesystem, git, review, and testing tools for the agent server."
 generated: true
 nav_group: "API Reference"
 nav_order: 16
