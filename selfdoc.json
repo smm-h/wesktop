@@ -1,8 +1,7 @@
 {
   "version": "0.6.0",
-  "language": "python",
   "source": [
-    "src/wesktop/"
+    {"path": "src/wesktop/", "language": "python"}
   ],
   "docs": "docs/",
   "output": "docs/_build/",
