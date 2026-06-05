@@ -1,7 +1,18 @@
 {
   "targets": [
-    "pypi"
+    "pypi",
+    "npm"
   ],
   "private": false,
-  "push_timeout": 120
+  "push_timeout": 120,
+  "pipelines": {
+    "pypi": {
+      "type": "pypi",
+      "local": false
+    },
+    "npm": {
+      "type": "npm",
+      "local": false
+    }
+  }
 }
