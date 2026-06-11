@@ -1,6 +1,6 @@
 {
-  ".github/workflows/ci.yml": "60d4acc66fb85db1d043b34aeb62ec7d1d7dc7a73816fdbdc91617324a76308a",
-  ".github/workflows/publish.yml": "b9593f44f68e29c529efcf085b9b90d328825dd4b9dc0eefcf58f5718ef0d77c",
+  ".github/workflows/ci.yml": "54d916473d58dfa4611c46742606a3687dcd318b95d996ef00465b2a37a11b94",
+  ".github/workflows/publish.yml": "e77dcd0b5d1c1abae5424e5f3b73862f44f06b5d46209cbe71bc04d6baa6b5be",
   "CHANGELOG.md": "7a6ec46141007c18090a0ff325e2dd68cd51588c4e0b5af7b580365e5eaaca85",
   ".gitignore": "ce5391c115e249532a3bc27098546bb1ff2a32410b53b0d59ad7b54e765c0a04",
   "LICENSE": "e958892abc1dd5d991fca6d528e695d335f25773d373d2e0be5f4a9507d8f8d5",
@@ -11,5 +11,6 @@
   ".rlsbl/lint/python.toml": "9cfbcef2e010d5fad243437bf2fd8df54a1fae70ee0762f9d11da70fe207501c",
   ".rlsbl/lint/go.toml": "807d5cf760baad6d571a5bfd43cb163efe356f7462ba9f1918d72de45f62339f",
   ".rlsbl/lint/npm.toml": "baa36014e65923d8cc5c8b83c77fa651da79351627570476402da66840027645",
-  ".rlsbl/changes/unreleased.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  ".rlsbl/changes/unreleased.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".npmignore": "7c0eea9785c0318aeb39bf8b670ce8384f4a5b812fde69ce23d7d018057325a3"
 }
