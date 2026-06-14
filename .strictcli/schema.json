@@ -14,6 +14,8 @@
       "env": null,
       "choices": null,
       "repeatable": false,
+      "unique": false,
+      "env_separator": null,
       "negatable": null,
       "hidden": false
     },
@@ -24,12 +26,14 @@
     "command": {
       "passthrough": false,
       "flags": [],
-      "args": []
+      "args": [],
+      "tags": []
     },
     "group": {
       "commands": {},
       "groups": {},
-      "deprecated": {}
+      "deprecated": {},
+      "tags": []
     }
   },
   "project_id": "wesktop",
@@ -40,39 +44,72 @@
   "commands": {
     "diagnose": {
       "name": "diagnose",
-      "help": "Check runtime environment and dependencies"
+      "help": "Check runtime environment, installed dependencies, and configuration paths"
     }
   },
   "groups": {
     "config": {
       "name": "config",
-      "help": "Manage configuration",
+      "help": "Manage persistent configuration values stored in the config file",
       "commands": {
         "path": {
           "name": "path",
-          "help": "Print the config file path"
+          "help": "Print the absolute path to the config file for this application"
         },
         "show": {
           "name": "show",
-          "help": "Show all config values with source attribution"
+          "help": "Show all config values with their sources (config file, env, or default)",
+          "flags": [
+            {
+              "name": "plain",
+              "type": "bool",
+              "help": "Display config values in a human-readable table format",
+              "default": false,
+              "negatable": true
+            },
+            {
+              "name": "json",
+              "type": "bool",
+              "help": "Display config values as a JSON object with source metadata",
+              "default": false,
+              "negatable": true
+            }
+          ]
         },
         "set": {
           "name": "set",
-          "help": "Set a config value",
+          "help": "Set a persistent config value that overrides the default for a flag",
+          "flags": [
+            {
+              "name": "clear",
+              "type": "bool",
+              "help": "Clear a repeatable flag by setting its value to an empty list",
+              "default": false,
+              "negatable": true
+            },
+            {
+              "name": "default",
+              "type": "bool",
+              "help": "Reset a key to its default value by removing it from the config file",
+              "default": false,
+              "negatable": true
+            }
+          ],
           "args": [
             {
               "name": "key",
-              "help": "Config key to set"
+              "help": "The config key to set, matching a registered flag name"
             },
             {
               "name": "value",
-              "help": "Value to set"
+              "help": "Value to set (comma-separated for repeatable flags, use backslash to escape commas)",
+              "required": false
             }
           ]
         },
         "edit": {
           "name": "edit",
-          "help": "Open the config file in $EDITOR"
+          "help": "Open the config file for manual editing in $EDITOR (creates if missing)"
         }
       }
     }
