@@ -1,7 +1,10 @@
 {
   "version": "0.6.0",
   "source": [
-    {"path": "src/wesktop/", "language": "python"}
+    {
+      "path": "src/wesktop/",
+      "language": "python"
+    }
   ],
   "docs": "docs/",
   "output": "docs/_build/",
@@ -27,5 +30,14 @@
   "deploy": {
     "provider": "cloudflare-pages",
     "project": "wesktop"
+  },
+  "topology": {
+    "slug": "wesktop",
+    "docs_base": "https://docs.smmh.dev",
+    "posts_base": "https://blog.smmh.dev",
+    "assembly": "smm-h/selfdoc-cache"
+  },
+  "assembly": {
+    "repo": "smm-h/selfdoc-cache"
   }
 }
