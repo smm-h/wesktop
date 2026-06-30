@@ -12,12 +12,12 @@ order: 91
 
 A Python framework for building web-based desktop applications
 
-Version: 0.5.0
+Version: 0.6.0
 
 ## Commands
 
-- [diagnose](cli-diagnose.html) -- Check runtime environment and dependencies
+- [diagnose](cli-diagnose.html) -- Check runtime environment, installed dependencies, and configuration paths
 
 ## Command Groups
 
-- [config](cli-config.html) -- Manage configuration
+- [config](cli-config.html) -- Manage persistent configuration values stored in the config file

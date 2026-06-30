@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "name": "wesktop",
+  "slug": "wesktop",
+  "version": "0.6.0",
+  "description": "",
+  "language": "python",
+  "base_url": "https://wesktop.smmh.dev",
+  "pages": [
+    {
+      "path": "api.md",
+      "title": "API Reference",
+      "type": "doc"
+    },
+    {
+      "path": "cli-config.md",
+      "title": "wesktop config",
+      "type": "doc"
+    },
+    {
+      "path": "cli-diagnose.md",
+      "title": "wesktop diagnose",
+      "type": "doc"
+    },
+    {
+      "path": "cli-index.md",
+      "title": "wesktop CLI Reference",
+      "type": "doc"
+    },
+    {
+      "path": "gen-index.md",
+      "title": "API Reference",
+      "type": "doc"
+    },
+    {
+      "path": "index.md",
+      "title": "wesktop",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-__main__.md",
+      "title": "src.wesktop.__main__",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-asgi.md",
+      "title": "src.wesktop.asgi",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-audit.md",
+      "title": "src.wesktop.audit",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-auth.md",
+      "title": "src.wesktop.auth",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-cli.md",
+      "title": "src.wesktop.cli",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-config.md",
+      "title": "src.wesktop.config",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-desktop.md",
+      "title": "src.wesktop.desktop",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-dev.md",
+      "title": "src.wesktop.dev",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-di.md",
+      "title": "src.wesktop.di",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-entries.md",
+      "title": "src.wesktop.entries",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-error_log.md",
+      "title": "src.wesktop.error_log",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-features.md",
+      "title": "src.wesktop.features",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-logging.md",
+      "title": "src.wesktop.logging",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-mcp.md",
+      "title": "src.wesktop.mcp",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-mcp_tools-ask_user.md",
+      "title": "src.wesktop.mcp_tools.ask_user",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-mcp_tools-deployment.md",
+      "title": "src.wesktop.mcp_tools.deployment",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-mcp_tools-filesystem.md",
+      "title": "src.wesktop.mcp_tools.filesystem",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-mcp_tools-git.md",
+      "title": "src.wesktop.mcp_tools.git",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-mcp_tools-review.md",
+      "title": "src.wesktop.mcp_tools.review",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-mcp_tools-testing.md",
+      "title": "src.wesktop.mcp_tools.testing",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-mcp_tools.md",
+      "title": "src.wesktop.mcp_tools",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-middleware.md",
+      "title": "src.wesktop.middleware",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-sdui.md",
+      "title": "src.wesktop.sdui",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-server.md",
+      "title": "src.wesktop.server",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-sse.md",
+      "title": "src.wesktop.sse",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-tasks.md",
+      "title": "src.wesktop.tasks",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-testing.md",
+      "title": "src.wesktop.testing",
+      "type": "doc"
+    }
+  ],
+  "posts": [],
+  "last_gen": "2026-06-30T16:11:29.838684+00:00"
+}

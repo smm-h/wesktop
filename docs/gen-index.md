@@ -10,7 +10,6 @@ order: 90
 
 # API Reference
 
-- [src.wesktop](src-wesktop.html)
 - [src.wesktop.__main__](src-wesktop-__main__.html)
 - [src.wesktop.asgi](src-wesktop-asgi.html)
 - [src.wesktop.audit](src-wesktop-audit.html)

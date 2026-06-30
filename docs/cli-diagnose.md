@@ -9,4 +9,4 @@ nav_order: 2
 
 # wesktop diagnose
 
-Check runtime environment and dependencies
+Check runtime environment, installed dependencies, and configuration paths

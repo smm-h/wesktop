@@ -9,27 +9,45 @@ nav_order: 1
 
 # wesktop config
 
-Manage configuration
+Manage persistent configuration values stored in the config file
 
 ## config path
 
-Print the config file path
+Print the absolute path to the config file for this application
 
 ## config show
 
-Show all config values with source attribution
+Show all config values with their sources (config file, env, or default)
+
+### Flags
+
+| Name | Short | Type | Default | Env | Description |
+| --- | --- | --- | --- | --- | --- |
+| `--plain` |  | bool |  |  | Display config values in a human-readable table format |
+| `--json` |  | bool |  |  | Display config values as a JSON object with source metadata |
 
 ## config set
 
-Set a config value
+Set a persistent config value that overrides the default for a flag
+
+### Flags
+
+| Name | Short | Type | Default | Env | Description |
+| --- | --- | --- | --- | --- | --- |
+| `--clear` |  | bool |  |  | Clear a repeatable flag by setting its value to an empty list |
+| `--default` |  | bool |  |  | Reset a key to its default value by removing it from the config file |
 
 ### Arguments
 
 | Name | Required | Description |
-|------|----------|-------------|
-| `key` | yes | Config key to set |
-| `value` | yes | Value to set |
+| --- | --- | --- |
+| `key` | yes | The config key to set, matching a registered flag name |
+| `value` | no | Value to set (comma-separated for repeatable flags, use backslash to escape commas) |
 
 ## config edit
 
-Open the config file in $EDITOR
+Open the config file for manual editing in $EDITOR (creates if missing)
+
+## config init
+
+Generate a template config file with documented fields and defaults
