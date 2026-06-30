@@ -7,15 +7,10 @@ license = "MIT"
 authors = [{name = "smm-h", email = "smmh72@gmail.com"}]
 keywords = ["desktop", "web", "gui", "pywebview", "granian", "asgi", "rlsbl"]
 dependencies = [
-    "granian>=2.7.4",
+    "fastware[all]",
     "pywebview>=6.2.1",
-    "msgspec>=0.21.1",
     "strictcli",
-    "pyjwt",
-    "bcrypt",
-    "structlog",
     "pydantic",
-    "watchfiles",
 ]
 
 [project.scripts]
@@ -36,3 +31,4 @@ testpaths = ["tests"]
 
 [tool.uv.sources]
 strictcli = { path = "/home/m/Projects/strictcli/python", editable = true }
+fastware = { path = "/home/m/Projects/fastware", editable = true }
