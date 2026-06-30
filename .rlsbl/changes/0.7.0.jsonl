@@ -1,0 +1,12 @@
+{"commits":["8e906331ea62b812eb995e408fdcc4606ff11de4","99058fbee02e9aceed9af496389d51a8261e3a6e","b16489a8beecfb6ede0748a24b4e3098b52837c2","b1d744dbcc9bc604174df09fa9f79281f0a683ef","b6df17fd6b089376aad859c99e8afe29e71fcb09"],"user_facing":false}
+{"commits":["bf53021c2707cecf82320c92020a666b59400042","e0f04d9ab2bf0e3b8a6c36a01ebdfe940ffec334"],"user_facing":false}
+{"commits":["8531d80e5dfd8993b908bff6d1da762c501d02fe"],"user_facing":false}
+{"commits":["3da991f3b549b4bb841778170ee9ca814b563e85"],"user_facing":false}
+{"commits":["0e925039096983bfd262eb8e2ff50441ecd0f5fe","5e6bd6ac050b5b175f5f530f6b05e85fd3acdcea","82df4667de9e4776047500873213b37383d32784","bd0356eddf9283b8da13dbdfe6f3351d893d2a00","1c851854f1bb8cb07159bb8502f73eed4a64031b"],"user_facing":true,"description":"**Breaking.** Extracted ASGI framework modules to fastware package. wesktop now depends on fastware and re-exports all symbols. Import paths (`from wesktop.asgi`, `from wesktop.server`, etc.) continue to work but the underlying implementation is in fastware. Additional breaking changes: WebSocket `send_json` now sends binary frames (msgspec) instead of text frames; server errors raise `PortInUseError`/`AlreadyRunningError` instead of calling `sys.exit(1)`; default env var prefix changed from `WESKTOP_` to `FASTWARE_`.","type":"breaking"}
+{"commits":["d3c9f8b5361dfdfa0c245bb1fa7ff149e13137b8"],"user_facing":true,"description":"Expanded CLI help texts for all commands and subcommands.","type":"feature"}
+{"commits":["bfd882e379f8cd3e0ecbc8a3843818577b75455c","e200f55e8709a16df4e1d0bb1af5e9096a4326a6"],"user_facing":false}
+{"commits":["e8b4e688c414de904d7ca543001bba25262257aa","df2bf3476c14bddd06d359b406244d08038e25ed","ffc9402e3b3687d44e81971d465b9b42fc4fe145","a206a449984a96cd4ef96fd669ba737d5e1b67b6"],"user_facing":false}
+{"commits":["8744c193b4a91f3985d51388cc47f94fd965fb49","250c94f1b5e5ed8e55feb777445b84b90b9b398c","051824ea9f9ba3b5973c6a8f90aab6f2f8a7cc25"],"user_facing":false}
+{"commits":["cfe607a08b8d2ec83b905156bb8b06e2a66c4eac","6706f0fd3fb6d7055d1b5a6dcb854a4ce17c9aab"],"user_facing":false}
+{"commits":["6cc5fa3d03ff5c7934477930e890d11757c84422"],"user_facing":false}
+{"commits":["2c7d48962e0be3accd833bc3e7b107a3a182ff51"],"user_facing":false}
