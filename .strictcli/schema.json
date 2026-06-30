@@ -1,12 +1,15 @@
 {
+  "schema_version": 1,
   "defaults": {
+    "schema_version": 1,
     "app": {
       "env_prefix": null,
       "config": false,
       "global_flags": [],
       "commands": {},
       "groups": {},
-      "deprecated": {}
+      "deprecated": {},
+      "tag_contracts": {}
     },
     "flag": {
       "short": null,
@@ -20,20 +23,27 @@
       "hidden": false
     },
     "arg": {
+      "type": "str",
       "required": true,
-      "variadic": false
+      "default": null,
+      "variadic": false,
+      "choices": null
     },
     "command": {
       "passthrough": false,
       "flags": [],
       "args": [],
-      "tags": []
+      "tags": [],
+      "constraints": [],
+      "hidden": false,
+      "interactive": false
     },
     "group": {
       "commands": {},
       "groups": {},
       "deprecated": {},
-      "tags": []
+      "tags": [],
+      "hidden": false
     }
   },
   "project_id": "wesktop",
@@ -74,6 +84,15 @@
               "default": false,
               "negatable": true
             }
+          ],
+          "constraints": [
+            {
+              "type": "mutex",
+              "flags": [
+                "plain",
+                "json"
+              ]
+            }
           ]
         },
         "set": {
@@ -109,7 +128,12 @@
         },
         "edit": {
           "name": "edit",
-          "help": "Open the config file for manual editing in $EDITOR (creates if missing)"
+          "help": "Open the config file for manual editing in $EDITOR (creates if missing)",
+          "interactive": true
+        },
+        "init": {
+          "name": "init",
+          "help": "Generate a template config file with documented fields and defaults"
         }
       }
     }
