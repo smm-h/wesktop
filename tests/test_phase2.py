@@ -46,7 +46,7 @@ class TestServeAPI:
         with pytest.raises(TypeError, match="foreground"):
             serve("myapp:app", host="127.0.0.1", port=8000)  # type: ignore[call-arg]
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_serve_foreground_false_returns_url(self, mock_granian_cls: MagicMock) -> None:
         """foreground=False spawns daemon thread and returns URL."""
         mock_instance = MagicMock()
@@ -58,7 +58,7 @@ class TestServeAPI:
         assert url == f"http://127.0.0.1:{port}"
         mock_instance.serve.assert_called_once()
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_serve_foreground_true_returns_none(self, mock_granian_cls: MagicMock) -> None:
         """foreground=True blocks and returns None."""
         mock_instance = MagicMock()
@@ -70,7 +70,7 @@ class TestServeAPI:
         assert result is None
         mock_instance.serve.assert_called_once()
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_serve_with_callable_target(self, mock_granian_cls: MagicMock) -> None:
         """serve() accepts a callable and registers it on a synthetic module."""
         mock_instance = MagicMock()
@@ -89,7 +89,7 @@ class TestServeAPI:
         assert isinstance(target_used, str)
         assert ":app" in target_used
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_serve_with_string_target(self, mock_granian_cls: MagicMock) -> None:
         """serve() passes string targets through to Granian unchanged."""
         mock_instance = MagicMock()
@@ -105,7 +105,7 @@ class TestServeAPI:
             interface="asgi",
         )
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_serve_with_pid_path(self, mock_granian_cls: MagicMock, tmp_path: Path) -> None:
         """serve() writes a PID file when pid_path is given."""
         mock_instance = MagicMock()
@@ -190,7 +190,7 @@ class TestStop:
             stop(pid_path)
         assert not pid_path.exists()
 
-    @patch("wesktop.server.os.kill")
+    @patch("fastware.server.os.kill")
     def test_stop_sends_sigterm(self, mock_kill: MagicMock, tmp_path: Path) -> None:
         """stop() sends SIGTERM to the PID."""
         pid_path = tmp_path / "test.pid"
@@ -296,7 +296,7 @@ class TestStatus:
 class TestPreServe:
     """Tests for the pre_serve callback parameter."""
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_pre_serve_runs_before_server(self, mock_granian_cls: MagicMock, tmp_path: Path) -> None:
         """pre_serve is called before Granian starts."""
         mock_instance = MagicMock()
@@ -313,7 +313,7 @@ class TestPreServe:
         assert flag_file.exists()
         assert flag_file.read_text() == "yes"
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_pre_serve_runs_before_granian_serve(self, mock_granian_cls: MagicMock, tmp_path: Path) -> None:
         """pre_serve runs before Granian.serve() is called."""
         mock_instance = MagicMock()
@@ -332,7 +332,7 @@ class TestPreServe:
 
         assert call_order == ["pre_serve", "granian_serve"]
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_no_pre_serve(self, mock_granian_cls: MagicMock) -> None:
         """Server starts normally when no pre_serve is given."""
         mock_instance = MagicMock()
@@ -425,15 +425,15 @@ class TestEnvVarSettings:
         assert host == "10.0.0.3"
         assert port == 4000
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_serve_reads_env_vars(self, mock_granian_cls: MagicMock, monkeypatch: pytest.MonkeyPatch) -> None:
         """serve() uses env vars when host/port not provided explicitly."""
         mock_instance = MagicMock()
         mock_granian_cls.return_value = mock_instance
 
         port = _free_port()
-        monkeypatch.setenv("WESKTOP_HOST", "127.0.0.1")
-        monkeypatch.setenv("WESKTOP_PORT", str(port))
+        monkeypatch.setenv("FASTWARE_HOST", "127.0.0.1")
+        monkeypatch.setenv("FASTWARE_PORT", str(port))
 
         url = serve("myapp:app", foreground=False)
 
@@ -459,7 +459,7 @@ class TestEnvVarSettings:
 class TestServeStopStatusIntegration:
     """Integration tests for serve, stop, and status working together."""
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_status_after_serve(self, mock_granian_cls: MagicMock, tmp_path: Path) -> None:
         """status() reports running=True after serve(foreground=False)."""
         mock_instance = MagicMock()

@@ -1608,7 +1608,7 @@ class TestWebSocketPathParams:
         assert sent[0]["type"] == "websocket.accept"
         assert sent[1]["type"] == "websocket.send"
         import json
-        assert json.loads(sent[1]["text"]) == {"id": "abc123"}
+        assert json.loads(sent[1]["bytes"]) == {"id": "abc123"}
 
     @pytest.mark.anyio
     async def test_ws_typed_path_param(self):
@@ -1726,7 +1726,7 @@ class TestWebSocketHelper:
 
         # sent[0] = accept, sent[1] = echo response
         assert sent[0]["type"] == "websocket.accept"
-        assert json.loads(sent[1]["text"]) == {"msg": "hello"}
+        assert json.loads(sent[1]["bytes"]) == {"msg": "hello"}
 
     @pytest.mark.anyio
     async def test_send_and_receive_text(self):

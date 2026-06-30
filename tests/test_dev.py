@@ -15,7 +15,7 @@ def _fake_app(scope, receive, send):
 class TestDevSpawnsVite:
     """dev() spawns a subprocess with the vite_command."""
 
-    @patch("wesktop.server.serve")
+    @patch("fastware.server.serve")
     @patch("socket.create_connection")
     @patch("subprocess.Popen")
     def test_spawns_vite_subprocess(
@@ -43,7 +43,7 @@ class TestDevSpawnsVite:
             stderr=subprocess.PIPE,
         )
 
-    @patch("wesktop.server.serve")
+    @patch("fastware.server.serve")
     @patch("socket.create_connection")
     @patch("subprocess.Popen")
     def test_custom_vite_command(
@@ -72,7 +72,7 @@ class TestDevSpawnsVite:
 class TestDevWrapsWithViteDevProxy:
     """dev() wraps the app with ViteDevProxy before passing to serve()."""
 
-    @patch("wesktop.server.serve")
+    @patch("fastware.server.serve")
     @patch("socket.create_connection")
     @patch("subprocess.Popen")
     def test_wraps_app_with_proxy(
@@ -102,7 +102,7 @@ class TestDevWrapsWithViteDevProxy:
 class TestDevCallsServe:
     """dev() calls serve() with the wrapped app and foreground=True."""
 
-    @patch("wesktop.server.serve")
+    @patch("fastware.server.serve")
     @patch("socket.create_connection")
     @patch("subprocess.Popen")
     def test_calls_serve_foreground(
@@ -133,7 +133,7 @@ class TestDevCallsServe:
 class TestDevTerminatesVite:
     """dev() terminates the Vite process on shutdown."""
 
-    @patch("wesktop.server.serve")
+    @patch("fastware.server.serve")
     @patch("socket.create_connection")
     @patch("subprocess.Popen")
     def test_terminates_vite_on_normal_exit(
@@ -154,7 +154,7 @@ class TestDevTerminatesVite:
         proc.terminate.assert_called_once()
         proc.wait.assert_called_once_with(timeout=5)
 
-    @patch("wesktop.server.serve", side_effect=KeyboardInterrupt)
+    @patch("fastware.server.serve", side_effect=KeyboardInterrupt)
     @patch("socket.create_connection")
     @patch("subprocess.Popen")
     def test_terminates_vite_on_exception(
@@ -175,7 +175,7 @@ class TestDevTerminatesVite:
 
         proc.terminate.assert_called_once()
 
-    @patch("wesktop.server.serve")
+    @patch("fastware.server.serve")
     @patch("socket.create_connection")
     @patch("subprocess.Popen")
     def test_kills_vite_if_terminate_times_out(
@@ -251,7 +251,7 @@ class TestDevViteFailsToStart:
 class TestDevStringTarget:
     """dev() resolves string targets via importlib."""
 
-    @patch("wesktop.server.serve")
+    @patch("fastware.server.serve")
     @patch("socket.create_connection")
     @patch("subprocess.Popen")
     def test_resolves_string_target(

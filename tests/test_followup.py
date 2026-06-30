@@ -444,8 +444,8 @@ class TestServeReload:
                 port=9999,
             )
 
-    @patch("wesktop.server.ensure_port_available")
-    @patch("wesktop.server._resolve_target", return_value="myapp:app")
+    @patch("fastware.server.ensure_port_available")
+    @patch("fastware.server._resolve_target", return_value="myapp:app")
     def test_reload_calls_run_process(self, mock_resolve, mock_port):
         """reload=True invokes watchfiles.run_process with correct args."""
         mock_port.return_value = 9999
@@ -473,7 +473,7 @@ class TestServeReload:
         # args pass the resolved target, host, port
         assert call_kwargs[1]["args"] == ("myapp:app", "127.0.0.1", 9999)
 
-    @patch("wesktop.server.Granian")
+    @patch("fastware.server.Granian")
     def test_reload_false_does_not_import_watchfiles(self, mock_granian):
         """reload=False (default) does not touch watchfiles."""
         mock_instance = MagicMock()
@@ -559,9 +559,10 @@ class TestMCPModule:
 
     def test_create_mcp_server_without_mcp_package(self, monkeypatch):
         """create_mcp_server raises RuntimeError when mcp is not installed."""
+        import fastware.mcp as fmcp_mod
         import wesktop.mcp as mcp_mod
 
-        monkeypatch.setattr(mcp_mod, "_MCP_AVAILABLE", False)
+        monkeypatch.setattr(fmcp_mod, "_MCP_AVAILABLE", False)
         with pytest.raises(RuntimeError, match="mcp.*package.*required"):
             mcp_mod.create_mcp_server()
 

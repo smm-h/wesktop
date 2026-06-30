@@ -9,6 +9,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from wesktop.server import (
+    AlreadyRunningError,
+    PortInUseError,
     _find_free_port,
     _kill_port_holder,
     _make_server,
@@ -63,16 +65,15 @@ def test_ensure_port_available_free() -> None:
 
 
 def test_ensure_port_available_occupied_unknown_process() -> None:
-    """An occupied port with no health endpoint causes sys.exit(1)."""
+    """An occupied port with no health endpoint raises PortInUseError."""
     # Hold the port open for the duration of the test
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind(("127.0.0.1", 0))
         s.listen(1)
         occupied_port = s.getsockname()[1]
-        with pytest.raises(SystemExit) as exc_info:
+        with pytest.raises(PortInUseError):
             ensure_port_available("127.0.0.1", occupied_port)
-        assert exc_info.value.code == 1
 
 
 def test_ensure_port_available_kills_stale_server() -> None:
@@ -103,13 +104,13 @@ def test_ensure_port_available_kills_stale_server() -> None:
         httpd.shutdown()
         httpd.server_close()
 
-    with patch("wesktop.server._kill_port_holder", side_effect=_fake_kill):
+    with patch("fastware.server._kill_port_holder", side_effect=_fake_kill):
         result = ensure_port_available("127.0.0.1", port, name="test")
 
     assert result == port
 
 
-@patch("wesktop.server.Granian")
+@patch("fastware.server.Granian")
 def test_make_server_creates_granian(mock_granian_cls: MagicMock) -> None:
     """Verify Granian is instantiated with the correct parameters."""
     _make_server("myapp:app", "0.0.0.0", 9000)
@@ -121,7 +122,7 @@ def test_make_server_creates_granian(mock_granian_cls: MagicMock) -> None:
     )
 
 
-@patch("wesktop.server.Granian")
+@patch("fastware.server.Granian")
 def test_serve_background_returns_url(mock_granian_cls: MagicMock) -> None:
     """Background serve returns the correct URL and launches a daemon thread."""
     mock_instance = MagicMock()
@@ -138,12 +139,12 @@ def test_serve_background_returns_url(mock_granian_cls: MagicMock) -> None:
 
 
 def test_serve_single_instance_true_exits_on_conflict(tmp_path: Path) -> None:
-    """serve() with single_instance=True exits when an instance is already running."""
+    """serve() with single_instance=True raises AlreadyRunningError."""
     import os
     pid_path = tmp_path / "test.pid"
     pid_path.write_text(str(os.getpid()))  # current process is alive
 
-    with pytest.raises(SystemExit) as exc_info:
+    with pytest.raises(AlreadyRunningError):
         serve(
             "myapp:app",
             foreground=False,
@@ -152,10 +153,9 @@ def test_serve_single_instance_true_exits_on_conflict(tmp_path: Path) -> None:
             pid_path=pid_path,
             single_instance=True,
         )
-    assert exc_info.value.code == 1
 
 
-@patch("wesktop.server.Granian")
+@patch("fastware.server.Granian")
 def test_serve_single_instance_false_skips_pid_check(
     mock_granian_cls: MagicMock,
     tmp_path: Path,
@@ -222,7 +222,7 @@ def test_read_port_file_returns_none_on_corrupt(tmp_path: Path) -> None:
     assert read_port_file(pid_path) is None
 
 
-@patch("wesktop.server.Granian")
+@patch("fastware.server.Granian")
 def test_serve_port_zero_picks_random_port(mock_granian_cls: MagicMock) -> None:
     """serve() with port=0 assigns a random free port."""
     mock_instance = MagicMock()
@@ -236,7 +236,7 @@ def test_serve_port_zero_picks_random_port(mock_granian_cls: MagicMock) -> None:
     assert actual_port > 0
 
 
-@patch("wesktop.server.Granian")
+@patch("fastware.server.Granian")
 def test_serve_writes_port_file(mock_granian_cls: MagicMock, tmp_path: Path) -> None:
     """serve() writes a port file alongside the PID file."""
     mock_instance = MagicMock()

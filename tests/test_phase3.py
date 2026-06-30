@@ -497,7 +497,7 @@ class TestDIWebSocket:
         # Check messages sent
         assert sent_messages[0]["type"] == "websocket.accept"
         import json
-        echo_data = json.loads(sent_messages[1]["text"])
+        echo_data = json.loads(sent_messages[1]["bytes"])
         assert echo_data["echo"] == {"msg": "hello"}
         assert echo_data["session"] == "ws_session_123"
         assert sent_messages[2]["type"] == "websocket.close"

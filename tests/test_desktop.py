@@ -190,7 +190,7 @@ def test_run_js_api_via_wrapper(
     assert call_kwargs["js_api"] is api
 
 
-@patch("wesktop.server.Granian")
+@patch("fastware.server.Granian")
 def test_serve_calls_granian(mock_granian_cls: MagicMock) -> None:
     """wesktop.serve() delegates to the server module with correct params."""
     mock_instance = MagicMock()
