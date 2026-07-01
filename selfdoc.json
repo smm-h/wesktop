@@ -9,6 +9,10 @@
   "docs": "docs/",
   "output": "docs/_build/",
   "base_url": "https://wesktop.smmh.dev",
+  "root_files": {
+    "README.md": "docs/_README.md",
+    "CLAUDE.md": "docs/_CLAUDE.md"
+  },
   "versions": [
     {
       "version": "0.7.0",
@@ -40,6 +44,7 @@
       "pixelweaver": "https://docs.smmh.dev/pixelweaver",
       "claudestream": "https://docs.smmh.dev/claudestream",
       "claudewheel": "https://docs.smmh.dev/claudewheel",
+      "fastware": "https://docs.smmh.dev/fastware",
       "go-toml-edit": "https://docs.smmh.dev/go-toml-edit",
       "howmuchleft": "https://docs.smmh.dev/howmuchleft",
       "migrable": "https://docs.smmh.dev/migrable",
