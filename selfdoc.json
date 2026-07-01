@@ -9,10 +9,10 @@
   "docs": "docs/",
   "output": "docs/_build/",
   "base_url": "https://wesktop.smmh.dev",
-  "root_files": {
-    "README.md": "docs/_README.md",
-    "CLAUDE.md": "docs/_CLAUDE.md"
-  },
+  "root_files": [
+    "docs/_README.md",
+    "docs/_CLAUDE.md"
+  ],
   "versions": [
     {
       "version": "0.7.0",
