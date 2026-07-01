@@ -61,7 +61,7 @@ Some stubs (`asgi.py`, `server.py`, `mcp.py`) also re-export private helpers use
 - **src.wesktop.mcp_tools.filesystem** (`src/wesktop/mcp_tools/filesystem.py`): Filesystem MCP tools scoped to an agent's worktree: read, write, edit, list, and search files with path traversal guard enforcement.
 - **src.wesktop.mcp_tools.git** (`src/wesktop/mcp_tools/git.py`): Git MCP tools scoped to an agent's worktree: status, diff, commit, and log commands with timeout enforcement and -C path isolation.
 - **src.wesktop.mcp_tools.review** (`src/wesktop/mcp_tools/review.py`): Review MCP tools for posting inline comments on code changes, delegating to the wesktop server API for persistent review storage.
-- **src.wesktop.mcp_tools.testing** (`src/wesktop/mcp_tools/testing.py`): Testing MCP tools that delegate test execution, result collection, and coverage reporting to the wesktop server API.
+- **src.wesktop.mcp_tools.testing** (`src/wesktop/mcp_tools/testing.py`): Testing MCP tools that delegate test suite execution, result collection, and coverage reporting to the wesktop server API endpoint.
 - **src.wesktop.middleware** (`src/wesktop/middleware.py`): Pure ASGI middleware re-exported from fastware: request tracing, CORS headers, trusted-host validation, and Vite dev proxy routing.
 - **src.wesktop.sdui** (`src/wesktop/sdui.py`): Pydantic schemas for all 39 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
 - **src.wesktop.server** (`src/wesktop/server.py`): Granian ASGI server lifecycle re-exported from fastware: PID file tracking, port availability checks, foreground and background serve modes.
