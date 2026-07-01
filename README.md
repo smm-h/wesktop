@@ -91,25 +91,26 @@ npx wesktop diagnose
 
 ## Module layout
 
-- **asgi**: Re-exports from fastware (extracted ASGI framework).
-- **audit**: Re-exports from fastware.
-- **auth**: Re-exports from fastware.
-- **cli**: wesktop CLI -- diagnostics and future app management.
-- **config**: Re-exports from fastware.
-- **desktop**: Native desktop window via pywebview, backed by a Granian server in a daemon thread.
-- **dev**: Re-exports from fastware.
-- **di**: Re-exports from fastware.
-- **entries**: Cross-platform desktop entry creation and removal.
-- **error_log**: Re-exports from fastware.
-- **features**: Re-exports from fastware.
-- **logging**: Re-exports from fastware.
-- **mcp**: Re-exports from fastware.
-- **middleware**: Re-exports from fastware.
-- **sdui**: Pydantic schemas for all 39 SDUI (Server-Driven UI) primitives.
-- **server**: Re-exports from fastware.
-- **sse**: Re-exports from fastware.
-- **tasks**: Re-exports from fastware.
-- **testing**: Re-exports from fastware.
+- **__main__**: CLI entry point enabling `python -m wesktop` for diagnostics, configuration management, and application server commands via strictcli.
+- **asgi**: Full-featured ASGI framework re-exported from fastware: Router, Request, response types, WebSocket, app factory, middleware, and type aliases.
+- **audit**: Append-only JSONL audit log writer re-exported from fastware for recording timestamped application events with structured payloads.
+- **auth**: Authentication module re-exported from fastware: JWT token creation and verification, bcrypt password hashing, user stores, CSRF, and rate limiting.
+- **cli**: wesktop CLI providing diagnostics (Python version, dependency versions, platform info) and configuration management via strictcli subcommands.
+- **config**: Config loading utility re-exported from fastware: standalone TOML config file parsing with optional Pydantic validation and environment overrides.
+- **desktop**: Native desktop window via pywebview, backed by a Granian ASGI server in a daemon thread, with automatic server lifecycle and window close handling.
+- **dev**: Development mode re-exported from fastware: combined Vite frontend and ASGI backend in a single command with hot reload and proxy routing.
+- **di**: Dependency injection container re-exported from fastware: per-request resolution with automatic caching, generator cleanup, and override support.
+- **entries**: Cross-platform desktop entry creation and removal for Linux.
+- **error_log**: SQLite-backed error log re-exported from fastware for recording and querying 5xx server responses with request context and tracebacks.
+- **features**: Boolean feature flags re-exported from fastware with per-machine JSON overrides, runtime toggle, enabled/disabled checks, and hot reload support.
+- **logging**: Structured logging configuration re-exported from fastware: structlog with automatic JSON output in production and colored console in development.
+- **mcp**: MCP (Model Context Protocol) server factory re-exported from fastware: per-role agent tool provisioning, tool filtering, and server lifecycle.
+- **middleware**: Pure ASGI middleware re-exported from fastware: request tracing, CORS headers, trusted-host validation, and Vite dev proxy routing.
+- **sdui**: Pydantic schemas for all 39 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
+- **server**: Granian ASGI server lifecycle re-exported from fastware: PID file tracking, port availability checks, foreground and background serve modes.
+- **sse**: SSE (Server-Sent Events) broadcaster re-exported from fastware: typed events, per-client async queues, automatic disconnect pruning, and strict mode.
+- **tasks**: Background task registry re-exported from fastware: feature-gated lifecycle management with start/stop protocol and graceful shutdown ordering.
+- **testing**: Sync and async test clients re-exported from fastware for exercising wesktop ASGI routes without starting a real network server or GUI window.
 
 ## Dependencies
 

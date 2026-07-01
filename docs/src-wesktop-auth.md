@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.auth
-description: "Authentication module: JWT tokens, password hashing, user storage, CSRF, rate limiting."
+description: "Authentication module re-exported from fastware: JWT token creation and verification, bcrypt password hashing, user stores, CSRF, and rate limiting."
 generated: true
 nav_group: "API Reference"
 nav_order: 4

@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.entries
-description: "Cross-platform desktop entry creation and removal."
+description: "Cross-platform desktop entry creation and removal for Linux .desktop files, macOS .app bundles, and Windows Start Menu shortcuts."
 generated: true
 nav_group: "API Reference"
 nav_order: 10

@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.features
-description: "Boolean feature flags with optional per-machine overrides via JSON file."
+description: "Boolean feature flags re-exported from fastware with per-machine JSON overrides, runtime toggle, enabled/disabled checks, and hot reload support."
 generated: true
 nav_group: "API Reference"
 nav_order: 12

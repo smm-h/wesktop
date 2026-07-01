@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.asgi
-description: "Full-featured ASGI framework built on msgspec, pyjwt, bcrypt, structlog, pydantic, and httpx."
+description: "Full-featured ASGI framework re-exported from fastware: Router, Request, response types, WebSocket, app factory, middleware, and type aliases."
 generated: true
 nav_group: "API Reference"
 nav_order: 2

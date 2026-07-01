@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.server
-description: "Granian ASGI server lifecycle — PID/port file management, port checks, serve_background subprocess mode, start/stop/status."
+description: "Granian ASGI server lifecycle re-exported from fastware: PID file tracking, port availability checks, foreground and background serve modes."
 generated: true
 nav_group: "API Reference"
 nav_order: 24

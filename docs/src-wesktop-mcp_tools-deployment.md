@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.mcp_tools.deployment
-description: "Deployment tools that delegate to a server API."
+description: "Deployment MCP tools that delegate staging, production PR creation, and pipeline status checks to the wesktop server API."
 generated: true
 nav_group: "API Reference"
 nav_order: 17

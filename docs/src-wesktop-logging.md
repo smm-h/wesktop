@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.logging
-description: "Structured logging configuration using structlog."
+description: "Structured logging configuration re-exported from fastware: structlog with automatic JSON output in production and colored console in development."
 generated: true
 nav_group: "API Reference"
 nav_order: 13

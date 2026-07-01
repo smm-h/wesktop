@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.sse
-description: "SSE (Server-Sent Events) broadcaster with typed event registration."
+description: "SSE (Server-Sent Events) broadcaster re-exported from fastware: typed events, per-client async queues, automatic disconnect pruning, and strict mode."
 generated: true
 nav_group: "API Reference"
 nav_order: 25

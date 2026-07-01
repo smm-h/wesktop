@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.config
-description: "Config loading utility for wesktop apps."
+description: "Config loading utility re-exported from fastware: standalone TOML config file parsing with optional Pydantic validation and environment overrides."
 generated: true
 nav_group: "API Reference"
 nav_order: 6

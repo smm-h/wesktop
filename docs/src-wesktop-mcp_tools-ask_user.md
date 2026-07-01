@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.mcp_tools.ask_user
-description: "Ask-user tool: posts a question to a dashboard and polls for the answer."
+description: "Ask-user MCP tool: posts a question to the wesktop dashboard via HTTP API and polls for the user's answer with configurable timeout."
 generated: true
 nav_group: "API Reference"
 nav_order: 16

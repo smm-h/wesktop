@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.audit
-description: "Append-only JSONL audit log writer."
+description: "Append-only JSONL audit log writer re-exported from fastware for recording timestamped application events with structured payloads."
 generated: true
 nav_group: "API Reference"
 nav_order: 3

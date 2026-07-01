@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.mcp_tools
-description: "MCP tool implementations — ask_user, deployment, filesystem, git, review, and testing tools for the agent server."
+description: "Tool implementations for the MCP agent server: filesystem access, git operations, testing, deployment, code review, and interactive user prompts."
 generated: true
 nav_group: "API Reference"
 nav_order: 15

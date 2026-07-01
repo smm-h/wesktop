@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.error_log
-description: "SQLite-backed error log for 5xx responses."
+description: "SQLite-backed error log re-exported from fastware for recording and querying 5xx server responses with request context and tracebacks."
 generated: true
 nav_group: "API Reference"
 nav_order: 11

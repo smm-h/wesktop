@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.tasks
-description: "Background task registry with feature-gated lifecycle."
+description: "Background task registry re-exported from fastware: feature-gated lifecycle management with start/stop protocol and graceful shutdown ordering."
 generated: true
 nav_group: "API Reference"
 nav_order: 26

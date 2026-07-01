@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.di
-description: "Dependency injection: per-request resolution with caching and cleanup."
+description: "Dependency injection container re-exported from fastware: per-request resolution with automatic caching, generator cleanup, and override support."
 generated: true
 nav_group: "API Reference"
 nav_order: 9

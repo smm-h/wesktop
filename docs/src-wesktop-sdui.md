@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.sdui
-description: "Pydantic schemas for all 39 SDUI (Server-Driven UI) primitives."
+description: "Pydantic schemas for all 39 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators."
 generated: true
 nav_group: "API Reference"
 nav_order: 23

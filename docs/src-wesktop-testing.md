@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.testing
-description: "Test client utilities for wesktop apps."
+description: "Sync and async test clients re-exported from fastware for exercising wesktop ASGI routes without starting a real network server or GUI window."
 generated: true
 nav_group: "API Reference"
 nav_order: 27

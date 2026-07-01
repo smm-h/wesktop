@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.dev
-description: "Development mode: Vite + wesktop server in a single command."
+description: "Development mode re-exported from fastware: combined Vite frontend and ASGI backend in a single command with hot reload and proxy routing."
 generated: true
 nav_group: "API Reference"
 nav_order: 8

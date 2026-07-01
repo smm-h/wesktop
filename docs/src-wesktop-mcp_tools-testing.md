@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.mcp_tools.testing
-description: "Testing tools that delegate to a server API."
+description: "Testing MCP tools that delegate test execution, result collection, and coverage reporting to the wesktop server API."
 generated: true
 nav_group: "API Reference"
 nav_order: 21

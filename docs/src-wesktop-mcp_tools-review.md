@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.mcp_tools.review
-description: "Review tools for posting comments on code changes."
+description: "Review MCP tools for posting inline comments on code changes, delegating to the wesktop server API for persistent review storage."
 generated: true
 nav_group: "API Reference"
 nav_order: 20

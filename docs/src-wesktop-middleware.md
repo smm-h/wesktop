@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.middleware
-description: "Request tracing, CORS, trusted-host, and Vite dev proxy middleware."
+description: "Pure ASGI middleware re-exported from fastware: request tracing, CORS headers, trusted-host validation, and Vite dev proxy routing."
 generated: true
 nav_group: "API Reference"
 nav_order: 22

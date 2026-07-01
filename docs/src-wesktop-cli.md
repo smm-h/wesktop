@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.cli
-description: "wesktop CLI -- diagnostics and future app management."
+description: "wesktop CLI providing diagnostics (Python version, dependency versions, platform info) and configuration management via strictcli subcommands."
 generated: true
 nav_group: "API Reference"
 nav_order: 5

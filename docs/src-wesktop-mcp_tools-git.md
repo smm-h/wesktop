@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.mcp_tools.git
-description: "Git tools scoped to an agent's worktree."
+description: "Git MCP tools scoped to an agent's worktree: status, diff, commit, and log commands with timeout enforcement and -C path isolation."
 generated: true
 nav_group: "API Reference"
 nav_order: 19
