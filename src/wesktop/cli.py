@@ -1,4 +1,4 @@
-"""wesktop CLI -- diagnostics and future app management."""
+"""wesktop CLI providing diagnostics (Python version, dependency versions, platform info) and configuration management via strictcli subcommands."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Testing tools that delegate to a server API."""
+"""Testing MCP tools that delegate test suite execution, result collection, and coverage reporting to the wesktop server API endpoint."""
 
 import json
 import urllib.error

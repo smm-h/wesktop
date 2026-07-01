@@ -1,4 +1,4 @@
-"""Deployment tools that delegate to a server API."""
+"""Deployment MCP tools that delegate staging, production PR creation, and pipeline status checks to the wesktop server API."""
 
 import json
 import urllib.error

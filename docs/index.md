@@ -47,7 +47,7 @@ wesktop.run("myapp:app", title="My App", width=1024, height=768)
 
 ## Headless Server
 
-If you don't need a desktop window -- for example during development, in CI, or for server-only deployment -- use `serve()` instead of `run()`.
+If you don't need a desktop window -- for example during development, in CI, or for server-only deployment -- use `serve()` instead of `run()`. The `serve()` function starts the Granian ASGI server with optional PID file management, port availability checks, and signal handling, but without opening any native OS windows:
 
 ```python
 import wesktop
@@ -66,7 +66,7 @@ wesktop.serve("myapp:app", foreground=True, host="127.0.0.1", port=8000)
 
 ## Development Mode
 
-For frontend development with Vite hot-reload:
+For frontend development with Vite hot-reload, wesktop provides a `dev()` function that starts both the Vite dev server (as a subprocess) and the Granian ASGI backend in a single command, with automatic proxy routing and cleanup:
 
 ```python
 import wesktop
@@ -110,7 +110,7 @@ app = wesktop.create_app(router)
 
 ## Desktop Entries
 
-Create platform-native application shortcuts so users can launch your app from their OS launcher:
+Create platform-native application shortcuts so users can launch your app from their OS launcher. Supports Linux `.desktop` files, macOS `.app` bundles, and Windows Start Menu shortcuts via COM or PowerShell:
 
 ```python
 import wesktop
@@ -131,4 +131,4 @@ When using `wesktop.run()`, desktop entries are created automatically on first l
 
 ## API Reference
 
-See the [API docs](api.md) for wesktop-native symbols (desktop window, entries, SDUI). For ASGI routing, middleware, auth, SSE, and server lifecycle, see the [fastware API docs](https://docs.smmh.dev/fastware/api.html).
+See the [API docs](api.md) for all 116 wesktop-native symbols (desktop window, entries, SDUI primitives, GUI backend detection, and dev mode). For ASGI routing, middleware, auth, SSE, dependency injection, and server lifecycle, see the [fastware API docs](https://docs.smmh.dev/fastware/api.html).

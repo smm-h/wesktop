@@ -1,4 +1,4 @@
-"""Pydantic schemas for all 39 SDUI (Server-Driven UI) primitives.
+"""Pydantic schemas for all 39 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
 
 Each model validates and types the raw dict trees that apps build for
 the dashboard's SDUIRenderer. Each model serialises to the exact dict

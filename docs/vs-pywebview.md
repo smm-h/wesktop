@@ -1,6 +1,6 @@
 ---
 title: wesktop vs pywebview
-description: What wesktop adds on top of bare pywebview
+description: "What wesktop adds on top of bare pywebview: ASGI routing, SSE broadcasting, managed server lifecycle, middleware, auth, desktop entries, and SDUI."
 date: 2026-07-01
 ---
 
@@ -10,7 +10,7 @@ wesktop is built on pywebview. It uses pywebview to open native OS windows -- th
 
 ## What pywebview provides
 
-pywebview is a lightweight cross-platform library that opens a native webview window and points it at a URL or local HTML. It supports:
+pywebview is a lightweight cross-platform library that opens a native webview window and points it at a URL or local HTML string. It provides the rendering surface that wesktop uses for all desktop windows. Out of the box, pywebview supports:
 
 - Native windows on Linux (WebKit via GTK), macOS (WebKit), and Windows (Edge WebView2)
 - Loading URLs or HTML strings
@@ -25,7 +25,7 @@ pywebview does NOT provide a web server, routing, middleware, or any backend fra
 
 ### ASGI routing (via fastware)
 
-Instead of serving raw HTML or running a separate Flask/FastAPI server, wesktop provides a built-in ASGI micro-router:
+Instead of serving raw HTML or running a separate Flask/FastAPI server, wesktop provides a built-in ASGI micro-router (from fastware) with path parameters, type coercion, response types, and middleware support. Routes are registered with decorators and the server starts automatically in a background thread:
 
 ```python
 import wesktop
@@ -45,7 +45,7 @@ With bare pywebview, you would need to set up a separate HTTP server, manage its
 
 ### SSE broadcasting
 
-Built-in server-sent events with typed event registration, per-client async queues, and automatic dead client pruning:
+Built-in server-sent events with typed event registration, per-client async queues, configurable heartbeat intervals, and automatic dead client pruning. The Broadcaster runs in strict mode by default, catching event name typos at development time:
 
 ```python
 sse = wesktop.Broadcaster()
@@ -55,7 +55,7 @@ router.add_route("GET", "/events", wesktop.sse_route(sse))
 
 ### Server lifecycle management
 
-wesktop handles the full granian server lifecycle:
+wesktop handles the full granian ASGI server lifecycle with PID files for single-instance enforcement, port allocation (random ports in desktop mode to avoid collisions), coordinated startup and shutdown between the server process and the native webview window, and both foreground and background serve modes:
 
 - PID file management for single-instance enforcement
 - Port availability checks (random port allocation in desktop mode)
@@ -65,7 +65,7 @@ wesktop handles the full granian server lifecycle:
 
 ### Middleware suite
 
-Via fastware, wesktop includes production-ready middleware:
+Via fastware, wesktop includes 6 production-ready middleware classes that are configured declaratively via `AppConfig` fields and applied automatically by `create_app`. All middleware is pure ASGI (no framework dependency), making it streaming-safe for SSE and WebSocket connections:
 
 - **CORSMiddleware** -- cross-origin resource sharing
 - **CSRFMiddleware** -- cross-site request forgery protection
@@ -76,11 +76,11 @@ Via fastware, wesktop includes production-ready middleware:
 
 ### Auth system
 
-JWT token creation/verification, password hashing, role-based access control, session cookies, and rate limiting -- all built-in via fastware.
+JWT token creation/verification, bcrypt password hashing with configurable work factor, role-based access control via `require_role()`, session cookies with CSRF double-submit protection, and request rate limiting -- all built-in via fastware with no additional dependencies beyond `pyjwt` and `bcrypt`.
 
 ### Desktop entry creation
 
-Automatic creation and removal of platform-native application shortcuts:
+Automatic creation and removal of platform-native application shortcuts on all 3 major platforms (Linux `.desktop` files in `~/.local/share/applications/`, macOS `.app` bundles in `~/Applications/`, and Windows Start Menu shortcuts via COM or PowerShell). `wesktop.run()` creates entries automatically on first launch and self-heals broken launchers:
 
 ```python
 # Happens automatically on first wesktop.run() call
@@ -92,7 +92,7 @@ On Linux this writes a `.desktop` file. On macOS it creates an `.app` bundle. On
 
 ### CLI diagnostics
 
-The `wesktop` CLI provides runtime diagnostics and configuration management:
+The `wesktop` CLI (built on strictcli) provides runtime diagnostics and configuration management. The `diagnose` command displays the Python version, installed dependency versions with their backends (e.g., which WebKit binding pywebview is using), platform information, and config file location. The `config` command group handles persistent settings with set, show, edit, and init subcommands:
 
 ```bash
 wesktop diagnose    # Python version, dependency versions, platform info
@@ -101,7 +101,7 @@ wesktop config show # Current configuration
 
 ### SDUI primitives
 
-39 server-driven UI node types (layout, display, data, input, feedback, overlay) for building dynamic dashboards without shipping frontend code.
+39 Pydantic-validated server-driven UI node types organized into 6 categories (layout, display, data, input, feedback, overlay) for building dynamic dashboards without shipping custom frontend code. Each model serializes to the exact dict shape the SDUI renderer expects.
 
 ### GUI backend detection
 
@@ -109,7 +109,7 @@ wesktop config show # Current configuration
 
 ### Development mode
 
-`wesktop.dev()` starts a Vite dev server alongside the granian backend for frontend hot-reload during development.
+`wesktop.dev()` starts a Vite dev server as a subprocess alongside the granian backend for frontend hot-reload during development, with automatic proxy routing for unmatched requests and graceful subprocess termination on shutdown.
 
 ## Side-by-side
 

@@ -1,4 +1,4 @@
-"""Git tools scoped to an agent's worktree.
+"""Git MCP tools scoped to an agent's worktree: status, diff, commit, and log commands with timeout enforcement and -C path isolation.
 
 All commands run with -C <worktree> and have timeouts.
 """

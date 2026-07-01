@@ -1,4 +1,4 @@
-"""Filesystem tools scoped to an agent's worktree.
+"""Filesystem MCP tools scoped to an agent's worktree: read, write, edit, list, and search files with path traversal guard enforcement.
 
 All paths are relative to the worktree root. Traversal outside
 the worktree is blocked by _guard_path.

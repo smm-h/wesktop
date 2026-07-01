@@ -1,4 +1,4 @@
-"""Review tools for posting comments on code changes."""
+"""Review MCP tools for posting inline comments on code changes, delegating to the wesktop server API for persistent review storage."""
 
 import json
 import urllib.error

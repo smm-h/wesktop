@@ -1,4 +1,4 @@
-"""Ask-user tool: posts a question to a dashboard and polls for the answer.
+"""Ask-user MCP tool: posts a question to the wesktop dashboard via HTTP API and polls for the user's answer with configurable timeout.
 
 Reaches the server via HTTP using server_url and auth_token parameters.
 """

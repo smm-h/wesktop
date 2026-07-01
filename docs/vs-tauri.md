@@ -1,6 +1,6 @@
 ---
 title: wesktop vs Tauri
-description: Comparison of wesktop and Tauri for building lightweight desktop applications
+description: "Comparison of wesktop and Tauri: both use native OS webviews, but differ in backend language (Python vs Rust), IPC model, and packaging approach."
 date: 2026-07-01
 ---
 
@@ -29,7 +29,7 @@ Both wesktop and Tauri reject the Electron approach of bundling Chromium. Both u
 
 ## Where Tauri is stronger
 
-**Performance.** Rust compiles to native code with no garbage collector and no runtime overhead. For CPU-intensive backends (image processing, cryptography, real-time systems), Rust is faster than Python.
+**Performance.** Rust compiles to native code with no garbage collector, no interpreter overhead, and no GIL. For CPU-intensive backends (image processing, cryptography, real-time systems), Rust is significantly faster than Python. Tauri apps can run under 20 MB of memory for simple cases.
 
 **Self-contained binary.** Tauri apps compile to a single executable with no runtime dependency. Users do not need Python, Rust, or anything else installed. Distribution is a download-and-run experience.
 

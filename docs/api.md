@@ -12,6 +12,8 @@ This page documents the symbols that are native to wesktop -- the desktop shell,
 
 ## Desktop Window
 
+The desktop module provides the `run()` function for launching native OS windows backed by a Granian ASGI server in a daemon thread. The pywebview dependency is late-imported, so headless deployments that only use `serve()` never load the GUI library.
+
 :-: ref path="src.wesktop.desktop"
 
 ### `wesktop.run(target, *, title, width, height, icon, host, port, pid_path, name, pre_serve, reload, js_api, single_instance)`
@@ -44,11 +46,13 @@ Make pywebview's GUI backend importable in isolated virtual environments. If `gi
 
 ## Desktop Entries
 
+Cross-platform desktop shortcut creation and removal for all 3 major operating systems. On Linux, creates freedesktop-compliant `.desktop` files in `~/.local/share/applications/` with optional icon installation to `~/.local/share/icons/`. On macOS, generates `.app` bundles in `~/Applications/` with `Info.plist` and launcher scripts. On Windows, creates Start Menu shortcuts via COM automation with a PowerShell fallback.
+
 :-: ref path="src.wesktop.entries"
 
 ### `wesktop.create_entry(name, command, *, icon, comment, categories)`
 
-Create a platform-native desktop entry so users can launch a wesktop application from their OS application launcher.
+Create a platform-native desktop entry so users can launch a wesktop application from their OS application launcher. On Linux, this writes a freedesktop-compliant `.desktop` file with optional icon installation; on macOS, it creates an `.app` bundle with an `Info.plist` and launcher shell script; on Windows, it creates a Start Menu shortcut using COM automation with a PowerShell fallback:
 
 | Platform | What it creates |
 |----------|----------------|
@@ -68,13 +72,13 @@ Returns the `Path` of the created entry.
 
 ### `wesktop.remove_entry(name)`
 
-Remove a previously created desktop entry by its registered name. Returns `True` if the entry was found and removed, `False` if no entry with that name existed.
+Remove a previously created desktop entry by its registered name. Searches the platform-specific location (Linux `~/.local/share/applications/`, macOS `~/Applications/`, Windows Start Menu folder) and deletes both the entry and any installed icon. Returns `True` if the entry was found and removed, `False` if no entry with that name existed.
 
 ## Development Mode
 
 ### `wesktop.dev(target, *, vite_command, vite_port, host, port, pid_path, name, pre_serve)`
 
-Development mode with Vite frontend hot-reload. Starts a Vite dev server alongside the granian backend, proxying frontend requests through `ViteDevProxy` middleware.
+Development mode with Vite frontend hot-reload. Starts a Vite dev server as a subprocess alongside the granian ASGI backend, proxying unmatched frontend requests through `ViteDevProxy` middleware. Polls the Vite port for readiness (up to 15 seconds) and terminates the Vite process automatically when the server shuts down.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -88,6 +92,8 @@ Development mode with Vite frontend hot-reload. Starts a Vite dev server alongsi
 | `pre_serve` | `Callable \| None` | `None` | Callback invoked before starting the server |
 
 ## SDUI Primitives
+
+The SDUI system provides 39 Pydantic-validated node types organized into 6 categories (layout, display, data, input, feedback, overlay) for building dynamic dashboards entirely from the server without shipping custom frontend code.
 
 :-: ref path="src.wesktop.sdui" target="SDUINode"
 
@@ -123,7 +129,7 @@ tree = node("stack", [node("heading", text="Hello", level=2)])
 
 ## Fastware Re-exports
 
-The following modules are re-exported from fastware. See the [fastware API docs](https://docs.smmh.dev/fastware/api.html) for full documentation.
+The following 15 modules are re-exported from fastware, providing the full ASGI framework stack (routing, responses, middleware, auth, DI, testing, server lifecycle, and more) without requiring a separate `import fastware` statement. See the [fastware API docs](https://docs.smmh.dev/fastware/api.html) for full documentation.
 
 | wesktop module | fastware source | Provides |
 |---------------|----------------|----------|
@@ -147,4 +153,4 @@ The following modules are re-exported from fastware. See the [fastware API docs]
 
 ### `__version__`
 
-Package version string, read from `importlib.metadata` at import time. Follows semantic versioning. Available via `import wesktop; wesktop.__version__` and `wesktop --version`.
+Package version string, read from `importlib.metadata` at import time. Follows semantic versioning (currently 0.x.x, pre-stable). Available via `import wesktop; wesktop.__version__` in Python code and `wesktop --version` from the command line. The version is set in `pyproject.toml` and bumped automatically by rlsbl during releases.

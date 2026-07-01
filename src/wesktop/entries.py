@@ -1,4 +1,4 @@
-"""Cross-platform desktop entry creation and removal."""
+"""Cross-platform desktop entry creation and removal for Linux .desktop files, macOS .app bundles, and Windows Start Menu shortcuts."""
 
 from __future__ import annotations
 

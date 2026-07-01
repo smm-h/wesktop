@@ -1,4 +1,4 @@
-"""Native desktop window via pywebview, backed by a Granian server in a daemon thread."""
+"""Native desktop window via pywebview, backed by a Granian ASGI server in a daemon thread, with automatic server lifecycle and window close handling."""
 
 from __future__ import annotations
 

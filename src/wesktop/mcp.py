@@ -1,4 +1,4 @@
-"""Re-exports from fastware."""
+"""MCP (Model Context Protocol) server factory re-exported from fastware: per-role agent tool provisioning, tool filtering, and server lifecycle."""
 
 from fastware.mcp import *  # noqa: F401,F403
 
