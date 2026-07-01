@@ -2,7 +2,7 @@
   "schema_version": 1,
   "name": "wesktop",
   "slug": "wesktop",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "",
   "language": "python",
   "base_url": "https://wesktop.smmh.dev",
@@ -171,8 +171,23 @@
       "path": "src-wesktop-testing.md",
       "title": "src.wesktop.testing",
       "type": "doc"
+    },
+    {
+      "path": "vs-electron.md",
+      "title": "wesktop vs Electron",
+      "type": "doc"
+    },
+    {
+      "path": "vs-pywebview.md",
+      "title": "wesktop vs pywebview",
+      "type": "doc"
+    },
+    {
+      "path": "vs-tauri.md",
+      "title": "wesktop vs Tauri",
+      "type": "doc"
     }
   ],
   "posts": [],
-  "last_gen": "2026-06-30T16:11:29.838684+00:00"
+  "last_gen": "2026-07-01T09:29:50.450175+00:00"
 }
