@@ -1,12 +1,24 @@
 ---
 title: wesktop
-description: wesktop is a Python framework for building web-based desktop apps with an ASGI micro-router, SSE broadcaster, granian server, and pywebview native windows
-date: 2026-05-19
+description: A Python framework for building web-based desktop apps -- built on fastware with pywebview native windows, desktop entry management, and SDUI primitives
+date: 2026-07-01
 ---
 
-# wesktop
+# wesktop :-: var key="project.version"
 
-wesktop is a Python framework for building web-based desktop applications. It provides an ASGI micro-router, an SSE broadcaster, and integration with granian (a Rust-based ASGI server) and pywebview (native OS windows). You define routes in Python, serve them over HTTP, and optionally open a native desktop window -- all from a single entry point.
+wesktop is a Python framework for building web-based desktop applications. It combines [fastware](https://docs.smmh.dev/fastware) (an ASGI micro-framework with routing, SSE, middleware, auth, and server lifecycle) with [pywebview](https://pywebview.flowrl.com/) (native OS windows) to let you write Python backends that open as desktop apps -- or run headless as web servers.
+
+## Built on fastware
+
+wesktop re-exports the entire fastware API so consumers can `import wesktop` and get routing, responses, SSE, middleware, auth, dependency injection, config loading, background tasks, feature flags, audit logging, and test clients -- all without importing fastware directly. The fastware layer handles everything HTTP/ASGI; wesktop adds the desktop shell on top:
+
+- **Desktop window** -- start a granian server in a background thread, open a native OS window via pywebview, block until the user closes it
+- **Desktop entries** -- create and remove platform-native application shortcuts (Linux `.desktop` files, macOS `.app` bundles, Windows Start Menu shortcuts)
+- **SDUI primitives** -- 39 server-driven UI node types (layout, display, data, input, feedback, overlay) for building dynamic dashboards without shipping frontend code
+- **Dev mode** -- Vite integration for frontend hot-reload during development
+- **GUI backend detection** -- automatic discovery of system PyGObject/Qt in isolated venvs
+
+For ASGI routing, middleware, auth, SSE, and server lifecycle documentation, see the [fastware docs](https://docs.smmh.dev/fastware).
 
 ## Installation
 
@@ -31,11 +43,11 @@ app = wesktop.create_app(router)
 wesktop.run("myapp:app", title="My App", width=1024, height=768)
 ```
 
-`wesktop.run()` starts granian in a background thread and opens a pywebview window. When the window closes, the process exits.
+`wesktop.run()` starts granian in a background thread and opens a pywebview window. When the window closes, the server keeps running independently. The server binds to a random available port by default in desktop mode, so multiple instances do not collide.
 
 ## Headless Server
 
-If you don't need a desktop window -- for example during development, in CI, or for server-only deployment -- use `serve()` instead of `run()`. This starts granian in blocking mode on the specified host and port without opening a pywebview window, making it suitable for any environment where a GUI is unavailable or unnecessary.
+If you don't need a desktop window -- for example during development, in CI, or for server-only deployment -- use `serve()` instead of `run()`.
 
 ```python
 import wesktop
@@ -49,12 +61,31 @@ async def ping(req: wesktop.Request):
 app = wesktop.create_app(router)
 
 # Blocks the process, serving on 127.0.0.1:8000
-wesktop.serve("myapp:app", host="127.0.0.1", port=8000)
+wesktop.serve("myapp:app", foreground=True, host="127.0.0.1", port=8000)
+```
+
+## Development Mode
+
+For frontend development with Vite hot-reload:
+
+```python
+import wesktop
+
+router = wesktop.Router()
+
+@router.get("/api/data")
+async def data(req: wesktop.Request):
+    return {"items": [1, 2, 3]}
+
+app = wesktop.create_app(router)
+
+# Starts Vite dev server + granian backend
+wesktop.dev("myapp:app", vite_port=5173)
 ```
 
 ## SSE (Server-Sent Events)
 
-wesktop includes a `Broadcaster` class that manages SSE client connections with typed events. Event types must be registered before broadcast (strict mode), and disconnected clients are pruned automatically when their async queue fills. Each client gets its own queue with a configurable buffer size (default 256 messages), so slow consumers do not block fast producers.
+wesktop includes a `Broadcaster` class (from fastware) that manages SSE client connections with typed events. Event types must be registered before broadcast (strict mode), and disconnected clients are pruned automatically.
 
 ```python
 import wesktop
@@ -77,21 +108,27 @@ async def notify(req: wesktop.Request):
 app = wesktop.create_app(router)
 ```
 
-Clients connect to `/events` and receive typed SSE messages. The broadcaster prunes disconnected clients automatically.
+## Desktop Entries
 
-## Response Types
+Create platform-native application shortcuts so users can launch your app from their OS launcher:
 
-wesktop provides 6 response types covering the most common HTTP content patterns. Route handlers can return a plain `dict` or `list` for automatic JSON serialization, or use an explicit response class for full control over status codes, headers, and content types. All JSON encoding uses msgspec for speed.
+```python
+import wesktop
 
-| Type | Content-Type | Notes |
-|------|-------------|-------|
-| `dict` / `list` | `application/json` | Auto-wrapped in `JSONResponse` |
-| `JSONResponse` | `application/json` | Explicit status code |
-| `TextResponse` | configurable | Plain text, CSS, etc. |
-| `HTMLResponse` | `text/html` | HTML pages |
-| `BytesResponse` | configurable | Raw bytes (images, files) |
-| `StreamResponse` | configurable | Async generator (SSE, chunked) |
+# Create a desktop shortcut
+path = wesktop.create_entry(
+    name="My App",
+    command="/path/to/myapp-open",
+    icon="/path/to/icon.png",
+    comment="My wesktop application",
+)
+
+# Remove it later
+wesktop.remove_entry("My App")
+```
+
+When using `wesktop.run()`, desktop entries are created automatically on first launch and self-heal if the launcher script goes missing (e.g., after reinstalling to a different venv).
 
 ## API Reference
 
-The full API reference documents every public symbol in the `wesktop` package, including the router, request and response types, SSE broadcaster, server lifecycle functions, and desktop entry helpers. The library exposes 15 public symbols, all importable directly from `wesktop`. See [API docs](api.md) for the complete reference.
+See the [API docs](api.md) for wesktop-native symbols (desktop window, entries, SDUI). For ASGI routing, middleware, auth, SSE, and server lifecycle, see the [fastware API docs](https://docs.smmh.dev/fastware/api.html).
