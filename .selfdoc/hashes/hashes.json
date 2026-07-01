@@ -16,7 +16,7 @@
     "description": "eb7d99d2e046110a9cad0e28ea4636e1fa5269bf53c7727a6385e3962beedd53"
   },
   "en/api.md": {
-    "content": "560f01738b604402b4e4488935f0620f68b579c4f72befc880a379340dc943b9",
+    "content": "c13d31311b1952004e347f0476a6fd731a7b17fc70e6afd4c36f77361a092910",
     "description": "be796f25c0d819be6dbd56ed97fa7612ce370d16608c46d2e3ae4cece3503805"
   },
   "en/cli-config.md": {
@@ -36,7 +36,7 @@
     "description": "bb3cd9d34f014c0674a9285c25ee14b5b4abc5cf941f0d83594c301405e8f3b6"
   },
   "en/index.md": {
-    "content": "c0b51d06c13074523489dbe8dafef4b85aaa56d8dbc91a8f2dfe692a3d4d7e20",
+    "content": "d0adced8286d9e7c30eb70415ea02806e9c0a38dd7db20d5ca9fcd295fafbf1c",
     "description": "561181262bbd5af9954ee2549eab5fd597869bbbbd58c432d266bdcd0516c4af"
   },
   "en/src-wesktop-__main__.md": {
@@ -153,16 +153,16 @@
     "source_docstring": "efa694eed1f01acd89f1ccd505c0810c9820e27c53c1857edbe635bd3c5e0474"
   },
   "en/vs-electron.md": {
-    "content": "09040ba536f211bbd4485df0104864fc022239b1dc3880147012580ef81c8424",
-    "description": "8ae3c106755b31a8a0002bae47c528c3defe0d04b283ed7736842bec998e10b7"
+    "content": "668b54ce4b4bee7740c14846b659e40eb129964d988f4a33086d78af7f52194b",
+    "description": "96d8bcc82cfb5e41d65a37e7d4f66ece46f8ee5d07a23de084f7d659d6ee3121"
   },
   "en/vs-pywebview.md": {
-    "content": "8be2e25cab8736afa8e8111f6786f035f09c85786a7904ebebb06732d94f36c6",
-    "description": "fd2b10e351dadc4a8d15bcbbb667afbaaedbab321d9b8b5562b621f49a4b9644"
+    "content": "100478eccc1614c6f9ca1170848eefc16289063bde92b61029feba5d695c0e7a",
+    "description": "0f5ac60c73e8fae7eb76f63b5b81091945cd068371db9f738b2e5e7d75a6f324"
   },
   "en/vs-tauri.md": {
-    "content": "de779348832f54d9ae40930d247c8e11b5694e710850a995292a3a9660234b3b",
-    "description": "985fbb3c87c521fac783bf0077e3e2ec7f481d1419b01fb5695c7dde75396b9f"
+    "content": "6862bf579abcd684be8f6f62344b979c4000d0beb4cd697761349f25c21fe079",
+    "description": "c27c0f8a1414e7701c01a565f9d70c4deab482987033e995042fbbf713128c63"
   },
   "gen-index.md": {
     "content": "d0892ed8bf3ec6996272f18ce5d388205ac98e33a4158c58faf0b36fe9c1fb38",
