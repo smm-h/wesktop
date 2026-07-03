@@ -289,10 +289,14 @@ wheels = [
 [[package]]
 name = "fastware"
 version = "0.1.0"
-source = { editable = "../fastware" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "granian" },
     { name = "msgspec" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0f/57/5a90b3deb107162aa11b3fbded2704552e93e0ae1498c965d61fe22f67c4/fastware-0.1.0.tar.gz", hash = "sha256:205eacc5de8c9c6dd86e06d6d42878e066c880e252f486ff6a7b243e7ee66a9c", size = 162896, upload-time = "2026-06-30T15:17:52.777Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/15/88/e7efee399dfb9b971b8aeb357ceec85d2907edededc3437ed297467a48bc/fastware-0.1.0-py3-none-any.whl", hash = "sha256:6d57a6ed47874365e2041a339718f931bc309ea729410e5cb2d9d043112234d6", size = 48656, upload-time = "2026-06-30T15:17:51.303Z" },
 ]
 
 [package.optional-dependencies]
@@ -305,34 +309,6 @@ all = [
     { name = "structlog" },
     { name = "watchfiles" },
     { name = "websockets" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "bcrypt", marker = "extra == 'auth'" },
-    { name = "fastware", extras = ["auth"], marker = "extra == 'all'" },
-    { name = "fastware", extras = ["dev"], marker = "extra == 'all'" },
-    { name = "fastware", extras = ["logging"], marker = "extra == 'all'" },
-    { name = "fastware", extras = ["mcp"], marker = "extra == 'all'" },
-    { name = "fastware", extras = ["pydantic"], marker = "extra == 'all'" },
-    { name = "fastware", extras = ["testing"], marker = "extra == 'all'" },
-    { name = "granian", specifier = ">=2.7.4" },
-    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28" },
-    { name = "httpx", marker = "extra == 'testing'", specifier = ">=0.28" },
-    { name = "mcp", marker = "extra == 'mcp'" },
-    { name = "msgspec", specifier = ">=0.21.1" },
-    { name = "pydantic", marker = "extra == 'pydantic'" },
-    { name = "pyjwt", marker = "extra == 'auth'" },
-    { name = "structlog", marker = "extra == 'logging'" },
-    { name = "watchfiles", marker = "extra == 'dev'" },
-    { name = "websockets", marker = "extra == 'dev'" },
-]
-provides-extras = ["auth", "logging", "dev", "testing", "mcp", "pydantic", "all"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "httpx", specifier = ">=0.28" },
-    { name = "pytest" },
 ]
 
 [[package]]
@@ -1130,16 +1106,11 @@ wheels = [
 
 [[package]]
 name = "strictcli"
-version = "0.21.0"
-source = { editable = "../strictcli/python" }
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "allpairspy" },
-    { name = "jsonschema" },
-    { name = "pytest" },
+version = "0.24.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a3/bd/2dff26267a6d5272af6797d98872b72d1a8c94dc42ad1c44674e3e191912/strictcli-0.24.0.tar.gz", hash = "sha256:af47fde2a569ad9cd7201834f7f5f17542e58242131f855137d483d531ae488f", size = 154371, upload-time = "2026-07-02T23:49:16.909Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/15/fe/c4fd949194867767b345bbce5d14524032cf6875c336d9026ffe6e266d39/strictcli-0.24.0-py3-none-any.whl", hash = "sha256:1a9ce79d11644d406ff18e78921a0446f87fb13921f471b30fae50bf90a23e57", size = 51462, upload-time = "2026-07-02T23:49:15.353Z" },
 ]
 
 [[package]]
@@ -1367,10 +1338,10 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastware", extras = ["all"], editable = "../fastware" },
+    { name = "fastware", extras = ["all"] },
     { name = "pydantic" },
     { name = "pywebview", specifier = ">=6.2.1" },
-    { name = "strictcli", editable = "../strictcli/python" },
+    { name = "strictcli" },
 ]
 
 [package.metadata.requires-dev]

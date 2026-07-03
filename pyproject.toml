@@ -28,7 +28,3 @@ packages = ["src/wesktop"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-
-[tool.uv.sources]
-strictcli = { path = "/home/m/Projects/strictcli/python", editable = true }
-fastware = { path = "/home/m/Projects/fastware", editable = true }
