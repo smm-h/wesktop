@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "files": {
+    ".github/workflows/ci-pypi.yml": "7fda2cacb5b7d793ffdaf0e7c23bac78de548dc6f275e1532d6745cf4b04f497",
+    ".npmignore": "7c0eea9785c0318aeb39bf8b670ce8384f4a5b812fde69ce23d7d018057325a3",
+    ".github/workflows/publish.yml": "20db711b8a7745c3ab41814b827e946d60e937e82ee3984e86f39567717199b1",
+    "CHANGELOG.md": "765980f4fd80184b34277f4ebe4f24d5e6e9694be381cbe578ab18fb4154c494",
+    ".gitignore": "14f48d2c49804e01a63fae21d6eac41bcc3221dac851b045034cfc4a488619c5",
+    ".rlsbl/changes/unreleased.jsonl": "7de701201a600d8b1f411ac2bf988ec341ff4e814f234d2edb8f0f380c76546d",
+    ".rlsbl/lint/python.toml": "9cfbcef2e010d5fad243437bf2fd8df54a1fae70ee0762f9d11da70fe207501c",
+    ".rlsbl/lint/npm.toml": "baa36014e65923d8cc5c8b83c77fa651da79351627570476402da66840027645"
+  }
+}

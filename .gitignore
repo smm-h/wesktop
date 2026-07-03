@@ -23,3 +23,5 @@ coverage/
 *.local-only
 docs/_build/
 .wrangler/
+
+.rlsbl-monorepo/lock
