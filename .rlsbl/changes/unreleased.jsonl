@@ -1,2 +1,3 @@
 {"commits":["37e4c21610fe2694ab3b60cfcb9478b7668b6cf3","41540454ede21c20cc592a983cd175d47bd72d3f","4cc3957d04307f818551d61d4a593a9ae5677ccb","5b9e05461845382e6beea188d7e90a00cb30f65c","7ef94a1951663299242feeaab9e4916153c9177e","f7120083967293f0e5fbef3d8a3f3c5501391ba5"],"user_facing":false}
 {"commits":["7431c10409563d7820e6dbc68abff9291b0fe636"],"user_facing":false}
+{"commits":["caddc7ec0790811b72a5ca6f6a41d685f1cd56f4"],"user_facing":true,"description":"Dependency installation no longer requires machine-local checkouts: `uv.lock` previously carried absolute local paths for `strictcli` and `fastware`, breaking installs and CI outside the author's machine. Dependencies now resolve from PyPI (strictcli 0.24.0, fastware 0.1.0).","type":"fix"}
