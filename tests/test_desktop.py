@@ -441,41 +441,157 @@ def test_run_calls_auto_register_entry(
 
 
 @patch("wesktop.entries.create_entry")
-@patch("wesktop.desktop._entry_exists", return_value=False)
+@patch("wesktop.entries.entry_exists", return_value=False)
 def test_auto_register_creates_entry_when_missing(
     mock_exists: MagicMock,
     mock_create: MagicMock,
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """_auto_register_entry creates a desktop entry when none exists."""
+    """_auto_register_entry creates a launcher script and a desktop entry."""
     from wesktop.desktop import _auto_register_entry
 
+    monkeypatch.setattr("wesktop.entries._launcher_dir", lambda: tmp_path / "bin")
     with (
         patch("wesktop.desktop.Path.home", return_value=tmp_path),
-        patch("wesktop.desktop.Path.cwd", return_value=tmp_path),
         patch("sys.argv", ["/usr/bin/myapp", "open"]),
     ):
         _auto_register_entry("MyApp", None)
 
     mock_create.assert_called_once()
-    call_kwargs = mock_create.call_args
-    assert call_kwargs[1]["name"] == "MyApp"
-    assert call_kwargs[1]["icon"] is None
-    assert call_kwargs[1]["comment"] == ""
+    kwargs = mock_create.call_args.kwargs
+    assert kwargs["name"] == "MyApp"
+    assert kwargs["icon"] is None
+    assert kwargs["comment"] == ""
+
+    launcher = tmp_path / "bin" / "myapp-open"
+    assert launcher.exists()
+    assert launcher.read_text() == "#!/bin/sh\nexec /usr/bin/myapp open\n"
+    assert kwargs["command"] == str(launcher)
 
 
 @patch("wesktop.entries.create_entry")
-@patch("wesktop.desktop._entry_exists", return_value=True)
+@patch("wesktop.entries.entry_exists", return_value=False)
+def test_auto_register_quotes_command_with_spaces(
+    mock_exists: MagicMock,
+    mock_create: MagicMock,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Launcher command and Exec target are shell-quoted when paths contain spaces."""
+    import shlex
+
+    from wesktop.desktop import _auto_register_entry
+
+    monkeypatch.setattr("wesktop.entries._launcher_dir", lambda: tmp_path / "my bin")
+    with (
+        patch("wesktop.desktop.Path.home", return_value=tmp_path),
+        patch("sys.argv", ["/opt/My App/bin/myapp", "open"]),
+    ):
+        _auto_register_entry("MyApp", None)
+
+    launcher = tmp_path / "my bin" / "myapp-open"
+    assert launcher.read_text() == "#!/bin/sh\nexec '/opt/My App/bin/myapp' open\n"
+    assert mock_create.call_args.kwargs["command"] == shlex.quote(str(launcher))
+
+
+@patch("wesktop.entries.create_entry")
+@patch("wesktop.entries.entry_exists", return_value=False)
+def test_auto_register_python_dash_m_launch(
+    mock_exists: MagicMock,
+    mock_create: MagicMock,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A `python -m pkg` launch builds `sys.executable -m pkg`, not __main__.py."""
+    import importlib.machinery
+    import shlex
+    import types
+
+    from wesktop.desktop import _auto_register_entry
+
+    monkeypatch.setattr("wesktop.entries._launcher_dir", lambda: tmp_path / "bin")
+    fake_main = types.ModuleType("__main__")
+    fake_main.__spec__ = importlib.machinery.ModuleSpec("mypkg.__main__", None)
+    with (
+        patch("wesktop.desktop.Path.home", return_value=tmp_path),
+        patch("sys.argv", ["/venv/lib/python3.13/site-packages/mypkg/__main__.py", "open"]),
+        patch.dict(sys.modules, {"__main__": fake_main}),
+    ):
+        _auto_register_entry("MyApp", None)
+
+    launcher = tmp_path / "bin" / "myapp-open"
+    expected = f"#!/bin/sh\nexec {shlex.quote(sys.executable)} -m mypkg open\n"
+    assert launcher.read_text() == expected
+
+
+@patch("wesktop.entries.create_entry")
+@patch("wesktop.entries.entry_exists", return_value=False)
+def test_auto_register_python_dash_m_without_spec(
+    mock_exists: MagicMock,
+    mock_create: MagicMock,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Without __main__.__spec__, the package is derived from the argv[0] path."""
+    import shlex
+    import types
+
+    from wesktop.desktop import _auto_register_entry
+
+    monkeypatch.setattr("wesktop.entries._launcher_dir", lambda: tmp_path / "bin")
+    fake_main = types.ModuleType("__main__")
+    fake_main.__spec__ = None
+    with (
+        patch("wesktop.desktop.Path.home", return_value=tmp_path),
+        patch("sys.argv", ["/venv/lib/python3.13/site-packages/otherpkg/__main__.py", "open"]),
+        patch.dict(sys.modules, {"__main__": fake_main}),
+    ):
+        _auto_register_entry("MyApp", None)
+
+    launcher = tmp_path / "bin" / "myapp-open"
+    expected = f"#!/bin/sh\nexec {shlex.quote(sys.executable)} -m otherpkg open\n"
+    assert launcher.read_text() == expected
+
+
+@patch("wesktop.entries.create_entry")
+@patch("wesktop.entries.create_launcher")
+@patch("wesktop.entries.entry_exists", return_value=False)
+def test_auto_register_windows_uses_direct_target(
+    mock_exists: MagicMock,
+    mock_create_launcher: MagicMock,
+    mock_create: MagicMock,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """On Windows the shortcut points directly at the target -- no POSIX launcher script."""
+    from wesktop.desktop import _auto_register_entry
+
+    monkeypatch.setattr("wesktop.desktop.platform.system", lambda: "Windows")
+    with patch("sys.argv", ["C:\\Program Files\\MyApp\\myapp.exe", "open"]):
+        _auto_register_entry("MyApp", None)
+
+    mock_create_launcher.assert_not_called()
+    mock_create.assert_called_once()
+    assert (
+        mock_create.call_args.kwargs["command"]
+        == '"C:\\Program Files\\MyApp\\myapp.exe" open'
+    )
+
+
+@patch("wesktop.entries.create_entry")
+@patch("wesktop.entries.entry_exists", return_value=True)
 def test_auto_register_skips_when_exists(
     mock_exists: MagicMock,
     mock_create: MagicMock,
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """_auto_register_entry does nothing when the entry exists and launcher is valid."""
     from wesktop.desktop import _auto_register_entry
 
+    monkeypatch.setattr("wesktop.entries._launcher_dir", lambda: tmp_path / "bin")
     # Create a fake launcher so the self-healing check passes
-    launcher = tmp_path / ".local" / "bin" / "myapp-open"
+    launcher = tmp_path / "bin" / "myapp-open"
     launcher.parent.mkdir(parents=True, exist_ok=True)
     launcher.touch()
 
@@ -486,21 +602,38 @@ def test_auto_register_skips_when_exists(
 
 
 @patch("wesktop.entries.create_entry")
+@patch("wesktop.entries.entry_exists", return_value=True)
+def test_auto_register_windows_existing_entry_is_valid(
+    mock_exists: MagicMock,
+    mock_create: MagicMock,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """On Windows there is no launcher to self-heal -- an existing entry is kept."""
+    from wesktop.desktop import _auto_register_entry
+
+    monkeypatch.setattr("wesktop.desktop.platform.system", lambda: "Windows")
+    _auto_register_entry("MyApp", None)
+
+    mock_create.assert_not_called()
+
+
+@patch("wesktop.entries.create_entry")
 @patch("wesktop.entries.remove_entry")
-@patch("wesktop.desktop._entry_exists", return_value=True)
+@patch("wesktop.entries.entry_exists", return_value=True)
 def test_auto_register_self_heals_broken_launcher(
     mock_exists: MagicMock,
     mock_remove: MagicMock,
     mock_create: MagicMock,
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """_auto_register_entry removes and recreates entry when launcher is missing."""
     from wesktop.desktop import _auto_register_entry
 
-    # No launcher exists at ~/.local/bin/myapp-open -- simulates uninstall
+    monkeypatch.setattr("wesktop.entries._launcher_dir", lambda: tmp_path / "bin")
+    # No launcher exists at <bin>/myapp-open -- simulates uninstall
     with (
         patch("wesktop.desktop.Path.home", return_value=tmp_path),
-        patch("wesktop.desktop.Path.cwd", return_value=tmp_path),
         patch("sys.argv", ["/usr/bin/myapp", "open"]),
     ):
         _auto_register_entry("MyApp", None)
@@ -511,7 +644,7 @@ def test_auto_register_self_heals_broken_launcher(
     mock_create.assert_called_once()
 
 
-@patch("wesktop.desktop._entry_exists", side_effect=OSError("disk on fire"))
+@patch("wesktop.entries.entry_exists", side_effect=OSError("disk on fire"))
 def test_auto_register_swallows_exceptions(
     mock_exists: MagicMock,
 ) -> None:

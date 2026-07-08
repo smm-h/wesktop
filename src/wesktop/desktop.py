@@ -6,8 +6,8 @@ import glob
 import logging
 import os
 import platform
+import shlex
 import shutil
-import stat
 import sys
 from pathlib import Path
 from typing import Callable
@@ -112,74 +112,76 @@ def _has_gui_backend() -> bool:
     return False
 
 
-def _entry_exists(name: str) -> bool:
-    """Check whether a desktop entry already exists for *name* on the current platform."""
-    system = platform.system()
-    if system == "Linux":
-        return (Path.home() / ".local" / "share" / "applications" / f"{name}.desktop").exists()
-    elif system == "Darwin":
-        return (Path.home() / "Applications" / f"{name}.app").exists()
-    elif system == "Windows":
-        appdata = os.environ.get("APPDATA", "")
-        if appdata:
-            return (
-                Path(appdata) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / f"{name}.lnk"
-            ).exists()
-    return False
+def _launch_command_parts() -> list[str]:
+    """Reconstruct a runnable command line (as argv parts) for this process.
+
+    Handles the ``python -m pkg`` case, where sys.argv[0] is the package's
+    __main__.py (a module file, not an executable): rebuilds
+    ``sys.executable -m pkg`` instead.
+    """
+    argv0 = sys.argv[0]
+    if Path(argv0).name == "__main__.py":
+        spec = getattr(sys.modules.get("__main__"), "__spec__", None)
+        if spec is not None and spec.name:
+            module = spec.name
+            if module.endswith(".__main__"):
+                module = module[: -len(".__main__")]
+        else:
+            # No import spec available -- derive the package from the path
+            module = Path(argv0).parent.name
+        return [sys.executable, "-m", module, *sys.argv[1:]]
+    if not Path(argv0).is_absolute():
+        found = shutil.which(argv0)
+        if found:
+            argv0 = found
+    return [argv0, *sys.argv[1:]]
 
 
 def _auto_register_entry(title: str, icon: str | None) -> None:
     """Create a desktop entry for this app if one doesn't exist.
 
-    Self-heals: if an existing entry points to a missing launcher script
-    (e.g. the package was reinstalled to a different venv), remove the
-    broken entry so it can be recreated with the current launcher path.
+    On Linux/macOS a launcher script is created in ~/.local/bin and the entry
+    points at it; this also self-heals: if an existing entry points to a
+    missing launcher (e.g. the package was reinstalled to a different venv),
+    the broken entry is removed and recreated with the current launcher path.
+    On Windows the Start Menu shortcut points directly at the target -- a
+    POSIX shell script cannot execute there.
     """
     try:
-        # Self-heal: remove desktop entry if its launcher is broken
-        if _entry_exists(title):
-            launcher_name = title.lower().replace(" ", "-") + "-open"
-            launcher = Path.home() / ".local" / "bin" / launcher_name
-            if not launcher.exists():
-                # Launcher is gone (package uninstalled/moved). Clean up.
-                from wesktop.entries import remove_entry
+        from wesktop import entries
 
-                remove_entry(title)
-            else:
+        system = platform.system()
+
+        if entries.entry_exists(title):
+            if system == "Windows" or entries.launcher_path(title).exists():
                 return  # Entry exists and is valid
+            # Launcher is gone (package uninstalled/moved). Clean up.
+            entries.remove_entry(title)
 
-        # Resolve the command that launched us (sys.argv[0]) to an absolute path
-        command = sys.argv[0]
-        if not Path(command).is_absolute():
-            found = shutil.which(command)
-            if found:
-                command = found
-
-        # Reconstruct the full launch command from sys.argv
-        argv_rest = " ".join(sys.argv[1:])
-        full_command = f"{command} {argv_rest}".strip()
-
-        # Create a launcher script so .desktop Exec= and venv binaries work reliably
-        launcher_name = title.lower().replace(" ", "-") + "-open"
-        launcher = Path.home() / ".local" / "bin" / launcher_name
-        launcher.parent.mkdir(parents=True, exist_ok=True)
-        launcher.write_text(f"#!/bin/sh\nexec {full_command}\n")
-        launcher.chmod(launcher.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        parts = _launch_command_parts()
 
         icon_path: str | None = None
         if icon and Path(icon).is_file():
             icon_path = str(Path(icon).resolve())
 
-        from wesktop.entries import create_entry
+        if system == "Windows":
+            # Direct-target shortcut, quoted per entries' Windows contract.
+            command = entries.quote_windows_command(parts)
+        else:
+            # Launcher script so .desktop Exec= and venv binaries work reliably
+            full_command = " ".join(shlex.quote(part) for part in parts)
+            launcher = entries.create_launcher(title, full_command)
+            command = shlex.quote(str(launcher))
 
-        create_entry(
+        entries.create_entry(
             name=title,
-            command=str(launcher),
+            command=command,
             icon=icon_path,
             comment="",
         )
     except Exception:
-        pass  # Never fail the app launch over a desktop entry
+        # Never fail the app launch over a desktop entry
+        log.debug("Desktop entry auto-registration failed", exc_info=True)
 
 
 def run(
