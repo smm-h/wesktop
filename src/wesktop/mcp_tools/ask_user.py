@@ -3,30 +3,14 @@
 Reaches the server via HTTP using server_url and auth_token parameters.
 """
 
-import json
 import time
 import urllib.error
-import urllib.request
 from typing import Any
+
+from wesktop.mcp_tools import _http
 
 POLL_INTERVAL_SECONDS = 2
 POLL_TIMEOUT_SECONDS = 600  # 10 minutes
-
-
-def _api(
-    server_url: str, auth_token: str, method: str, path: str, payload: dict[str, Any] | None = None, timeout: int = 15
-) -> dict[str, Any]:
-    """Make an authenticated JSON request and return the parsed response."""
-    url = f"{server_url.rstrip('/')}{path}"
-    body = json.dumps(payload).encode("utf-8") if payload else None
-    headers = {"Authorization": f"Bearer {auth_token}"}
-    if body:
-        headers["Content-Type"] = "application/json"
-
-    req = urllib.request.Request(url, data=body, headers=headers, method=method)
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        result: dict[str, Any] = json.loads(resp.read().decode("utf-8"))
-        return result
 
 
 def ask_user(
@@ -37,12 +21,15 @@ def ask_user(
     role: str,
     question: str,
     options: list[str] | None = None,
+    poll_timeout_seconds: float = POLL_TIMEOUT_SECONDS,
+    poll_interval_seconds: float = POLL_INTERVAL_SECONDS,
 ) -> str:
     """Post a question to the dashboard inbox and block until it is answered.
 
     Creates a persisted question via POST /api/questions, then polls
-    GET /api/questions/{id} until status becomes "answered". Returns
-    the answer text, or an error/timeout message.
+    GET /api/questions/{id} every ``poll_interval_seconds`` until status
+    becomes "answered" or ``poll_timeout_seconds`` elapses. Returns the answer
+    text, or an error/timeout message.
     """
     # Create the question on the server.
     payload: dict[str, Any] = {
@@ -56,7 +43,7 @@ def ask_user(
         payload["options"] = options
 
     try:
-        result = _api(server_url, auth_token, "POST", "/api/questions", payload)
+        result = _http.request(server_url, auth_token, "POST", "/api/questions", payload, timeout=15, parse_json=True)
     except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as e:
         return f"Error creating question: {e}"
 
@@ -65,15 +52,17 @@ def ask_user(
         return f"Error: server returned no question id: {result}"
 
     # Poll until answered or timeout.
-    deadline = time.monotonic() + POLL_TIMEOUT_SECONDS
+    deadline = time.monotonic() + poll_timeout_seconds
     while time.monotonic() < deadline:
-        time.sleep(POLL_INTERVAL_SECONDS)
+        time.sleep(poll_interval_seconds)
         try:
-            q = _api(server_url, auth_token, "GET", f"/api/questions/{question_id}")
+            q = _http.request(
+                server_url, auth_token, "GET", f"/api/questions/{question_id}", timeout=15, parse_json=True
+            )
         except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError):
             continue  # transient failure, keep polling
 
         if q.get("status") == "answered":
             return str(q.get("answer", "(no answer text)"))
 
-    return "Error: timed out waiting for user answer (10 minutes)"
+    return f"Error: timed out waiting for user answer after {poll_timeout_seconds}s"
