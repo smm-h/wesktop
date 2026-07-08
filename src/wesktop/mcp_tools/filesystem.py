@@ -4,23 +4,14 @@ All paths are relative to the worktree root. Traversal outside
 the worktree is blocked by _guard_path.
 """
 
+import os
 import subprocess
 from pathlib import Path
 
+from wesktop.mcp_tools._paths import guard_path as _guard_path
+
 # Max file size for reading (1 MB).
 _MAX_FILE_SIZE = 1_048_576
-
-
-def _guard_path(worktree: Path, relative: str) -> Path:
-    """Resolve a relative path and ensure it stays under the worktree.
-
-    Raises ValueError on path traversal attempts.
-    """
-    resolved = (worktree / relative).resolve()
-    worktree_resolved = worktree.resolve()
-    if not str(resolved).startswith(str(worktree_resolved) + "/") and resolved != worktree_resolved:
-        raise ValueError(f"Path traversal blocked: {relative}")
-    return resolved
 
 
 def read_file(worktree: str, path: str) -> str:
@@ -145,11 +136,10 @@ def search_files(worktree: str, pattern: str, path: str = "") -> str:
     if result.returncode != 0:
         return f"Error: rg exited with code {result.returncode}: {result.stderr}"
 
-    # Make paths relative to worktree for readability.
-    wt_str = str(wt.resolve())
-    output = result.stdout
-    if wt_str in output:
-        output = output.replace(wt_str + "/", "")
+    # Make paths relative to worktree for readability. Use os.sep so the
+    # prefix strip is correct on Windows (backslash) as well as POSIX.
+    wt_prefix = str(wt.resolve()) + os.sep
+    output = result.stdout.replace(wt_prefix, "")
 
     # Truncate if very long.
     lines = output.splitlines()
