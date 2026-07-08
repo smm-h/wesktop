@@ -13,7 +13,7 @@ wesktop is built on [fastware](https://github.com/smm-h/fastware). The ASGI fram
 
 - **desktop.py** -- pywebview native windows, GUI backend detection (`ensure_gui_backend`), single-instance checking, auto-registration of desktop entries
 - **entries.py** -- Cross-platform desktop shortcut creation/removal (Linux `.desktop` files, macOS `.app` bundles, Windows Start Menu shortcuts via COM or PowerShell)
-- **sdui.py** -- 39 Server-Driven UI primitives (Pydantic models): Layout (9), Display (10), Data (5), Input (8), Feedback (3), Overlay (4)
+- **sdui.py** -- 40 Server-Driven UI primitives (Pydantic models): Layout (9), Display (10), Data (6), Input (8), Feedback (3), Overlay (4)
 - **cli.py** -- strictcli CLI with `diagnose` and `config` commands
 - **mcp_tools/** -- 6 concrete MCP tool implementations (filesystem, git, deployment, ask_user, review, testing). Pure stdlib, zero internal imports.
 
@@ -84,7 +84,7 @@ wesktop re-exports all of fastware's symbols plus its own. All public symbols ar
 - `dev` -- development mode with Vite proxy
 - `ensure_gui_backend` -- make system PyGObject importable in isolated venvs
 - `create_entry`, `remove_entry` -- desktop shortcut management
-- 39 SDUI primitives from `sdui.py` (`SDUINode`, `node`, `register_sdui_provider`, `get_sdui_provider`, `list_sdui_providers`, layout/display/data/input/feedback/overlay models)
+- 40 SDUI primitives from `sdui.py` (`SDUINode`, `node`, `register_sdui_provider`, `get_sdui_provider`, `list_sdui_providers`, layout/display/data/input/feedback/overlay models)
 
 ## Consumer patterns
 
