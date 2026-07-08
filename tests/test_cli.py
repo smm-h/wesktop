@@ -28,3 +28,9 @@ def test_config_path():
     result = app.test(["config", "path"])
     assert result.exit_code == 0
     assert "wesktop" in result.stdout
+
+
+def test_diagnose_reports_fastware():
+    result = app.test(["diagnose"])
+    assert result.exit_code == 0
+    assert "fastware" in result.stdout

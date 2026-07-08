@@ -56,6 +56,15 @@ def diagnose(**_kw: object) -> None:
     except ImportError:
         rows.append(("pywebview", "NOT FOUND"))
 
+    # fastware
+    try:
+        import fastware
+
+        ver = getattr(fastware, "__version__", "unknown")
+        rows.append(("fastware", f"{ver} (ok)"))
+    except ImportError:
+        rows.append(("fastware", "NOT FOUND"))
+
     # msgspec
     try:
         import msgspec
