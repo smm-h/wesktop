@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import importlib.util
 import logging
 import platform
 import shutil
+import stat
 import subprocess
 import textwrap
-from pathlib import Path
+from collections.abc import Sequence
+from pathlib import Path, PureWindowsPath
 
 log = logging.getLogger(__name__)
 
@@ -20,7 +23,12 @@ def create_entry(
     comment: str = "",
     categories: str = "Utility;",
 ) -> Path:
-    """Create a platform-native desktop entry. Returns the path of the created entry."""
+    """Create a platform-native desktop entry. Returns the path of the created entry.
+
+    *command* is a full, already-quoted command line. On Linux/macOS, quote
+    arguments with shlex.quote. On Windows, double-quote any path or argument
+    containing spaces (see :func:`quote_windows_command`).
+    """
     system = platform.system()
     if system == "Linux":
         return _create_linux(name, command, icon=icon, comment=comment, categories=categories)
@@ -33,14 +41,82 @@ def create_entry(
 
 
 def remove_entry(name: str) -> bool:
-    """Remove a desktop entry. Returns True if something was removed."""
+    """Remove a desktop entry (and its launcher script, if any).
+
+    Returns True if something was removed.
+    """
     system = platform.system()
     if system == "Linux":
-        return _remove_linux(name)
+        removed = _remove_linux(name)
     elif system == "Darwin":
-        return _remove_macos(name)
+        removed = _remove_macos(name)
     elif system == "Windows":
+        # Windows shortcuts point directly at their target -- no launcher script.
         return _remove_windows(name)
+    else:
+        return False
+    # Also remove the companion launcher script so it doesn't leak in ~/.local/bin
+    if remove_launcher(name):
+        removed = True
+    return removed
+
+
+def entry_exists(name: str) -> bool:
+    """Check whether a desktop entry already exists for *name* on this platform."""
+    system = platform.system()
+    if system == "Linux":
+        return (_linux_apps_dir() / f"{name}.desktop").exists()
+    elif system == "Darwin":
+        return (_macos_apps_dir() / f"{name}.app").exists()
+    elif system == "Windows":
+        return (_windows_start_menu_dir() / f"{name}.lnk").exists()
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Launcher scripts (POSIX only)
+# ---------------------------------------------------------------------------
+
+def _launcher_dir() -> Path:
+    return Path.home() / ".local" / "bin"
+
+
+def launcher_name(name: str) -> str:
+    """Derive the launcher script name for an app: slugged name + '-open'."""
+    return name.lower().replace(" ", "-") + "-open"
+
+
+def launcher_path(name: str) -> Path:
+    """Path of the launcher script for *name* (POSIX platforms)."""
+    return _launcher_dir() / launcher_name(name)
+
+
+def create_launcher(name: str, command: str) -> Path:
+    """Create an executable launcher script for *name* that execs *command*.
+
+    *command* must be a fully shell-quoted POSIX command line. Only supported
+    on Linux and macOS -- a POSIX shell script cannot execute on Windows, so
+    Windows shortcuts must point directly at their target instead.
+    """
+    system = platform.system()
+    if system not in ("Linux", "Darwin"):
+        raise OSError(
+            f"Launcher scripts are not supported on {system}. On Windows, "
+            f"point the shortcut directly at the target command instead."
+        )
+    path = launcher_path(name)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(f"#!/bin/sh\nexec {command}\n")
+    path.chmod(path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    return path
+
+
+def remove_launcher(name: str) -> bool:
+    """Remove the launcher script for *name*. Returns True if it existed."""
+    path = launcher_path(name)
+    if path.exists():
+        path.unlink()
+        return True
     return False
 
 
@@ -80,13 +156,17 @@ def _create_linux(
             # Treat as a theme icon name
             icon_value = str(icon)
 
+    # Per the Desktop Entry spec, literal percent signs in Exec must be
+    # escaped as %% so they are not parsed as field codes (%U, %f, ...).
+    exec_value = command.replace("%", "%%")
+
     desktop_path = apps_dir / f"{name}.desktop"
     desktop_path.write_text(
         textwrap.dedent(f"""\
             [Desktop Entry]
             Type=Application
             Name={name}
-            Exec={command}
+            Exec={exec_value}
             Icon={icon_value}
             Comment={comment}
             Categories={categories}
@@ -214,6 +294,61 @@ def _windows_start_menu_dir() -> Path:
     return Path(appdata) / "Microsoft" / "Windows" / "Start Menu" / "Programs"
 
 
+def _split_windows_command(command: str) -> tuple[str, str]:
+    """Split a Windows command line into (target, arguments).
+
+    Quoting contract: a target path containing spaces MUST be double-quoted,
+    e.g. ``'"C:\\Program Files\\app.exe" --arg'``. Unquoted commands split at
+    the first whitespace. An unquoted absolute-path target whose first token
+    has no file extension is almost certainly a spaces-in-path target
+    truncated at the first space -- that is a hard error instead of silently
+    producing a shortcut to a nonexistent target.
+    """
+    command = command.strip()
+    if not command:
+        raise ValueError("Empty Windows shortcut command")
+    if command.startswith('"'):
+        end = command.find('"', 1)
+        if end == -1:
+            raise ValueError(f"Unterminated quote in Windows command: {command!r}")
+        target = command[1:end]
+        arguments = command[end + 1:].strip()
+        return target, arguments
+    parts = command.split(None, 1)
+    target = parts[0]
+    arguments = parts[1] if len(parts) > 1 else ""
+    is_abs_path = len(target) >= 3 and target[0].isalpha() and target[1] == ":" and target[2] in "\\/"
+    if arguments and is_abs_path and "." not in PureWindowsPath(target).name:
+        raise ValueError(
+            f"Ambiguous Windows command {command!r}: the target looks like an "
+            f"absolute path truncated at a space. Double-quote targets that "
+            f"contain spaces, e.g. '\"C:\\Program Files\\app.exe\" --arg'."
+        )
+    return target, arguments
+
+
+def quote_windows_command(parts: Sequence[str]) -> str:
+    """Join command parts into a Windows command line.
+
+    Follows the quoting contract of :func:`_split_windows_command`: any part
+    containing whitespace is double-quoted.
+    """
+    quoted = []
+    for part in parts:
+        if '"' in part:
+            raise ValueError(
+                f"Embedded double quote is not supported in a Windows "
+                f"command part: {part!r}"
+            )
+        quoted.append(f'"{part}"' if (" " in part or "\t" in part) else part)
+    return " ".join(quoted)
+
+
+def _windows_com_available() -> bool:
+    """Whether the pywin32 COM backend is importable."""
+    return importlib.util.find_spec("win32com") is not None
+
+
 def _create_windows(
     name: str,
     command: str,
@@ -225,18 +360,15 @@ def _create_windows(
     start_menu.mkdir(parents=True, exist_ok=True)
     lnk_path = start_menu / f"{name}.lnk"
 
-    # Split command into target and arguments
-    parts = command.split(None, 1)
-    target = parts[0]
-    arguments = parts[1] if len(parts) > 1 else ""
-
+    target, arguments = _split_windows_command(command)
     icon_location = str(icon) if icon else ""
 
-    try:
+    # Explicit backend selection: choose by pywin32 availability up front.
+    # Once chosen, a failure is a hard error with the real exception --
+    # never silently retried via the other backend.
+    if _windows_com_available():
         return _create_windows_com(lnk_path, target, arguments, icon_location, comment)
-    except Exception:
-        log.debug("win32com unavailable, falling back to PowerShell")
-        return _create_windows_powershell(lnk_path, target, arguments, icon_location, comment)
+    return _create_windows_powershell(lnk_path, target, arguments, icon_location, comment)
 
 
 def _create_windows_com(
