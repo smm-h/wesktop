@@ -6,6 +6,8 @@ All commands run with -C <worktree> and have timeouts.
 import subprocess
 from pathlib import Path
 
+from wesktop.mcp_tools._paths import guard_path
+
 
 def _run(worktree: str, *args: str, timeout: int = 30) -> tuple[str, str, int]:
     """Run a git command in the worktree with a timeout.
@@ -39,9 +41,9 @@ def git_diff(worktree: str, path: str = "") -> str:
     args = ["diff"]
     if path:
         # Guard: resolve and verify path is under worktree.
-        wt = Path(worktree).resolve()
-        target = (wt / path).resolve()
-        if not str(target).startswith(str(wt)):
+        try:
+            guard_path(Path(worktree), path)
+        except ValueError:
             return "Error: path traversal blocked"
         args.append("--")
         args.append(path)
