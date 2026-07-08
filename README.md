@@ -106,7 +106,7 @@ npx wesktop diagnose
 - **logging**: Structured logging configuration re-exported from fastware: structlog with automatic JSON output in production and colored console in development.
 - **mcp**: MCP (Model Context Protocol) server factory re-exported from fastware: per-role agent tool provisioning, tool filtering, and server lifecycle.
 - **middleware**: Pure ASGI middleware re-exported from fastware: request tracing, CORS headers, trusted-host validation, and Vite dev proxy routing.
-- **sdui**: Pydantic schemas for all 39 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
+- **sdui**: Pydantic schemas for all 40 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
 - **server**: Granian ASGI server lifecycle re-exported from fastware: PID file tracking, port availability checks, foreground and background serve modes.
 - **sse**: SSE (Server-Sent Events) broadcaster re-exported from fastware: typed events, per-client async queues, automatic disconnect pruning, and strict mode.
 - **tasks**: Background task registry re-exported from fastware: feature-gated lifecycle management with start/stop protocol and graceful shutdown ordering.

@@ -10,7 +10,7 @@ wesktop is built on [fastware](https://github.com/smm-h/fastware). The ASGI fram
 
 - **desktop.py** -- pywebview native windows, GUI backend detection (`ensure_gui_backend`), single-instance checking, auto-registration of desktop entries
 - **entries.py** -- Cross-platform desktop shortcut creation/removal (Linux `.desktop` files, macOS `.app` bundles, Windows Start Menu shortcuts via COM or PowerShell)
-- **sdui.py** -- 39 Server-Driven UI primitives (Pydantic models): Layout (9), Display (10), Data (5), Input (8), Feedback (3), Overlay (4)
+- **sdui.py** -- 40 Server-Driven UI primitives (Pydantic models): Layout (9), Display (10), Data (6), Input (8), Feedback (3), Overlay (4)
 - **cli.py** -- strictcli CLI with `diagnose` and `config` commands
 - **mcp_tools/** -- 6 concrete MCP tool implementations (filesystem, git, deployment, ask_user, review, testing). Pure stdlib, zero internal imports.
 
@@ -56,6 +56,8 @@ Some stubs (`asgi.py`, `server.py`, `mcp.py`) also re-export private helpers use
 - **src.wesktop.logging** (`src/wesktop/logging.py`): Structured logging configuration re-exported from fastware: structlog with automatic JSON output in production and colored console in development.
 - **src.wesktop.mcp** (`src/wesktop/mcp.py`): MCP (Model Context Protocol) server factory re-exported from fastware: per-role agent tool provisioning, tool filtering, and server lifecycle.
 - **src.wesktop.mcp_tools** (`src/wesktop/mcp_tools/__init__.py`): Tool implementations for the MCP agent server: filesystem access, git operations, testing, deployment, code review, and interactive user prompts.
+- **src.wesktop.mcp_tools._http** (`src/wesktop/mcp_tools/_http.py`): Shared authenticated-HTTP helper for the HTTP-backed MCP tool modules.
+- **src.wesktop.mcp_tools._paths** (`src/wesktop/mcp_tools/_paths.py`): Shared worktree path-traversal guard for the MCP tool modules.
 - **src.wesktop.mcp_tools.ask_user** (`src/wesktop/mcp_tools/ask_user.py`): Ask-user MCP tool: posts a question to the wesktop dashboard via HTTP API and polls for the user's answer with configurable timeout.
 - **src.wesktop.mcp_tools.deployment** (`src/wesktop/mcp_tools/deployment.py`): Deployment MCP tools that delegate staging, production PR creation, and pipeline status checks to the wesktop server API.
 - **src.wesktop.mcp_tools.filesystem** (`src/wesktop/mcp_tools/filesystem.py`): Filesystem MCP tools scoped to an agent's worktree: read, write, edit, list, and search files with path traversal guard enforcement.
@@ -63,7 +65,7 @@ Some stubs (`asgi.py`, `server.py`, `mcp.py`) also re-export private helpers use
 - **src.wesktop.mcp_tools.review** (`src/wesktop/mcp_tools/review.py`): Review MCP tools for posting inline comments on code changes, delegating to the wesktop server API for persistent review storage.
 - **src.wesktop.mcp_tools.testing** (`src/wesktop/mcp_tools/testing.py`): Testing MCP tools that delegate test suite execution, result collection, and coverage reporting to the wesktop server API endpoint.
 - **src.wesktop.middleware** (`src/wesktop/middleware.py`): Pure ASGI middleware re-exported from fastware: request tracing, CORS headers, trusted-host validation, and Vite dev proxy routing.
-- **src.wesktop.sdui** (`src/wesktop/sdui.py`): Pydantic schemas for all 39 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
+- **src.wesktop.sdui** (`src/wesktop/sdui.py`): Pydantic schemas for all 40 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
 - **src.wesktop.server** (`src/wesktop/server.py`): Granian ASGI server lifecycle re-exported from fastware: PID file tracking, port availability checks, foreground and background serve modes.
 - **src.wesktop.sse** (`src/wesktop/sse.py`): SSE (Server-Sent Events) broadcaster re-exported from fastware: typed events, per-client async queues, automatic disconnect pruning, and strict mode.
 - **src.wesktop.tasks** (`src/wesktop/tasks.py`): Background task registry re-exported from fastware: feature-gated lifecycle management with start/stop protocol and graceful shutdown ordering.
@@ -113,7 +115,7 @@ wesktop re-exports all of fastware's symbols plus its own. All public symbols ar
 - `dev` -- development mode with Vite proxy
 - `ensure_gui_backend` -- make system PyGObject importable in isolated venvs
 - `create_entry`, `remove_entry` -- desktop shortcut management
-- 39 SDUI primitives from `sdui.py` (`SDUINode`, `node`, `register_sdui_provider`, `get_sdui_provider`, `list_sdui_providers`, layout/display/data/input/feedback/overlay models)
+- 40 SDUI primitives from `sdui.py` (`SDUINode`, `node`, `register_sdui_provider`, `get_sdui_provider`, `list_sdui_providers`, layout/display/data/input/feedback/overlay models)
 
 ## Consumer patterns
 

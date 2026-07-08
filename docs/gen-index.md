@@ -25,6 +25,8 @@ order: 90
 - [src.wesktop.logging](src-wesktop-logging.html)
 - [src.wesktop.mcp](src-wesktop-mcp.html)
 - [src.wesktop.mcp_tools](src-wesktop-mcp_tools.html)
+- [src.wesktop.mcp_tools._http](src-wesktop-mcp_tools-_http.html)
+- [src.wesktop.mcp_tools._paths](src-wesktop-mcp_tools-_paths.html)
 - [src.wesktop.mcp_tools.ask_user](src-wesktop-mcp_tools-ask_user.html)
 - [src.wesktop.mcp_tools.deployment](src-wesktop-mcp_tools-deployment.html)
 - [src.wesktop.mcp_tools.filesystem](src-wesktop-mcp_tools-filesystem.html)

@@ -108,6 +108,16 @@
       "type": "doc"
     },
     {
+      "path": "src-wesktop-mcp_tools-_http.md",
+      "title": "src.wesktop.mcp_tools._http",
+      "type": "doc"
+    },
+    {
+      "path": "src-wesktop-mcp_tools-_paths.md",
+      "title": "src.wesktop.mcp_tools._paths",
+      "type": "doc"
+    },
+    {
       "path": "src-wesktop-mcp_tools-ask_user.md",
       "title": "src.wesktop.mcp_tools.ask_user",
       "type": "doc"
@@ -189,5 +199,5 @@
     }
   ],
   "posts": [],
-  "last_gen": "2026-07-08T07:12:11.242048+00:00"
+  "last_gen": "2026-07-08T07:14:12.458386+00:00"
 }
