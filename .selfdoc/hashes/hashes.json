@@ -41,7 +41,8 @@
   },
   "en/src-wesktop-__main__.md": {
     "content": "4f929d852c6a0cbf59ce7267d3028f244ccf21f421459d7f6dda9a8057eb8e5d",
-    "description": "793b57d83f94fd61eac0ae41c68da140c1e0e110a4057cc0993db2596904f17d"
+    "description": "793b57d83f94fd61eac0ae41c68da140c1e0e110a4057cc0993db2596904f17d",
+    "source_docstring": "793b57d83f94fd61eac0ae41c68da140c1e0e110a4057cc0993db2596904f17d"
   },
   "en/src-wesktop-asgi.md": {
     "content": "91e06b5795017542e662d62c53666c4fbc3ae03b05dfab04eb3b8cfbd4631792",

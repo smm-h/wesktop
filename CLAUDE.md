@@ -41,7 +41,7 @@ Some stubs (`asgi.py`, `server.py`, `mcp.py`) also re-export private helpers use
 ## Module layout
 
 - **src.wesktop** (`src/wesktop/__init__.py`): wesktop — A Python framework for building web-based desktop applications.
-- **src.wesktop.__main__** (`src/wesktop/__main__.py`): CLI entry point enabling `python -m wesktop` for diagnostics, configuration management, and application server commands via strictcli.
+- **src.wesktop.__main__** (`src/wesktop/__main__.py`): CLI entry point enabling `python -m wesktop` for diagnostics and configuration management via strictcli.
 - **src.wesktop.asgi** (`src/wesktop/asgi.py`): Full-featured ASGI framework re-exported from fastware: Router, Request, response types, WebSocket, app factory, middleware, and type aliases.
 - **src.wesktop.audit** (`src/wesktop/audit.py`): Append-only JSONL audit log writer re-exported from fastware for recording timestamped application events with structured payloads.
 - **src.wesktop.auth** (`src/wesktop/auth.py`): Authentication module re-exported from fastware: JWT token creation and verification, bcrypt password hashing, user stores, CSRF, and rate limiting.

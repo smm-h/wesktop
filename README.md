@@ -91,7 +91,7 @@ npx wesktop diagnose
 
 ## Module layout
 
-- **__main__**: CLI entry point enabling `python -m wesktop` for diagnostics, configuration management, and application server commands via strictcli.
+- **__main__**: CLI entry point enabling `python -m wesktop` for diagnostics and configuration management via strictcli.
 - **asgi**: Full-featured ASGI framework re-exported from fastware: Router, Request, response types, WebSocket, app factory, middleware, and type aliases.
 - **audit**: Append-only JSONL audit log writer re-exported from fastware for recording timestamped application events with structured payloads.
 - **auth**: Authentication module re-exported from fastware: JWT token creation and verification, bcrypt password hashing, user stores, CSRF, and rate limiting.
