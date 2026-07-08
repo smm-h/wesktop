@@ -1,8 +1,6 @@
 """Review MCP tools for posting inline comments on code changes, delegating to the wesktop server API for persistent review storage."""
 
-import json
-import urllib.error
-import urllib.request
+from wesktop.mcp_tools import _http
 
 
 def post_review_comment(
@@ -13,25 +11,13 @@ def post_review_comment(
     body: str,
 ) -> str:
     """Post a review comment on a specific file and line."""
-    url = f"{server_url.rstrip('/')}/api/review/comment"
-    payload = json.dumps({"file": file, "line": line, "body": body}).encode("utf-8")
-
-    req = urllib.request.Request(
-        url,
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {auth_token}",
-        },
-        method="POST",
+    payload = {"file": file, "line": line, "body": body}
+    return _http.request(
+        server_url,
+        auth_token,
+        "POST",
+        "/api/review/comment",
+        payload,
+        timeout=15,
+        parse_json=False,
     )
-
-    try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            return str(resp.read().decode("utf-8", errors="replace"))
-    except urllib.error.HTTPError as e:
-        return f"Error: HTTP {e.code} -- {e.read().decode('utf-8', errors='replace')}"
-    except urllib.error.URLError as e:
-        return f"Error: could not reach server: {e.reason}"
-    except TimeoutError:
-        return "Error: request timed out"
