@@ -119,18 +119,31 @@ class TestMCPToolModules:
 
 
 # ---------------------------------------------------------------------------
-# 2.4 Forward reload to run()
+# 2.4 reload semantics of run()
 # ---------------------------------------------------------------------------
 
 
 class TestRunReload:
-    def test_run_accepts_reload_parameter(self):
-        """wesktop.run() accepts reload=True without TypeError."""
-        import inspect
+    def test_run_reload_true_is_a_hard_error(self):
+        """run() cannot support reload (detached server subprocess) --
+        reload=True is an explicit error, never silently ignored."""
+        import wesktop
 
-        from wesktop import run
+        with pytest.raises(ValueError, match="reload"):
+            wesktop.run("myapp:app", reload=True)
 
-        sig = inspect.signature(run)
-        assert "reload" in sig.parameters
-        # Verify it has a default of False
-        assert sig.parameters["reload"].default is False
+    def test_run_reload_false_is_accepted(self, tmp_path, monkeypatch):
+        """reload=False (the default) passes the guard and run() completes."""
+        from unittest.mock import patch
+
+        import wesktop
+
+        monkeypatch.setenv("XDG_RUNTIME_DIR", str(tmp_path))
+        with (
+            patch("wesktop.desktop._has_gui_backend", return_value=True),
+            patch("webview.start"),
+            patch("webview.create_window"),
+            patch("wesktop.server.serve_background", return_value="http://127.0.0.1:1"),
+            patch("wesktop.desktop._auto_register_entry"),
+        ):
+            wesktop.run("myapp:app", host="127.0.0.1", port=1, reload=False)

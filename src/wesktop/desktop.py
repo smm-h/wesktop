@@ -109,6 +109,29 @@ def _has_gui_backend() -> bool:
         return False
 
 
+def _default_pid_path(name: str) -> Path:
+    """Stable per-app PID file path under the platform runtime/state dir.
+
+    A CWD-relative default would defeat single-instance detection when the
+    app is launched from different directories.
+    """
+    slug = name.lower().replace(" ", "-")
+    system = platform.system()
+    if system == "Windows":
+        base = os.environ.get("LOCALAPPDATA")
+        if not base:
+            raise OSError("LOCALAPPDATA environment variable not set")
+        run_dir = Path(base) / "wesktop"
+    elif system == "Darwin":
+        run_dir = Path.home() / "Library" / "Application Support" / "wesktop"
+    else:
+        xdg = os.environ.get("XDG_RUNTIME_DIR")
+        base_dir = Path(xdg) if xdg else Path.home() / ".local" / "state"
+        run_dir = base_dir / "wesktop"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    return run_dir / f"{slug}.pid"
+
+
 def _launch_command_parts() -> list[str]:
     """Reconstruct a runnable command line (as argv parts) for this process.
 
@@ -197,7 +220,31 @@ def run(
     js_api: object | None = None,
     single_instance: bool = True,
 ) -> None:
-    """Start server + open native desktop window. Blocks until window closes."""
+    """Start server + open native desktop window. Blocks until window closes.
+
+    The server runs as a detached subprocess (see serve_background), so
+    ``pre_serve`` and ``reload`` cannot work here and are hard errors:
+    pre_serve would run in this process while the server re-imports the
+    target in another, and a file watcher cannot restart the detached
+    server. Use :func:`wesktop.serve` for both.
+    """
+    if pre_serve is not None:
+        raise ValueError(
+            "run() does not support pre_serve: the desktop server runs in a "
+            "detached subprocess that re-imports the target, so pre_serve "
+            "would only run in this process and its in-memory effects would "
+            "be invisible to the server. Do initialization at your app "
+            "module's import time, or use wesktop.serve(..., pre_serve=...) "
+            "instead."
+        )
+    if reload:
+        raise ValueError(
+            "run() does not support reload: the desktop server runs as a "
+            "detached subprocess that a file watcher cannot restart. Use "
+            "wesktop.serve(target, foreground=True, reload=True) during "
+            "development instead."
+        )
+
     try:
         import webview
     except ImportError:
@@ -215,10 +262,15 @@ def run(
             "libgirepository1.0-dev on Debian/Ubuntu)"
         )
 
-    if pid_path and single_instance:
+    if pid_path is None:
+        # Stable per-app location so single-instance detection works
+        # regardless of the directory the app is launched from.
+        pid_path = _default_pid_path(name)
+
+    if single_instance:
         from wesktop.server import check_already_running, read_port_file
 
-        existing_pid = check_already_running(pid_path, name)
+        existing_pid = check_already_running(pid_path)
         if existing_pid is not None:
             # Server already running -- read the port from the port file
             existing_port = read_port_file(pid_path)
@@ -226,7 +278,7 @@ def run(
                 resolved_host = host or "127.0.0.1"
                 url = f"http://{resolved_host}:{existing_port}"
                 log.info("Joining existing instance (PID %d) at %s", existing_pid, url)
-                window = webview.create_window(
+                webview.create_window(
                     title=title, url=url, width=width, height=height, js_api=js_api,
                 )
                 webview.start(icon=icon)
@@ -243,21 +295,18 @@ def run(
     effective_port = port if port is not None else 0
     effective_host = host or "127.0.0.1"
 
-    if pre_serve is not None:
-        pre_serve()
-
     url = serve_background(
         target,
         host=effective_host,
         port=effective_port,
-        pid_path=pid_path or Path(".wesktop.pid"),
+        pid_path=pid_path,
         name=name,
     )
 
     # Auto-register desktop entry if not already present
     _auto_register_entry(title, icon)
 
-    window = webview.create_window(
+    webview.create_window(
         title=title,
         url=url,
         width=width,

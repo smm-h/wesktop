@@ -17,6 +17,14 @@ def _free_port() -> int:
         return s.getsockname()[1]
 
 
+@pytest.fixture(autouse=True)
+def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Isolate the default PID path location from the real user runtime dir."""
+    rt = tmp_path / "runtime"
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(rt))
+    return rt
+
+
 # All success-path tests also mock _has_gui_backend to return True,
 # so they work even when no real GTK/Qt is available.
 
@@ -29,6 +37,7 @@ def test_run_calls_webview(
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
+    runtime_dir: Path,
 ) -> None:
     """Server starts before window; correct title/url/size passed to create_window; start() called."""
     port = _free_port()
@@ -38,12 +47,13 @@ def test_run_calls_webview(
 
     run("myapp:app", title="Test", width=800, height=600, host="127.0.0.1", port=port)
 
-    # Server started via serve_background() as an independent process
+    # Server started via serve_background() as an independent process,
+    # with the stable per-app default PID path
     mock_serve_bg.assert_called_once_with(
         "myapp:app",
         host="127.0.0.1",
         port=port,
-        pid_path=Path(".wesktop.pid"),
+        pid_path=runtime_dir / "wesktop" / "wesktop.pid",
         name="WESKTOP",
     )
 
@@ -208,6 +218,20 @@ def test_serve_calls_granian(mock_granian_cls: MagicMock) -> None:
     mock_instance.serve.assert_called_once()
 
 
+def _purge_wesktop_lazy_cache() -> None:
+    """Drop wesktop's cached PEP 562 lazy attributes for wesktop.desktop.
+
+    After popping/reloading wesktop.desktop, the wesktop package may still
+    cache function objects from the old module (its __getattr__ caches on
+    first access). Purging makes them re-resolve against the fresh module,
+    so later patches of wesktop.desktop attributes stay effective.
+    """
+    pkg = sys.modules.get("wesktop")
+    if pkg is not None:
+        for attr in ("run", "ensure_gui_backend"):
+            pkg.__dict__.pop(attr, None)
+
+
 def test_run_late_imports_webview() -> None:
     """webview is not imported at module level -- only when run() is called."""
     # Ensure the desktop module is loaded (importing wesktop triggers it lazily
@@ -231,6 +255,7 @@ def test_run_late_imports_webview() -> None:
 
     # Clean up: reload so subsequent tests get the patching-friendly version
     importlib.reload(wesktop.desktop)
+    _purge_wesktop_lazy_cache()
 
 
 # --- Error tests (no browser fallback) ---
@@ -297,6 +322,7 @@ def test_run_raises_on_webview_not_installed(
 
     # Reload the module so the late `import webview` inside run() is fresh
     importlib.reload(wesktop.desktop)
+    _purge_wesktop_lazy_cache()
 
     with patch("builtins.__import__", side_effect=fake_import):
         with patch("wesktop.server.serve_background", return_value=url):
@@ -305,6 +331,7 @@ def test_run_raises_on_webview_not_installed(
 
     # Clean up
     importlib.reload(wesktop.desktop)
+    _purge_wesktop_lazy_cache()
 
 
 # --- _has_gui_backend unit tests ---
@@ -767,3 +794,134 @@ def test_run_single_instance_no_conflict_proceeds(
 
     mock_serve_bg.assert_called_once()
     mock_create_window.assert_called_once()
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve_background")
+def test_run_single_instance_uses_real_check_signature(
+    mock_serve_bg: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """run() calls fastware's check_already_running with its real one-arg signature."""
+    port = _free_port()
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
+    pid_path = tmp_path / "app.pid"  # no such file -> no running instance
+
+    from wesktop.desktop import run
+
+    # Unpatched check_already_running: a wrong-arity call raises TypeError here
+    run("myapp:app", host="127.0.0.1", port=port, pid_path=pid_path, single_instance=True)
+
+    mock_serve_bg.assert_called_once()
+    mock_create_window.assert_called_once()
+
+
+# --- pre_serve / reload semantics ---
+
+
+def test_run_rejects_pre_serve() -> None:
+    """run()'s server is a detached subprocess; in-process pre_serve would be
+    silently invisible to it -- hard error instead of silent divergence."""
+    from wesktop.desktop import run
+
+    called: list[int] = []
+    with pytest.raises(ValueError, match="pre_serve"):
+        run("myapp:app", pre_serve=lambda: called.append(1))
+    assert called == []  # never executed in the wrong process
+
+
+def test_run_rejects_reload() -> None:
+    """reload cannot work for run()'s detached server subprocess -- hard error,
+    not silently accepted-and-ignored."""
+    from wesktop.desktop import run
+
+    with pytest.raises(ValueError, match="reload"):
+        run("myapp:app", reload=True)
+
+
+# --- default PID path ---
+
+
+def test_default_pid_path_linux_xdg(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Linux default PID path lives under XDG_RUNTIME_DIR, slugged per app name."""
+    from wesktop.desktop import _default_pid_path
+
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(tmp_path / "rt"))
+    monkeypatch.setattr("wesktop.desktop.platform.system", lambda: "Linux")
+
+    p = _default_pid_path("My App")
+    assert p == tmp_path / "rt" / "wesktop" / "my-app.pid"
+    assert p.parent.is_dir()
+
+
+def test_default_pid_path_linux_without_xdg(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Without XDG_RUNTIME_DIR, the XDG state dir is used."""
+    from wesktop.desktop import _default_pid_path
+
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    monkeypatch.setattr("wesktop.desktop.platform.system", lambda: "Linux")
+
+    with patch("wesktop.desktop.Path.home", return_value=tmp_path):
+        p = _default_pid_path("WESKTOP")
+    assert p == tmp_path / ".local" / "state" / "wesktop" / "wesktop.pid"
+
+
+def test_default_pid_path_darwin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from wesktop.desktop import _default_pid_path
+
+    monkeypatch.setattr("wesktop.desktop.platform.system", lambda: "Darwin")
+    with patch("wesktop.desktop.Path.home", return_value=tmp_path):
+        p = _default_pid_path("WESKTOP")
+    assert p == tmp_path / "Library" / "Application Support" / "wesktop" / "wesktop.pid"
+
+
+def test_default_pid_path_windows(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from wesktop.desktop import _default_pid_path
+
+    monkeypatch.setattr("wesktop.desktop.platform.system", lambda: "Windows")
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
+    p = _default_pid_path("WESKTOP")
+    assert p == tmp_path / "AppData" / "Local" / "wesktop" / "wesktop.pid"
+
+
+def test_default_pid_path_windows_requires_localappdata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No implicit fallback location on Windows -- LOCALAPPDATA must be set."""
+    from wesktop.desktop import _default_pid_path
+
+    monkeypatch.setattr("wesktop.desktop.platform.system", lambda: "Windows")
+    monkeypatch.delenv("LOCALAPPDATA", raising=False)
+    with pytest.raises(OSError, match="LOCALAPPDATA"):
+        _default_pid_path("WESKTOP")
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve_background")
+def test_run_default_pid_path_is_stable(
+    mock_serve_bg: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    runtime_dir: Path,
+) -> None:
+    """The default PID path is absolute and per-app, not CWD-relative."""
+    port = _free_port()
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
+
+    from wesktop.desktop import run
+
+    run("myapp:app", host="127.0.0.1", port=port)
+
+    pid_path = mock_serve_bg.call_args.kwargs["pid_path"]
+    assert pid_path == runtime_dir / "wesktop" / "wesktop.pid"
+    assert pid_path.is_absolute()
