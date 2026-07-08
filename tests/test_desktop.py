@@ -309,14 +309,20 @@ def test_run_raises_on_webview_not_installed(
 
 # --- _has_gui_backend unit tests ---
 
-def test_has_gui_backend_non_linux() -> None:
-    """On non-Linux platforms, _has_gui_backend always returns True."""
+def test_has_gui_backend_non_linux_delegates_truthfully() -> None:
+    """On non-Linux platforms, _has_gui_backend reports the real availability."""
     from wesktop.desktop import _has_gui_backend
 
-    with patch("sys.platform", "darwin"):
-        assert _has_gui_backend() is True
+    with (
+        patch("sys.platform", "darwin"),
+        patch("wesktop.desktop.ensure_gui_backend", return_value=False),
+    ):
+        assert _has_gui_backend() is False
 
-    with patch("sys.platform", "win32"):
+    with (
+        patch("sys.platform", "win32"),
+        patch("wesktop.desktop.ensure_gui_backend", return_value=True),
+    ):
         assert _has_gui_backend() is True
 
 

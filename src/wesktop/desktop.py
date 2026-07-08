@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import glob
+import importlib.util
 import logging
 import os
 import platform
@@ -16,12 +17,31 @@ log = logging.getLogger(__name__)
 
 
 def ensure_gui_backend() -> bool:
-    """Make pywebview's GUI backend importable in isolated venvs.
+    """Report whether a native pywebview GUI backend is available, truthfully per platform.
 
-    If gi (PyGObject) is not importable, searches common system
-    site-packages locations and adds the first one found to sys.path.
-    Returns True if a backend is available, False otherwise.
+    On Linux, this additionally makes the system PyGObject importable in
+    isolated venvs: if gi is not importable, common system site-packages
+    locations are searched and the first one found is added to sys.path.
     """
+    if sys.platform == "win32":
+        # pywebview drives the EdgeWebView2 runtime through pythonnet (clr);
+        # Qt is the alternative backend. Without pywebview itself there is
+        # nothing to back.
+        if importlib.util.find_spec("webview") is None:
+            return False
+        return (
+            importlib.util.find_spec("clr") is not None
+            or importlib.util.find_spec("qtpy") is not None
+        )
+
+    if sys.platform == "darwin":
+        # The Cocoa backend needs pyobjc (objc) -- no gi involved.
+        return (
+            importlib.util.find_spec("objc") is not None
+            or importlib.util.find_spec("qtpy") is not None
+        )
+
+    # Linux: GTK backend via gi
     try:
         import gi  # noqa: F401
 
@@ -29,23 +49,11 @@ def ensure_gui_backend() -> bool:
     except ImportError:
         pass
 
-    # On Windows, PyGObject is typically installed via pip or MSYS2
-    # and already on the path. If gi isn't importable, there's nothing
-    # to search for.
-    if sys.platform == "win32":
-        return False
-
     # gi not in venv -- search system site-packages
     patterns = [
-        # Linux
         "/usr/lib64/python3.*/site-packages",
         "/usr/lib/python3.*/site-packages",
         "/usr/lib/python3/dist-packages",  # Debian/Ubuntu
-        # macOS (Homebrew)
-        "/opt/homebrew/lib/python3.*/site-packages",
-        "/usr/local/lib/python3.*/site-packages",
-        # macOS (Framework)
-        "/Library/Frameworks/Python.framework/Versions/3.*/lib/python3.*/site-packages",
     ]
 
     for pattern in patterns:
@@ -64,28 +72,22 @@ def ensure_gui_backend() -> bool:
 
 
 def _has_gui_backend() -> bool:
-    """Probe whether pywebview can load a GUI backend (GTK or Qt).
+    """Probe whether pywebview can load a GUI backend.
 
-    Returns True if at least one backend is loadable, False otherwise.
-    On non-Linux platforms, always returns True (pywebview uses native APIs).
+    Non-Linux platforms delegate to ensure_gui_backend(), which reports
+    availability truthfully per platform. On Linux, honours the
+    PYWEBVIEW_GUI env var and probes GTK first (via ensure_gui_backend,
+    which also makes system PyGObject importable in isolated venvs),
+    then Qt.
     """
-    import sys
-
     if sys.platform != "linux":
-        return True
-
-    import os
+        return ensure_gui_backend()
 
     # Honour the PYWEBVIEW_GUI env var -- if set, only probe that backend
     forced = os.environ.get("PYWEBVIEW_GUI", "").lower()
     if forced:
         if forced in ("gtk", "gtk3"):
-            try:
-                import gi  # noqa: F401
-
-                return True
-            except ImportError:
-                return False
+            return ensure_gui_backend()
         if forced in ("qt", "qt5", "qt6"):
             try:
                 import qtpy  # noqa: F401
@@ -97,19 +99,14 @@ def _has_gui_backend() -> bool:
         return True
 
     # Default Linux order: GTK first, then Qt
-    try:
-        import gi  # noqa: F401
-
+    if ensure_gui_backend():
         return True
-    except ImportError:
-        pass
     try:
         import qtpy  # noqa: F401
 
         return True
     except ImportError:
-        pass
-    return False
+        return False
 
 
 def _launch_command_parts() -> list[str]:
@@ -201,9 +198,6 @@ def run(
     single_instance: bool = True,
 ) -> None:
     """Start server + open native desktop window. Blocks until window closes."""
-    # Make system PyGObject visible in isolated venvs before importing webview
-    ensure_gui_backend()
-
     try:
         import webview
     except ImportError:
@@ -211,6 +205,8 @@ def run(
             "pywebview is not installed. Install it: pip install pywebview"
         )
 
+    # Single probe. On Linux this also makes system PyGObject importable in
+    # isolated venvs (via ensure_gui_backend) before pywebview loads its GUI.
     if not _has_gui_backend():
         raise RuntimeError(
             "pywebview GUI backend not available. "
