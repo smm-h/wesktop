@@ -19,6 +19,21 @@ class TestSDUINode:
         assert n.props["content"] == "Hello"
         assert n.children == []
 
+    def test_if_alias_serialization(self):
+        from wesktop.sdui import SDUINode
+
+        n = SDUINode(type="text", **{"if": "${state.visible}"})
+        dumped = n.model_dump(exclude_none=True)
+        assert dumped["if"] == "${state.visible}"
+        assert "if_condition" not in dumped
+
+    def test_no_if_key_when_none(self):
+        from wesktop.sdui import SDUINode
+
+        dumped = SDUINode(type="text").model_dump(exclude_none=True)
+        assert "if" not in dumped
+        assert "if_condition" not in dumped
+
     def test_node_with_children(self):
         from wesktop.sdui import SDUINode
 
@@ -55,6 +70,25 @@ class TestNodeHelper:
 
         result = node("spacer")
         assert "children" not in result
+
+
+class TestExcludedFields:
+    def test_base_excludes_nothing(self):
+        from wesktop.sdui import _PrimitiveBase
+
+        assert _PrimitiveBase._excluded_fields == set()
+
+    def test_stack_excludes_direction(self):
+        from wesktop.sdui import Stack
+
+        assert "direction" in Stack._excluded_fields
+
+    def test_stack_uses_base_to_node(self):
+        # Stack should no longer duplicate to_node -- it relies on the base
+        # method plus the _excluded_fields class attribute.
+        from wesktop.sdui import Stack, _PrimitiveBase
+
+        assert Stack.to_node is _PrimitiveBase.to_node
 
 
 class TestLayoutPrimitives:
@@ -240,6 +274,25 @@ class TestInputPrimitives:
 
         i = Input(name="email", placeholder="you@example.com")
         assert i.to_node()["type"] == "input"
+
+    def test_input_type_alias_serialization(self):
+        from wesktop.sdui import Input
+
+        i = Input(name="email", label="Email", placeholder="you@example.com")
+        n = i.to_node()
+        assert n["props"] == {
+            "name": "email",
+            "label": "Email",
+            "placeholder": "you@example.com",
+            "type": "text",
+        }
+        assert "input_type" not in n["props"]
+
+    def test_input_type_alias_non_default(self):
+        from wesktop.sdui import Input
+
+        i = Input(name="pw", input_type="password")
+        assert i.to_node()["props"]["type"] == "password"
 
     def test_textarea(self):
         from wesktop.sdui import TextArea

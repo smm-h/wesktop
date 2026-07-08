@@ -1,4 +1,4 @@
-"""Pydantic schemas for all 39 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
+"""Pydantic schemas for all 40 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
 
 Each model validates and types the raw dict trees that apps build for
 the dashboard's SDUIRenderer. Each model serialises to the exact dict
@@ -17,7 +17,7 @@ Usage::
 Grouping:
     Layout (9)   -- Stack, ZStack, Spacer, Divider, Grid, Card, Tabs, Breadcrumb, Empty
     Display (10) -- Heading, Text, Code, Status, Badge, ProgressBar, Spinner, Timeline, Diff, Markdown
-    Data (5)     -- Table, List, KeyValue, JsonView, Tree
+    Data (6)     -- Table, DataGrid, List, KeyValue, JsonView, Tree
     Input (8)    -- Button, Input, TextArea, Select, Checkbox, Switch, Radio, Slider
     Feedback (3) -- Alert, Toast, Logs
     Overlay (4)  -- Modal, Drawer, Popover, Confirm
@@ -25,7 +25,7 @@ Grouping:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
 from pydantic import BaseModel, Field
 
@@ -49,7 +49,7 @@ class SDUINode(BaseModel):
     props: dict[str, Any] = {}
     if_condition: str | None = Field(None, alias="if")
 
-    model_config = {"populate_by_name": True}
+    model_config = {"populate_by_name": True, "serialize_by_alias": True}
 
 
 # ---------------------------------------------------------------------------
@@ -152,6 +152,11 @@ class _PrimitiveBase(BaseModel):
 
     if_condition: str | None = Field(None, exclude=True)
 
+    # Field names (in addition to ``if_condition``) that subclasses want kept
+    # out of the serialised ``props`` dict -- e.g. ``Stack`` excludes
+    # ``direction`` because it is encoded into the node type instead.
+    _excluded_fields: ClassVar[set[str]] = set()
+
     model_config = {"populate_by_name": True}
 
     def _node_type(self) -> str:
@@ -159,7 +164,11 @@ class _PrimitiveBase(BaseModel):
 
     def to_node(self) -> dict[str, Any]:
         """Serialise to the dict shape SDUIRenderer expects."""
-        props = self.model_dump(exclude={"if_condition"}, exclude_none=True)
+        props = self.model_dump(
+            exclude={"if_condition", *self._excluded_fields},
+            exclude_none=True,
+            by_alias=True,
+        )
         result: dict[str, Any] = {"type": self._node_type(), "props": props}
         if self.if_condition is not None:
             result["if"] = self.if_condition
@@ -174,6 +183,8 @@ class _PrimitiveBase(BaseModel):
 class Stack(_PrimitiveBase):
     """Layout container -- renders as ``column`` or ``row`` depending on direction."""
 
+    _excluded_fields = {"direction"}
+
     direction: Literal["column", "row"] = "column"
     gap: int | None = None
     align: str | None = None
@@ -182,13 +193,6 @@ class Stack(_PrimitiveBase):
 
     def _node_type(self) -> str:
         return self.direction
-
-    def to_node(self) -> dict[str, Any]:
-        props = self.model_dump(exclude={"if_condition", "direction"}, exclude_none=True)
-        result: dict[str, Any] = {"type": self._node_type(), "props": props}
-        if self.if_condition is not None:
-            result["if"] = self.if_condition
-        return result
 
 
 class ZStack(_PrimitiveBase):
@@ -377,7 +381,7 @@ class Markdown(_PrimitiveBase):
 
 
 # ---------------------------------------------------------------------------
-# Data (5)
+# Data (6)
 # ---------------------------------------------------------------------------
 
 
