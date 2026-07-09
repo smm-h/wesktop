@@ -288,15 +288,15 @@ wheels = [
 
 [[package]]
 name = "fastware"
-version = "0.1.0"
+version = "0.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "granian" },
     { name = "msgspec" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0f/57/5a90b3deb107162aa11b3fbded2704552e93e0ae1498c965d61fe22f67c4/fastware-0.1.0.tar.gz", hash = "sha256:205eacc5de8c9c6dd86e06d6d42878e066c880e252f486ff6a7b243e7ee66a9c", size = 162896, upload-time = "2026-06-30T15:17:52.777Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f4/32/8460db722f8139d51514be9efbe8dfaba106c27a554f134f376df6c6e54e/fastware-0.3.1.tar.gz", hash = "sha256:6fd857bd21a686e50fa92ec7d9bbd9369eebc410edf754b2d0fd470cc6bac74e", size = 277689, upload-time = "2026-07-09T10:03:59.909Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/15/88/e7efee399dfb9b971b8aeb357ceec85d2907edededc3437ed297467a48bc/fastware-0.1.0-py3-none-any.whl", hash = "sha256:6d57a6ed47874365e2041a339718f931bc309ea729410e5cb2d9d043112234d6", size = 48656, upload-time = "2026-06-30T15:17:51.303Z" },
+    { url = "https://files.pythonhosted.org/packages/e8/6e/ec904bd56cffdebf976edeec26ec1462bfab7a7b8328b3b445a76185ceb3/fastware-0.3.1-py3-none-any.whl", hash = "sha256:76ab698c6930fe8a8fe598b2747cb4f6043dbb0c25644ba5cc39e60c7118de24", size = 66707, upload-time = "2026-07-09T10:03:58.357Z" },
 ]
 
 [package.optional-dependencies]

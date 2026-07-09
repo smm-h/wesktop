@@ -209,11 +209,17 @@ def test_serve_calls_granian(mock_granian_cls: MagicMock) -> None:
     port = _free_port()
     wesktop.serve("myapp:app", foreground=False, host="127.0.0.1", port=port, name="TEST_SVC")
 
+    # fastware 0.3.0 pins the event loop by default (loop=asyncio, workers=1)
+    # instead of letting Granian auto-select, so the Granian call carries them.
+    from granian.constants import Loops
+
     mock_granian_cls.assert_called_once_with(
         target="myapp:app",
         address="127.0.0.1",
         port=port,
         interface="asgi",
+        loop=Loops.asyncio,
+        workers=1,
     )
     mock_instance.serve.assert_called_once()
 
