@@ -1,1 +1,0 @@
-{"id":"18c0b1ad82017095dcb3ba3dfb83436f82a21cd4074286cc","commits":["000e52d139e308845b8fb541459bd07b9d826c84"],"user_facing":true,"description":"**0.8.x now installable.** The 0.8.0 release never reached PyPI/npm because its publish gate failed on a CI environment flake (missing ripgrep); 0.8.1 publishes the 0.8.x line.","type":"fix"}
