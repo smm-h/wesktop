@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: "Auto-generated API reference index for wesktop -- browse every module, class, and function across the desktop shell, SDUI schemas, MCP tools, and fastware re-exports."
+description: "Auto-generated API reference index for wesktop: every module, class, and function across the desktop shell, SDUI schemas, MCP tools, and re-exports."
 generated: true
 nav_group: "API Reference"
 nav_order: 0

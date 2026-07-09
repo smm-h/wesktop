@@ -1,6 +1,6 @@
 ---
 title: wesktop CLI Reference
-description: "Complete CLI reference for wesktop -- the diagnose command for environment and dependency checks and the config command group for managing persistent configuration."
+description: "Complete CLI reference for wesktop: the diagnose command for environment and dependency checks and the config group for persistent configuration."
 generated: true
 nav_group: "CLI Reference"
 nav_order: 0

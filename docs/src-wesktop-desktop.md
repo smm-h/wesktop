@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.desktop
-description: "Launch a native desktop window with pywebview over a Granian ASGI server running in a daemon thread, with automatic server startup and window-close lifecycle handling."
+description: "Native desktop window via pywebview over a Granian ASGI server in a daemon thread, with automatic server startup and window-close lifecycle handling."
 generated: true
 nav_group: "API Reference"
 nav_order: 7

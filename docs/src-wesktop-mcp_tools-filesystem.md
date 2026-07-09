@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.mcp_tools.filesystem
-description: "Worktree-scoped filesystem MCP tools -- read, write, edit, list, and search files with every path validated against a traversal guard that blocks escapes from the worktree."
+description: "Worktree-scoped filesystem MCP tools: read, write, edit, list, and search files with every path validated against a guard that blocks worktree escapes."
 generated: true
 nav_group: "API Reference"
 nav_order: 20

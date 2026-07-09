@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.mcp_tools._http
-description: "Shared stdlib HTTP helper for wesktop's server-delegating MCP tools: attaches a Bearer token and returns either parsed JSON or raw text with error handling."
+description: "Shared stdlib HTTP helper for wesktop's server-delegating MCP tools: attaches a Bearer token and returns parsed JSON or raw text with error handling."
 generated: true
 nav_group: "API Reference"
 nav_order: 16
