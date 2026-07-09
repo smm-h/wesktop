@@ -1,9 +1,14 @@
 # Version bump type: patch, minor, major, hotfix, or prerelease
-bump = ""
+bump = "minor"
 # Short description of this release (required)
-description = ""
+description = "fastware 0.3.x compatibility and same-origin dev proxy support via backend_prefixes"
 # Optional context explaining why these changes were made
-context = ""
+context = """
+wesktop 0.7.0 only worked with fastware 0.1.0. This release tracks fastware's 0.3.x
+hardening and exposes the dev-proxy WebSocket routing via `backend_prefixes` so
+downstream apps can run same-origin dev mode. Also includes previously staged work:
+desktop entry fixes, MCP hardening, and SDUI fixes.
+"""
 # Pre-release identifier: alpha, beta, rc, or stable
 # preid = ""
 # Set to true to generate a blog post for this release
