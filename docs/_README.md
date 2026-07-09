@@ -90,7 +90,7 @@ npx wesktop diagnose
 
 ## CLI
 
-:-: table-commands path="src/wesktop/"
+:-: table-commands path="."
 
 ## Module layout
 
