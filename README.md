@@ -104,7 +104,7 @@ npx wesktop diagnose
 - **error_log**: SQLite-backed error log re-exported from fastware for recording and querying 5xx server responses with request context and tracebacks.
 - **features**: Boolean feature flags re-exported from fastware with per-machine JSON overrides, runtime toggle, enabled/disabled checks, and hot reload support.
 - **logging**: Structured logging configuration re-exported from fastware: structlog with automatic JSON output in production and colored console in development.
-- **mcp**: MCP (Model Context Protocol) server factory re-exported from fastware: per-role agent tool provisioning, tool filtering, and server lifecycle.
+- **mcp**: wesktop's agent role registry plus the MCP server factory re-exported from fastware: per-role tool provisioning for implementor, auditor, reviewer, and deployer agents.
 - **middleware**: Pure ASGI middleware re-exported from fastware: request tracing, CORS headers, trusted-host validation, and Vite dev proxy routing.
 - **sdui**: Pydantic schemas for all 40 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
 - **server**: Granian ASGI server lifecycle re-exported from fastware: PID file tracking, port availability checks, foreground and background serve modes.
