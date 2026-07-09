@@ -87,7 +87,15 @@ npx wesktop diagnose
 
 ## CLI
 
-> *[selfdoc: no strictcli app found in 'src/wesktop/']*
+| Command | Description |
+| --- | --- |
+| `diagnose` | Check runtime environment, installed dependencies, and configuration paths |
+| **config** | Manage persistent configuration values stored in the config file |
+| `config path` | Print the absolute path to the config file for this application |
+| `config show` | Show all config values with their sources (config file, env, or default) |
+| `config set` | Set a persistent config value that overrides the default for a flag |
+| `config edit` | Open the config file for manual editing in $EDITOR (creates if missing) |
+| `config init` | Generate a template config file with documented fields and defaults |
 
 ## Module layout
 
