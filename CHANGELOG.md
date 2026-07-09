@@ -2,6 +2,40 @@
 
 # Changelog
 
+## 0.8.0
+
+fastware 0.3.x compatibility and same-origin dev proxy support via backend_prefixes
+
+<details>
+<summary>Context</summary>
+
+wesktop 0.7.0 only worked with fastware 0.1.0. This release tracks fastware's 0.3.x
+hardening and exposes the dev-proxy WebSocket routing via `backend_prefixes` so
+downstream apps can run same-origin dev mode. Also includes previously staged work:
+desktop entry fixes, MCP hardening, and SDUI fixes.
+
+</details>
+
+### Features
+
+- `import wesktop` is ~2-5x faster: server/desktop/dev/mcp/sdui symbols now load lazily (granian, mcp, and pydantic are no longer imported eagerly); `WebSocketDisconnect` is exported from the top level
+- The `ask_user` MCP tool's poll timeout is now configurable.
+- `wesktop diagnose` now reports the installed fastware version and whether it imports cleanly.
+- `wesktop.dev()` now accepts `backend_prefixes`, forwarded to fastware's ViteDevProxy so downstream apps can run same-origin dev mode: the browser loads everything from the Vite origin while `/api` and `/ws` proxy to the backend (no CORS). `/ws` WebSocket upgrades route to the backend and proxy WebSocket failures close with code 1011.
+- **MCP role API is now documented.** `wesktop.ROLES`, `DEFAULT_ROLE`, `create_mcp_server`, and `register_tools_for_role` appear in the API reference with role-registry and usage guidance.
+
+### Fixes
+
+- Dependency installation no longer requires machine-local checkouts: `uv.lock` previously carried absolute local paths for `strictcli` and `fastware`, breaking installs and CI outside the author's machine. Dependencies now resolve from PyPI (strictcli 0.24.0, fastware 0.1.0).
+- wesktop now works with fastware 0.2.x: `TestClient` is imported explicitly, the agent role registry (`ROLES`/`DEFAULT_ROLE`) is owned by wesktop (pass `roles=wesktop.ROLES` to `register_tools_for_role`/`create_mcp_server`), and stale private server re-exports are gone
+- Desktop runtime hardening: `run()` detects the GUI backend truthfully per platform with a single probe, registers desktop entries with platform-aware and properly-quoted `Exec` commands, uses a stable PID path, and hard-errors on unsupported `pre_serve`/`reload` usage instead of silently misbehaving.
+- MCP filesystem and git tools harden path handling: the `git_diff` path-traversal guard is fixed and filesystem path handling is `os.sep`-safe (correct on Windows).
+- The deployment MCP tool now URL-quotes branch names, so branches containing slashes no longer break deployment requests.
+- SDUI serialization now honors pydantic field aliases, and `Stack.to_node` no longer emits duplicate child nodes.
+- wesktop now runs against fastware 0.3.1, inheriting its server, auth, WebSocket, routing, and static-file hardening plus a pinned asyncio event loop; `serve()` delegates with fastware's new pinned `loop`/`workers` defaults.
+- Desktop entry and launcher fixes: Windows shortcut commands parse with an explicit quoting contract (ambiguous unquoted paths hard-error instead of silently breaking), the COM vs PowerShell backend is selected up front by pywin32 availability with no silent fallback, `.desktop` `Exec=` escapes `%` per spec, and `remove_entry` also removes the `-open` launcher.
+- **Fixed CLI command table in README.** The generated README and docs site now show the actual `diagnose` and `config` command table instead of a "no strictcli app found" error.
+
 ## 0.7.0
 
 ASGI framework extracted to fastware. wesktop is now a thin desktop-app layer on top of fastware.
