@@ -26,4 +26,5 @@ jobs:
       - run: uv python install ${{ matrix.python-version }}
       - run: uv sync --locked
       - run: uv run python -c "import wesktop"
+      - run: sudo apt-get update && sudo apt-get install -y ripgrep
       - run: uv run pytest
