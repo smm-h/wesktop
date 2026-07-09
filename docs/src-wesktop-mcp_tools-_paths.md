@@ -1,8 +1,7 @@
 ---
 title: src.wesktop.mcp_tools._paths
-description: "Shared worktree path-traversal guard for the MCP tool modules."
+description: "Shared worktree path-traversal guard for wesktop's filesystem and git MCP tools: resolves a relative path and rejects anything escaping the worktree."
 generated: true
-seeded: true
 nav_group: "API Reference"
 nav_order: 17
 ---

@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.__main__
-description: "CLI entry point enabling `python -m wesktop` for diagnostics, configuration management, and application server commands via strictcli."
+description: "CLI entry point enabling `python -m wesktop` to run diagnostics and manage persistent configuration through strictcli subcommands."
 generated: true
 nav_group: "API Reference"
 nav_order: 1

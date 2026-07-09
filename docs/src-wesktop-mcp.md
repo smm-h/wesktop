@@ -1,6 +1,6 @@
 ---
 title: src.wesktop.mcp
-description: "MCP (Model Context Protocol) server factory re-exported from fastware: per-role agent tool provisioning, tool filtering, and server lifecycle."
+description: "wesktop's MCP agent role registry (implementor, auditor, reviewer, deployer) plus role-aware create_mcp_server and register_tools_for_role wrappers over fastware."
 generated: true
 nav_group: "API Reference"
 nav_order: 14
