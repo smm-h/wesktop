@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: API reference for wesktop-native symbols -- desktop window, desktop entries, SDUI primitives, GUI backend detection, and dev mode
+description: API reference for wesktop's native symbols -- the run() desktop window, GUI backend detection, desktop entry management, dev mode, SDUI primitives, and version metadata
 date: 2026-07-01
 ---
 
