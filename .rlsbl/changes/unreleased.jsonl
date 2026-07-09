@@ -20,3 +20,4 @@
 {"id":"18c0acdae0c64b362ad20d1434b3446db3bb8c8552212cd8","commits":["df5fb227de0d3f64f134666531332e375f9b49c1"],"user_facing":true,"description":"**MCP role API is now documented.** `wesktop.ROLES`, `DEFAULT_ROLE`, `create_mcp_server`, and `register_tools_for_role` appear in the API reference with role-registry and usage guidance.","type":"feature"}
 {"id":"18c0ace4647b9b7aba68c4b7526e4e8cbc5261d339c1289b","commits":["6cc8ac6841de6b3acaa2c5f60c822a83c13974ad"],"user_facing":false}
 {"id":"18c0acfa699148a766881328afbf407b96c4e269fb99f753","commits":["7e36547ca39037d6127a12dca55d9c881548e83f"],"user_facing":false}
+{"id":"18c0ad25bf7af7c3bee05635130e4c17b6577b094768a62b","commits":["df14ac55f2fead6000b5cf1128cd5f7ae33dcffe"],"user_facing":true,"description":"**Fixed CLI command table in README.** The generated README and docs site now show the actual `diagnose` and `config` command table instead of a \"no strictcli app found\" error.","type":"fix"}
