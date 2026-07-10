@@ -2,6 +2,14 @@
 
 # Changelog
 
+## 0.9.0
+
+Reference-counted window lifecycle with automatic server shutdown
+
+### Features
+
+- **New feature.** Server stops automatically when the last native window closes, with reference counting for multi-window scenarios.
+
 ## 0.8.1
 
 Republish of the 0.8.x line: 0.8.0 never reached the registries due to a CI environment failure
