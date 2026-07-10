@@ -15,6 +15,11 @@ from typing import Callable
 
 log = logging.getLogger(__name__)
 
+# Reference count of open windows per server PID path.  Keyed by the
+# string representation of the PID-file Path so different Path objects
+# pointing at the same file compare equal.
+_window_counts: dict[str, int] = {}
+
 
 def ensure_gui_backend() -> bool:
     """Report whether a native pywebview GUI backend is available, truthfully per platform.
@@ -281,7 +286,18 @@ def run(
                 webview.create_window(
                     title=title, url=url, width=width, height=height, js_api=js_api,
                 )
+                key = str(pid_path)
+                _window_counts[key] = _window_counts.get(key, 0) + 1
                 webview.start(icon=icon)
+                # Window closed -- decrement and stop server if last window
+                _window_counts[key] -= 1
+                if _window_counts[key] <= 0:
+                    _window_counts.pop(key, None)
+                    try:
+                        from wesktop.server import stop
+                        stop(pid_path)
+                    except (FileNotFoundError, ProcessLookupError, PermissionError):
+                        pass
                 return
             # No port file -- can't join. Fall through to start a new server.
             log.warning(
@@ -302,6 +318,8 @@ def run(
         pid_path=pid_path,
         name=name,
     )
+    key = str(pid_path)
+    _window_counts[key] = _window_counts.get(key, 0) + 1
 
     # Auto-register desktop entry if not already present
     _auto_register_entry(title, icon)
@@ -316,4 +334,12 @@ def run(
 
     webview.start(icon=icon)
     # When webview.start() returns, the window was closed.
-    # The server process keeps running independently.
+    # Stop the server if this was the last window.
+    _window_counts[key] -= 1
+    if _window_counts[key] <= 0:
+        _window_counts.pop(key, None)
+        try:
+            from wesktop.server import stop
+            stop(pid_path)
+        except (FileNotFoundError, ProcessLookupError, PermissionError):
+            pass

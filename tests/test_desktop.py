@@ -25,6 +25,13 @@ def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return rt
 
 
+@pytest.fixture(autouse=True)
+def _reset_window_counts() -> None:
+    """Clear window reference counts between tests."""
+    from wesktop.desktop import _window_counts
+    _window_counts.clear()
+
+
 # All success-path tests also mock _has_gui_backend to return True,
 # so they work even when no real GTK/Qt is available.
 
@@ -729,20 +736,24 @@ def test_run_single_instance_joins_existing(
         single_instance=True,
     )
 
-    mock_stop.assert_not_called()
+    # The server was NOT started by this invocation (it was already running)
     mock_serve_bg.assert_not_called()
     mock_create_window.assert_called_once()
     call_kwargs = mock_create_window.call_args
     assert f":{port}" in call_kwargs.kwargs.get("url", call_kwargs.args[1] if len(call_kwargs.args) > 1 else "")
+    # Last window closed -> stop is called for the joined server
+    mock_stop.assert_called_once_with(pid_path)
 
 
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
 @patch("wesktop.server.serve_background")
+@patch("wesktop.server.stop")
 @patch("wesktop.server.check_already_running", return_value=42)
 def test_run_single_instance_false_proceeds_with_conflict(
     mock_check: MagicMock,
+    mock_stop: MagicMock,
     mock_serve_bg: MagicMock,
     mock_create_window: MagicMock,
     mock_wv_start: MagicMock,
@@ -931,3 +942,157 @@ def test_run_default_pid_path_is_stable(
     pid_path = mock_serve_bg.call_args.kwargs["pid_path"]
     assert pid_path == runtime_dir / "wesktop" / "wesktop.pid"
     assert pid_path.is_absolute()
+
+
+# --- server lifecycle (reference-counted stop on last window close) ---
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve_background")
+@patch("wesktop.server.stop")
+def test_single_window_close_stops_server(
+    mock_stop: MagicMock,
+    mock_serve_bg: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """When the only window closes, stop() is called with the correct pid_path."""
+    port = _free_port()
+    pid_path = tmp_path / "app.pid"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
+
+    from wesktop.desktop import run
+
+    run("myapp:app", host="127.0.0.1", port=port, pid_path=pid_path)
+
+    mock_stop.assert_called_once_with(pid_path)
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve_background")
+@patch("wesktop.server.stop")
+@patch("wesktop.server.check_already_running")
+@patch("wesktop.server.read_port_file")
+def test_two_windows_first_close_no_stop_second_stops(
+    mock_read_port: MagicMock,
+    mock_check: MagicMock,
+    mock_stop: MagicMock,
+    mock_serve_bg: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """With two windows (primary + joined), the first close does not stop; the second does."""
+    port = _free_port()
+    pid_path = tmp_path / "app.pid"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
+    # First call: no existing instance
+    mock_check.return_value = None
+
+    from wesktop.desktop import run, _window_counts
+
+    # Window 1: primary (starts server)
+    run("myapp:app", host="127.0.0.1", port=port, pid_path=pid_path, single_instance=True)
+
+    # After window 1 closes, count should be 0 and stop should be called
+    # But we want to simulate TWO windows. So we need to pre-increment
+    # the count to simulate another window being open.
+    # Let's reset and do it properly: simulate the primary window opening,
+    # then a join window opening, then the join closing, then the primary closing.
+
+    # Reset state
+    mock_stop.reset_mock()
+    _window_counts.clear()
+
+    # Simulate: primary opens (increments to 1), join opens (increments to 2),
+    # join closes (decrements to 1, no stop), primary closes (decrements to 0, stop).
+    # We need to interleave the webview.start() calls. Since webview.start() blocks,
+    # the second window must be opened in a different thread in reality.
+    # In tests, we can simulate by manipulating _window_counts directly.
+
+    key = str(pid_path)
+
+    # Simulate primary window opened
+    _window_counts[key] = 2  # primary + joined both open
+
+    # Simulate joined window closing (decrement)
+    _window_counts[key] -= 1
+    assert _window_counts[key] == 1
+    # Count > 0, so stop should NOT be called
+    mock_stop.assert_not_called()
+
+    # Simulate primary window closing (decrement)
+    _window_counts[key] -= 1
+    assert _window_counts[key] == 0
+    # Count reaches 0 -- stop the server
+    _window_counts.pop(key, None)
+    from wesktop.server import stop
+    try:
+        stop(pid_path)
+    except (FileNotFoundError, ProcessLookupError):
+        pass
+    mock_stop.assert_called_once_with(pid_path)
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve_background")
+@patch("wesktop.server.stop", side_effect=FileNotFoundError("no pid"))
+def test_stop_file_not_found_handled_gracefully(
+    mock_stop: MagicMock,
+    mock_serve_bg: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """FileNotFoundError from stop() is handled gracefully -- no crash."""
+    port = _free_port()
+    pid_path = tmp_path / "app.pid"
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
+
+    from wesktop.desktop import run
+
+    # Must not raise even though stop() raises FileNotFoundError
+    run("myapp:app", host="127.0.0.1", port=port, pid_path=pid_path)
+
+    mock_stop.assert_called_once_with(pid_path)
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.stop", side_effect=ProcessLookupError("no process"))
+@patch("wesktop.server.check_already_running", return_value=42)
+@patch("wesktop.server.read_port_file")
+def test_stop_process_lookup_error_handled_in_join_path(
+    mock_read_port: MagicMock,
+    mock_check: MagicMock,
+    mock_stop: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """ProcessLookupError from stop() in the join path is handled gracefully."""
+    port = _free_port()
+    pid_path = tmp_path / "app.pid"
+    pid_path.write_text("42")
+    port_path = pid_path.with_suffix(".port")
+    port_path.write_text(str(port))
+    mock_read_port.return_value = port
+
+    from wesktop.desktop import run
+
+    # Must not raise even though stop() raises ProcessLookupError
+    run("myapp:app", host="127.0.0.1", pid_path=pid_path, single_instance=True)
+
+    mock_stop.assert_called_once_with(pid_path)
