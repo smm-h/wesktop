@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import socket
 import sys
+import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -207,28 +208,26 @@ def test_run_js_api_via_wrapper(
     assert call_kwargs["js_api"] is api
 
 
-@patch("fastware.server.Granian")
-def test_serve_calls_granian(mock_granian_cls: MagicMock) -> None:
-    """wesktop.serve() delegates to the server module with correct params."""
-    mock_instance = MagicMock()
-    mock_granian_cls.return_value = mock_instance
+@patch("fastware.server._make_embed_server")
+def test_serve_calls_embed_server(mock_make_embed: MagicMock) -> None:
+    """wesktop.serve() delegates to the embed server for background mode."""
+    mock_embed = MagicMock()
+
+    async def _noop_serve():
+        pass
+
+    mock_embed.serve = _noop_serve
+    mock_make_embed.return_value = mock_embed
+
+    async def fake_app(scope, receive, send):
+        pass
 
     port = _free_port()
-    wesktop.serve("myapp:app", foreground=False, host="127.0.0.1", port=port, name="TEST_SVC")
+    wesktop.serve(fake_app, foreground=False, host="127.0.0.1", port=port, name="TEST_SVC")
+    # Give the daemon thread a moment to call asyncio.run(embed.serve())
+    time.sleep(0.1)
 
-    # fastware 0.3.0 pins the event loop by default (loop=asyncio, workers=1)
-    # instead of letting Granian auto-select, so the Granian call carries them.
-    from granian.constants import Loops
-
-    mock_granian_cls.assert_called_once_with(
-        target="myapp:app",
-        address="127.0.0.1",
-        port=port,
-        interface="asgi",
-        loop=Loops.asyncio,
-        workers=1,
-    )
-    mock_instance.serve.assert_called_once()
+    mock_make_embed.assert_called_once_with(fake_app, "127.0.0.1", port)
 
 
 def _purge_wesktop_lazy_cache() -> None:
