@@ -1,2 +1,3 @@
 {"id":"18c0e0556bd9eff17a0bcef341a941d0b41962d30e08602e","commits":["8f14ac1c1fc875d2bd00164afff3581ab955231d"],"user_facing":true,"description":"**New feature.** Server stops automatically when the last native window closes, with reference counting for multi-window scenarios.","type":"feature"}
 {"id":"18c0e0566e5e64fcc8f14a124724459b885fd83f7674d3ed","commits":["d31eb00b64c3574213e8f39077855378cdd4cdf1","d602fc6412aa8ac605140125373222c90308f0a7","de6ee4077ee2fce090d62bc930c749a20dd63ce7"],"user_facing":false}
+{"id":"18c0e07c092694789fb9b2b4b54a4b01811ecc32539e18da","commits":["de4fc2f079085f6895c72c81f01fa59c9ee3e842"],"user_facing":false}
