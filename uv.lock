@@ -288,15 +288,16 @@ wheels = [
 
 [[package]]
 name = "fastware"
-version = "0.4.0"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "granian" },
     { name = "msgspec" },
+    { name = "strictcli" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5f/86/1848bac48dc2a0b199751f715fe802d466ab9c84093a89688c3fedb6a34d/fastware-0.4.0.tar.gz", hash = "sha256:21a0d36e282e8947ca57fceefb946be64299d0189849023636bc4d686cd2cb6f", size = 278287, upload-time = "2026-07-10T08:23:35.538Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/66/e28041d62cf50f3917e139924bb005d358b483309ce41380cd5b967842f8/fastware-0.5.0.tar.gz", hash = "sha256:0bb2825c538e4b989b822a0a3072fcc349ad9639d634b8687ab3020e93cd44df", size = 330295, upload-time = "2026-07-11T16:22:22.564Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cc/a6/8b36cf96bf3d334883c962bdab378e7c2ebb974ec93788055ffb193a9d9c/fastware-0.4.0-py3-none-any.whl", hash = "sha256:391162deab1e58fbfcab3e1b1ec9f73b5e4d91368b4212789e0cac48ab37010f", size = 66699, upload-time = "2026-07-10T08:23:34.06Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/ef/d78d00095f3e5acd94b4e07d9e375e4c3cf90fc97bfef8f2fab97a6669dc/fastware-0.5.0-py3-none-any.whl", hash = "sha256:0dc7124b0036a9c74405d69a58dcb50c969de1131b8d75405a98139974c56844", size = 94229, upload-time = "2026-07-11T16:22:21.276Z" },
 ]
 
 [package.optional-dependencies]
@@ -1338,7 +1339,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastware", extras = ["all"] },
+    { name = "fastware", extras = ["all"], specifier = ">=0.5.0" },
     { name = "pydantic" },
     { name = "pywebview", specifier = ">=6.2.1" },
     { name = "strictcli" },

@@ -7,7 +7,7 @@ license = "MIT"
 authors = [{name = "smm-h", email = "smmh72@gmail.com"}]
 keywords = ["desktop", "web", "gui", "pywebview", "granian", "asgi", "rlsbl"]
 dependencies = [
-    "fastware[all]",
+    "fastware[all]>=0.5.0",
     "pywebview>=6.2.1",
     "strictcli",
     "pydantic",
