@@ -20,6 +20,31 @@ log = logging.getLogger(__name__)
 # pointing at the same file compare equal.
 _window_counts: dict[str, int] = {}
 
+# The most recently created native window handle. Captured from
+# webview.create_window so reset/update flows (and tests) can reach the live
+# window via the host-side runtime bridge.
+_active_window: object | None = None
+
+
+def _wire_runtime_bridge(window: object, url: str) -> None:
+    """Best-effort host-side update wiring for a native window.
+
+    Captures the window and, where pywebview exposes a focus event, polls
+    ``/__fastware/version`` on focus to reload on a changed build id. This is a
+    no-op on pywebview builds without a focus event -- native windows load the
+    same page + client.js, which is the primary (poll-free) update path.
+    """
+    global _active_window
+    _active_window = window
+    try:
+        from wesktop import runtime_bridge
+
+        version_url = url.rstrip("/") + "/__fastware/version"
+        runtime_bridge.install_focus_poll(window, version_url)
+    except Exception:
+        # A bridge wiring failure must never take down the window.
+        log.debug("runtime bridge focus poll not installed", exc_info=True)
+
 
 def ensure_gui_backend() -> bool:
     """Report whether a native pywebview GUI backend is available, truthfully per platform.
@@ -283,9 +308,10 @@ def run(
                 resolved_host = host or "127.0.0.1"
                 url = f"http://{resolved_host}:{existing_port}"
                 log.info("Joining existing instance (PID %d) at %s", existing_pid, url)
-                webview.create_window(
+                window = webview.create_window(
                     title=title, url=url, width=width, height=height, js_api=js_api,
                 )
+                _wire_runtime_bridge(window, url)
                 key = str(pid_path)
                 _window_counts[key] = _window_counts.get(key, 0) + 1
                 webview.start(icon=icon)
@@ -324,13 +350,14 @@ def run(
     # Auto-register desktop entry if not already present
     _auto_register_entry(title, icon)
 
-    webview.create_window(
+    window = webview.create_window(
         title=title,
         url=url,
         width=width,
         height=height,
         js_api=js_api,
     )
+    _wire_runtime_bridge(window, url)
 
     webview.start(icon=icon)
     # When webview.start() returns, the window was closed.

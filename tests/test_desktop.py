@@ -208,6 +208,32 @@ def test_run_js_api_via_wrapper(
     assert call_kwargs["js_api"] is api
 
 
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve_background")
+def test_run_captures_window_handle(
+    mock_serve_bg: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+) -> None:
+    """run() captures webview.create_window's return into the module-level
+    active window handle (previously discarded)."""
+    import wesktop.desktop as dt
+
+    port = _free_port()
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
+    sentinel = MagicMock(name="window")
+    mock_create_window.return_value = sentinel
+
+    from wesktop.desktop import run
+
+    run("myapp:app", host="127.0.0.1", port=port)
+
+    assert dt._active_window is sentinel
+
+
 @patch("fastware.server._make_embed_server")
 def test_serve_calls_embed_server(mock_make_embed: MagicMock) -> None:
     """wesktop.serve() delegates to the embed server for background mode."""
