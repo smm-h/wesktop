@@ -106,7 +106,7 @@ npx wesktop diagnose
 - **src.wesktop.auth** (`src/wesktop/auth.py`): Authentication module re-exported from fastware: JWT token creation and verification, bcrypt password hashing, user stores, CSRF, and rate limiting.
 - **src.wesktop.cli** (`src/wesktop/cli.py`): wesktop CLI providing diagnostics (Python version, dependency versions, platform info) and configuration management via strictcli subcommands.
 - **src.wesktop.config** (`src/wesktop/config.py`): Config loading utility re-exported from fastware: standalone TOML config file parsing with optional Pydantic validation and environment overrides.
-- **src.wesktop.desktop** (`src/wesktop/desktop.py`): Native desktop window via pywebview, backed by a Granian ASGI server in a daemon thread, with automatic server lifecycle and window close handling.
+- **src.wesktop.desktop** (`src/wesktop/desktop.py`): Native desktop window via pywebview, backed by a detached Granian ASGI server subprocess, with cross-process window refcounting and automatic server lifecycle.
 - **src.wesktop.dev** (`src/wesktop/dev.py`): Development mode re-exported from fastware: combined Vite frontend and ASGI backend in a single command with hot reload and proxy routing.
 - **src.wesktop.di** (`src/wesktop/di.py`): Dependency injection container re-exported from fastware: per-request resolution with automatic caching, generator cleanup, and override support.
 - **src.wesktop.entries** (`src/wesktop/entries.py`): Cross-platform desktop entry creation and removal for Linux .desktop files, macOS .app bundles, and Windows Start Menu shortcuts.
