@@ -34,6 +34,7 @@ order: 90
 - [src.wesktop.mcp_tools.review](src-wesktop-mcp_tools-review.html)
 - [src.wesktop.mcp_tools.testing](src-wesktop-mcp_tools-testing.html)
 - [src.wesktop.middleware](src-wesktop-middleware.html)
+- [src.wesktop.runtime_bridge](src-wesktop-runtime_bridge.html)
 - [src.wesktop.sdui](src-wesktop-sdui.html)
 - [src.wesktop.server](src-wesktop-server.html)
 - [src.wesktop.sse](src-wesktop-sse.html)

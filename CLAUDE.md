@@ -65,6 +65,7 @@ Some stubs (`asgi.py`, `server.py`, `mcp.py`) also re-export private helpers use
 - **src.wesktop.mcp_tools.review** (`src/wesktop/mcp_tools/review.py`): Review MCP tools for posting inline comments on code changes, delegating to the wesktop server API for persistent review storage.
 - **src.wesktop.mcp_tools.testing** (`src/wesktop/mcp_tools/testing.py`): Testing MCP tools that delegate test suite execution, result collection, and coverage reporting to the wesktop server API endpoint.
 - **src.wesktop.middleware** (`src/wesktop/middleware.py`): Pure ASGI middleware re-exported from fastware: request tracing, CORS headers, trusted-host validation, and Vite dev proxy routing.
+- **src.wesktop.runtime_bridge** (`src/wesktop/runtime_bridge.py`): Host-side native bridge for reacting to fastware build changes.
 - **src.wesktop.sdui** (`src/wesktop/sdui.py`): Pydantic schemas for all 40 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
 - **src.wesktop.server** (`src/wesktop/server.py`): Granian ASGI server lifecycle re-exported from fastware: PID file tracking, port availability checks, foreground and background serve modes.
 - **src.wesktop.sse** (`src/wesktop/sse.py`): SSE (Server-Sent Events) broadcaster re-exported from fastware: typed events, per-client async queues, automatic disconnect pruning, and strict mode.

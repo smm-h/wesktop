@@ -158,6 +158,11 @@
       "type": "doc"
     },
     {
+      "path": "src-wesktop-runtime_bridge.md",
+      "title": "src.wesktop.runtime_bridge",
+      "type": "doc"
+    },
+    {
       "path": "src-wesktop-sdui.md",
       "title": "src.wesktop.sdui",
       "type": "doc"
@@ -199,5 +204,5 @@
     }
   ],
   "posts": [],
-  "last_gen": "2026-07-11T11:53:00.127372+00:00"
+  "last_gen": "2026-07-11T13:30:14.042133+00:00"
 }
