@@ -26,13 +26,6 @@ def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return rt
 
 
-@pytest.fixture(autouse=True)
-def _reset_window_counts() -> None:
-    """Clear window reference counts between tests."""
-    from wesktop.desktop import _window_counts
-    _window_counts.clear()
-
-
 # All success-path tests also mock _has_gui_backend to return True,
 # so they work even when no real GTK/Qt is available.
 
@@ -997,12 +990,45 @@ def test_single_window_close_stops_server(
     mock_stop.assert_called_once_with(pid_path)
 
 
+def _seed_window_marker(pid_path: Path, pid: int, window_id: str) -> Path:
+    """Directly write a window marker owned by an arbitrary PID (simulates another process)."""
+    import msgspec
+
+    from fastware.server import _registry_dir
+
+    reg_dir = _registry_dir(pid_path)
+    reg_dir.mkdir(parents=True, exist_ok=True)
+    path = reg_dir / f"window--{pid}--{window_id}.marker"
+    path.write_bytes(
+        msgspec.json.encode(
+            {"pid": pid, "marker_id": window_id, "kind": "window", "window_id": window_id}
+        )
+    )
+    return path
+
+
+@pytest.fixture
+def live_pid() -> int:
+    """A real, live subprocess PID that lasts for the test (torn down after)."""
+    import subprocess
+
+    proc = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+    try:
+        yield proc.pid
+    finally:
+        proc.terminate()
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+
+
 @patch("wesktop.desktop._has_gui_backend", return_value=True)
 @patch("webview.start")
 @patch("webview.create_window")
 @patch("wesktop.server.serve_background")
 @patch("wesktop.server.stop")
-@patch("wesktop.server.check_already_running")
+@patch("wesktop.server.check_already_running", return_value=42)
 @patch("wesktop.server.read_port_file")
 def test_two_windows_first_close_no_stop_second_stops(
     mock_read_port: MagicMock,
@@ -1013,56 +1039,37 @@ def test_two_windows_first_close_no_stop_second_stops(
     mock_wv_start: MagicMock,
     _mock_gui: MagicMock,
     tmp_path: Path,
+    live_pid: int,
 ) -> None:
-    """With two windows (primary + joined), the first close does not stop; the second does."""
+    """Cross-process refcount: closing one window while another process's window
+    is still open must NOT stop the shared server; closing the last must.
+
+    Simulates two processes via two window marker files -- one owned by a real
+    live PID (the "other process"). This process joins the existing server, opens
+    a window, and closes it.
+    """
     port = _free_port()
     pid_path = tmp_path / "app.pid"
-    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
-    # First call: no existing instance
-    mock_check.return_value = None
+    pid_path.write_text("42")
+    mock_read_port.return_value = port
 
-    from wesktop.desktop import run, _window_counts
+    # Other process (live PID) has an open window.
+    other_marker = _seed_window_marker(pid_path, live_pid, "wb")
 
-    # Window 1: primary (starts server)
-    run("myapp:app", host="127.0.0.1", port=port, pid_path=pid_path, single_instance=True)
+    from wesktop.desktop import run
 
-    # After window 1 closes, count should be 0 and stop should be called
-    # But we want to simulate TWO windows. So we need to pre-increment
-    # the count to simulate another window being open.
-    # Let's reset and do it properly: simulate the primary window opening,
-    # then a join window opening, then the join closing, then the primary closing.
+    # This process joins, opens a window, and closes it (webview.start mocked).
+    run("myapp:app", host="127.0.0.1", pid_path=pid_path, single_instance=True)
 
-    # Reset state
-    mock_stop.reset_mock()
-    _window_counts.clear()
-
-    # Simulate: primary opens (increments to 1), join opens (increments to 2),
-    # join closes (decrements to 1, no stop), primary closes (decrements to 0, stop).
-    # We need to interleave the webview.start() calls. Since webview.start() blocks,
-    # the second window must be opened in a different thread in reality.
-    # In tests, we can simulate by manipulating _window_counts directly.
-
-    key = str(pid_path)
-
-    # Simulate primary window opened
-    _window_counts[key] = 2  # primary + joined both open
-
-    # Simulate joined window closing (decrement)
-    _window_counts[key] -= 1
-    assert _window_counts[key] == 1
-    # Count > 0, so stop should NOT be called
+    # The other process's window marker is still live -> server must NOT be stopped.
     mock_stop.assert_not_called()
+    assert other_marker.exists()
 
-    # Simulate primary window closing (decrement)
-    _window_counts[key] -= 1
-    assert _window_counts[key] == 0
-    # Count reaches 0 -- stop the server
-    _window_counts.pop(key, None)
-    from wesktop.server import stop
-    try:
-        stop(pid_path)
-    except (FileNotFoundError, ProcessLookupError):
-        pass
+    # Now the other process's window closes: remove its marker, then this process
+    # opens+closes the last window -> server IS stopped.
+    other_marker.unlink()
+    mock_stop.reset_mock()
+    run("myapp:app", host="127.0.0.1", pid_path=pid_path, single_instance=True)
     mock_stop.assert_called_once_with(pid_path)
 
 
@@ -1121,3 +1128,279 @@ def test_stop_process_lookup_error_handled_in_join_path(
     run("myapp:app", host="127.0.0.1", pid_path=pid_path, single_instance=True)
 
     mock_stop.assert_called_once_with(pid_path)
+
+
+# --- Phase 14: URL helpers ---
+
+
+def test_app_url_and_port_helpers() -> None:
+    from wesktop.desktop import _app_url, _port_from_url, _version_url
+
+    url = _app_url("127.0.0.1", 8123)
+    assert url == "http://127.0.0.1:8123"
+    assert _port_from_url(url) == 8123
+    assert _version_url(url) == "http://127.0.0.1:8123/__fastware/version"
+    assert _version_url(url + "/") == "http://127.0.0.1:8123/__fastware/version"
+
+
+def test_port_from_url_rejects_portless() -> None:
+    from wesktop.desktop import _port_from_url
+
+    with pytest.raises(ValueError, match="no port"):
+        _port_from_url("http://127.0.0.1")
+
+
+# --- Phase 14: second_open configuration ---
+
+
+def test_second_open_invalid_rejected() -> None:
+    from wesktop.desktop import run
+
+    with pytest.raises(ValueError, match="second_open"):
+        run("myapp:app", second_open="raise-hell")
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve_background")
+@patch("wesktop.server.stop")
+@patch("wesktop.server.check_already_running", return_value=42)
+@patch("wesktop.server.read_port_file")
+def test_second_open_focus_existing_writes_marker_and_exits(
+    mock_read_port: MagicMock,
+    mock_check: MagicMock,
+    mock_stop: MagicMock,
+    mock_serve_bg: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """focus-existing on a second launch drops a focus-request marker and exits --
+    no window is created, no server is started or stopped."""
+    from wesktop.desktop import run
+    from wesktop.server import list_markers
+
+    port = _free_port()
+    pid_path = tmp_path / "app.pid"
+    pid_path.write_text("42")
+    mock_read_port.return_value = port
+
+    run(
+        "myapp:app",
+        host="127.0.0.1",
+        pid_path=pid_path,
+        single_instance=True,
+        second_open="focus-existing",
+    )
+
+    mock_create_window.assert_not_called()
+    mock_wv_start.assert_not_called()
+    mock_serve_bg.assert_not_called()
+    mock_stop.assert_not_called()
+
+    requests = list_markers(pid_path, "focus-request")
+    assert len(requests) == 1
+    assert requests[0]["pid"] == __import__("os").getpid()
+
+
+@patch("wesktop.desktop._require_webview_gui")
+@patch("wesktop.server.check_already_running", return_value=42)
+@patch("wesktop.server.read_port_file")
+def test_focus_existing_needs_no_gui_backend(
+    mock_read_port: MagicMock,
+    mock_check: MagicMock,
+    mock_require_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """focus-existing exits before requiring pywebview/GUI (a signal-only launch)."""
+    from wesktop.desktop import run
+
+    port = _free_port()
+    pid_path = tmp_path / "app.pid"
+    pid_path.write_text("42")
+    mock_read_port.return_value = port
+
+    run(
+        "myapp:app",
+        pid_path=pid_path,
+        single_instance=True,
+        second_open="focus-existing",
+    )
+    mock_require_gui.assert_not_called()
+
+
+# --- Phase 14: startup handshake ---
+
+
+def _make_version_server(payload: bytes) -> tuple[object, int]:
+    """A tiny threaded HTTP server that returns *payload* at /__fastware/version."""
+    import http.server
+    import threading as _th
+
+    class _Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):  # noqa: N802
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def log_message(self, *_args):  # silence
+            pass
+
+    srv = http.server.HTTPServer(("127.0.0.1", 0), _Handler)
+    t = _th.Thread(target=srv.serve_forever, daemon=True)
+    t.start()
+    return srv, srv.server_address[1]
+
+
+def test_startup_handshake_success_no_error(capsys: pytest.CaptureFixture) -> None:
+    from wesktop.desktop import _app_url, _startup_handshake
+
+    srv, port = _make_version_server(b'{"build_id": "deadbeef"}')
+    try:
+        build_id = _startup_handshake(_app_url("127.0.0.1", port))
+    finally:
+        srv.shutdown()
+    assert build_id == "deadbeef"
+    assert "HANDSHAKE FAILED" not in capsys.readouterr().err
+
+
+def test_startup_handshake_malformed_is_loud(capsys: pytest.CaptureFixture) -> None:
+    from wesktop.desktop import _app_url, _startup_handshake
+
+    srv, port = _make_version_server(b"not json")
+    try:
+        build_id = _startup_handshake(_app_url("127.0.0.1", port))
+    finally:
+        srv.shutdown()
+    assert build_id is None
+    assert "HANDSHAKE FAILED" in capsys.readouterr().err
+
+
+def test_startup_handshake_unreachable_is_loud(capsys: pytest.CaptureFixture) -> None:
+    from wesktop.desktop import _app_url, _startup_handshake
+
+    build_id = _startup_handshake(_app_url("127.0.0.1", _free_port()), timeout=0.5)
+    assert build_id is None
+    err = capsys.readouterr().err
+    assert "HANDSHAKE FAILED" in err
+
+
+# --- Phase 14: runtime-config injection ---
+
+
+class _InjectWindow:
+    def __init__(self, fail_times: int) -> None:
+        self._fail_times = fail_times
+        self.calls: list[str] = []
+
+    def evaluate_js(self, script: str) -> None:
+        self.calls.append(script)
+        if len(self.calls) <= self._fail_times:
+            raise RuntimeError("page not ready")
+
+
+def test_inject_runtime_config_success() -> None:
+    from wesktop.desktop import _inject_runtime_config
+
+    w = _InjectWindow(fail_times=0)
+    assert _inject_runtime_config(w, "abc", 8123, "MyApp") is True
+    assert len(w.calls) == 1
+    assert "window.__wesktop" in w.calls[0]
+    assert '"buildId": "abc"' in w.calls[0]
+    assert '"port": 8123' in w.calls[0]
+    assert '"appName": "MyApp"' in w.calls[0]
+
+
+def test_inject_runtime_config_retries_once() -> None:
+    from wesktop.desktop import _inject_runtime_config
+
+    w = _InjectWindow(fail_times=1)  # first call raises, second succeeds
+    assert _inject_runtime_config(w, "abc", 8123, "MyApp") is True
+    assert len(w.calls) == 2
+
+
+def test_inject_runtime_config_gives_up_after_retry() -> None:
+    from wesktop.desktop import _inject_runtime_config
+
+    w = _InjectWindow(fail_times=99)  # always raises
+    assert _inject_runtime_config(w, "abc", 8123, "MyApp") is False
+    assert len(w.calls) == 2  # exactly one retry
+
+
+def test_wire_runtime_config_injection_fires_on_loaded() -> None:
+    from wesktop.desktop import _wire_runtime_config_injection
+
+    class _Event:
+        def __init__(self) -> None:
+            self.handlers: list = []
+
+        def __iadd__(self, h):
+            self.handlers.append(h)
+            return self
+
+        def fire(self):
+            for h in list(self.handlers):
+                h()
+
+    class _Events:
+        def __init__(self) -> None:
+            self.loaded = _Event()
+
+    w = _InjectWindow(fail_times=0)
+    w.events = _Events()  # type: ignore[attr-defined]
+
+    _wire_runtime_config_injection(w, "abc", 8123, "MyApp")
+    assert w.calls == []  # not injected until the page loads
+    w.events.loaded.fire()
+    assert len(w.calls) == 1
+
+
+# --- Phase 14: focus-request poll ---
+
+
+def test_focus_request_poll_consumes_marker_and_raises() -> None:
+    import threading as _th
+
+    from wesktop.desktop import _install_focus_request_poll
+    from wesktop.server import list_markers, write_marker
+
+    tmp = Path(__import__("tempfile").mkdtemp())
+    pid_path = tmp / "app.pid"
+
+    raised = _th.Event()
+
+    class _Win:
+        def restore(self):
+            pass
+
+        def show(self):
+            raised.set()
+
+    stop_event = _th.Event()
+    _install_focus_request_poll(_Win(), pid_path, stop_event, interval=0.05)
+    try:
+        write_marker(pid_path, "focus-request", "req1")
+        assert raised.wait(timeout=3.0), "window was not raised on focus request"
+        # The marker was consumed.
+        assert list_markers(pid_path, "focus-request", prune_dead=False) == []
+    finally:
+        stop_event.set()
+
+
+# --- Phase 14: registry enumeration ---
+
+
+def test_list_app_instances(tmp_path: Path) -> None:
+    from wesktop.desktop import list_app_instances
+    from wesktop.server import register_instance, write_marker
+
+    pid_path = tmp_path / "app.pid"
+    register_instance(pid_path, port=8123, name="myapp")
+    write_marker(pid_path, "window", "w1", fields={"window_id": "w1"})
+
+    snap = list_app_instances(pid_path)
+    assert [s.name for s in snap.servers] == ["myapp"]
+    assert [m["window_id"] for m in snap.windows] == ["w1"]
