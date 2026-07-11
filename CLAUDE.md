@@ -54,7 +54,7 @@ Some stubs (`asgi.py`, `server.py`, `mcp.py`) also re-export private helpers use
 - **src.wesktop.error_log** (`src/wesktop/error_log.py`): SQLite-backed error log re-exported from fastware for recording and querying 5xx server responses with request context and tracebacks.
 - **src.wesktop.features** (`src/wesktop/features.py`): Boolean feature flags re-exported from fastware with per-machine JSON overrides, runtime toggle, enabled/disabled checks, and hot reload support.
 - **src.wesktop.logging** (`src/wesktop/logging.py`): Structured logging configuration re-exported from fastware: structlog with automatic JSON output in production and colored console in development.
-- **src.wesktop.mcp** (`src/wesktop/mcp.py`): wesktop's agent role registry plus the MCP server factory that wraps fastware: per-role tool provisioning for implementor, auditor, reviewer, and deploy...
+- **src.wesktop.mcp** (`src/wesktop/mcp.py`): wesktop's agent role registry plus the MCP server factory that wraps fastware: per-role tool provisioning for implementor, auditor, reviewer, and deployer agents.
 - **src.wesktop.mcp_tools** (`src/wesktop/mcp_tools/__init__.py`): Tool implementations for the MCP agent server: filesystem access, git operations, testing, deployment, code review, and interactive user prompts.
 - **src.wesktop.mcp_tools._http** (`src/wesktop/mcp_tools/_http.py`): Shared authenticated-HTTP helper for the HTTP-backed MCP tool modules.
 - **src.wesktop.mcp_tools._paths** (`src/wesktop/mcp_tools/_paths.py`): Shared worktree path-traversal guard for the MCP tool modules.

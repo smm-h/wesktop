@@ -2,7 +2,7 @@
   "schema_version": 1,
   "name": "wesktop",
   "slug": "wesktop",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "",
   "language": "python",
   "base_url": "https://wesktop.smmh.dev",
@@ -199,5 +199,5 @@
     }
   ],
   "posts": [],
-  "last_gen": "2026-07-10T08:32:11.264243+00:00"
+  "last_gen": "2026-07-11T11:53:00.127372+00:00"
 }

@@ -94,7 +94,7 @@ npx wesktop diagnose
 
 ## Module layout
 
-:-: list-features path="src/wesktop/"
+:-: list-modules path="src/wesktop/"
 
 ## Dependencies
 

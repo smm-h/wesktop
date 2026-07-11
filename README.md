@@ -99,26 +99,36 @@ npx wesktop diagnose
 
 ## Module layout
 
-- **__main__**: CLI entry point enabling `python -m wesktop` for diagnostics and configuration management via strictcli.
-- **asgi**: Full-featured ASGI framework re-exported from fastware: Router, Request, response types, WebSocket, app factory, middleware, and type aliases.
-- **audit**: Append-only JSONL audit log writer re-exported from fastware for recording timestamped application events with structured payloads.
-- **auth**: Authentication module re-exported from fastware: JWT token creation and verification, bcrypt password hashing, user stores, CSRF, and rate limiting.
-- **cli**: wesktop CLI providing diagnostics (Python version, dependency versions, platform info) and configuration management via strictcli subcommands.
-- **config**: Config loading utility re-exported from fastware: standalone TOML config file parsing with optional Pydantic validation and environment overrides.
-- **desktop**: Native desktop window via pywebview, backed by a Granian ASGI server in a daemon thread, with automatic server lifecycle and window close handling.
-- **dev**: Development mode re-exported from fastware: combined Vite frontend and ASGI backend in a single command with hot reload and proxy routing.
-- **di**: Dependency injection container re-exported from fastware: per-request resolution with automatic caching, generator cleanup, and override support.
-- **entries**: Cross-platform desktop entry creation and removal for Linux.
-- **error_log**: SQLite-backed error log re-exported from fastware for recording and querying 5xx server responses with request context and tracebacks.
-- **features**: Boolean feature flags re-exported from fastware with per-machine JSON overrides, runtime toggle, enabled/disabled checks, and hot reload support.
-- **logging**: Structured logging configuration re-exported from fastware: structlog with automatic JSON output in production and colored console in development.
-- **mcp**: wesktop's agent role registry plus the MCP server factory that wraps fastware: per-role tool provisioning for implementor, auditor, reviewer, and deployer agents.
-- **middleware**: Pure ASGI middleware re-exported from fastware: request tracing, CORS headers, trusted-host validation, and Vite dev proxy routing.
-- **sdui**: Pydantic schemas for all 40 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
-- **server**: Granian ASGI server lifecycle re-exported from fastware: PID file tracking, port availability checks, foreground and background serve modes.
-- **sse**: SSE (Server-Sent Events) broadcaster re-exported from fastware: typed events, per-client async queues, automatic disconnect pruning, and strict mode.
-- **tasks**: Background task registry re-exported from fastware: feature-gated lifecycle management with start/stop protocol and graceful shutdown ordering.
-- **testing**: Sync and async test clients re-exported from fastware for exercising wesktop ASGI routes without starting a real network server or GUI window.
+- **src.wesktop** (`src/wesktop/__init__.py`): wesktop — A Python framework for building web-based desktop applications.
+- **src.wesktop.__main__** (`src/wesktop/__main__.py`): CLI entry point enabling `python -m wesktop` for diagnostics and configuration management via strictcli.
+- **src.wesktop.asgi** (`src/wesktop/asgi.py`): Full-featured ASGI framework re-exported from fastware: Router, Request, response types, WebSocket, app factory, middleware, and type aliases.
+- **src.wesktop.audit** (`src/wesktop/audit.py`): Append-only JSONL audit log writer re-exported from fastware for recording timestamped application events with structured payloads.
+- **src.wesktop.auth** (`src/wesktop/auth.py`): Authentication module re-exported from fastware: JWT token creation and verification, bcrypt password hashing, user stores, CSRF, and rate limiting.
+- **src.wesktop.cli** (`src/wesktop/cli.py`): wesktop CLI providing diagnostics (Python version, dependency versions, platform info) and configuration management via strictcli subcommands.
+- **src.wesktop.config** (`src/wesktop/config.py`): Config loading utility re-exported from fastware: standalone TOML config file parsing with optional Pydantic validation and environment overrides.
+- **src.wesktop.desktop** (`src/wesktop/desktop.py`): Native desktop window via pywebview, backed by a Granian ASGI server in a daemon thread, with automatic server lifecycle and window close handling.
+- **src.wesktop.dev** (`src/wesktop/dev.py`): Development mode re-exported from fastware: combined Vite frontend and ASGI backend in a single command with hot reload and proxy routing.
+- **src.wesktop.di** (`src/wesktop/di.py`): Dependency injection container re-exported from fastware: per-request resolution with automatic caching, generator cleanup, and override support.
+- **src.wesktop.entries** (`src/wesktop/entries.py`): Cross-platform desktop entry creation and removal for Linux .desktop files, macOS .app bundles, and Windows Start Menu shortcuts.
+- **src.wesktop.error_log** (`src/wesktop/error_log.py`): SQLite-backed error log re-exported from fastware for recording and querying 5xx server responses with request context and tracebacks.
+- **src.wesktop.features** (`src/wesktop/features.py`): Boolean feature flags re-exported from fastware with per-machine JSON overrides, runtime toggle, enabled/disabled checks, and hot reload support.
+- **src.wesktop.logging** (`src/wesktop/logging.py`): Structured logging configuration re-exported from fastware: structlog with automatic JSON output in production and colored console in development.
+- **src.wesktop.mcp** (`src/wesktop/mcp.py`): wesktop's agent role registry plus the MCP server factory that wraps fastware: per-role tool provisioning for implementor, auditor, reviewer, and deployer agents.
+- **src.wesktop.mcp_tools** (`src/wesktop/mcp_tools/__init__.py`): Tool implementations for the MCP agent server: filesystem access, git operations, testing, deployment, code review, and interactive user prompts.
+- **src.wesktop.mcp_tools._http** (`src/wesktop/mcp_tools/_http.py`): Shared authenticated-HTTP helper for the HTTP-backed MCP tool modules.
+- **src.wesktop.mcp_tools._paths** (`src/wesktop/mcp_tools/_paths.py`): Shared worktree path-traversal guard for the MCP tool modules.
+- **src.wesktop.mcp_tools.ask_user** (`src/wesktop/mcp_tools/ask_user.py`): Ask-user MCP tool: posts a question to the wesktop dashboard via HTTP API and polls for the user's answer with configurable timeout.
+- **src.wesktop.mcp_tools.deployment** (`src/wesktop/mcp_tools/deployment.py`): Deployment MCP tools that delegate staging, production PR creation, and pipeline status checks to the wesktop server API.
+- **src.wesktop.mcp_tools.filesystem** (`src/wesktop/mcp_tools/filesystem.py`): Filesystem MCP tools scoped to an agent's worktree: read, write, edit, list, and search files with path traversal guard enforcement.
+- **src.wesktop.mcp_tools.git** (`src/wesktop/mcp_tools/git.py`): Git MCP tools scoped to an agent's worktree: status, diff, commit, and log commands with timeout enforcement and -C path isolation.
+- **src.wesktop.mcp_tools.review** (`src/wesktop/mcp_tools/review.py`): Review MCP tools for posting inline comments on code changes, delegating to the wesktop server API for persistent review storage.
+- **src.wesktop.mcp_tools.testing** (`src/wesktop/mcp_tools/testing.py`): Testing MCP tools that delegate test suite execution, result collection, and coverage reporting to the wesktop server API endpoint.
+- **src.wesktop.middleware** (`src/wesktop/middleware.py`): Pure ASGI middleware re-exported from fastware: request tracing, CORS headers, trusted-host validation, and Vite dev proxy routing.
+- **src.wesktop.sdui** (`src/wesktop/sdui.py`): Pydantic schemas for all 40 SDUI (Server-Driven UI) primitives: layout containers, text, buttons, forms, tables, charts, and status indicators.
+- **src.wesktop.server** (`src/wesktop/server.py`): Granian ASGI server lifecycle re-exported from fastware: PID file tracking, port availability checks, foreground and background serve modes.
+- **src.wesktop.sse** (`src/wesktop/sse.py`): SSE (Server-Sent Events) broadcaster re-exported from fastware: typed events, per-client async queues, automatic disconnect pruning, and strict mode.
+- **src.wesktop.tasks** (`src/wesktop/tasks.py`): Background task registry re-exported from fastware: feature-gated lifecycle management with start/stop protocol and graceful shutdown ordering.
+- **src.wesktop.testing** (`src/wesktop/testing.py`): Sync and async test clients re-exported from fastware for exercising wesktop ASGI routes without starting a real network server or GUI window.
 
 ## Dependencies
 
