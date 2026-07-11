@@ -96,7 +96,18 @@ import wesktop
 wesktop.run("myapp:app")  # server + native window
 ```
 
-Starts a granian server in a background thread, opens a native OS window via pywebview, and blocks until the window is closed. Supports single-instance checking (second launch joins the existing server).
+Starts a detached granian server subprocess, opens a native OS window via pywebview, and blocks until the window is closed. Supports single-instance checking (second launch reaches the existing server).
+
+**Second-launch behavior (`second_open`)** is an explicit per-app choice on `run()`:
+
+- `second_open="new-window"` (default): a second launch opens an additional native window joined to the running server.
+- `second_open="focus-existing"`: a second launch opens no window -- it drops a platform-neutral, file-based focus-request marker in the instance-registry dir and exits; the window-owning process's ~1s poll consumes it and raises its window (`restore()`+`show()`). Raising above other applications is window-manager dependent and best-effort. No DBus, no AppleEvents.
+
+**Cross-process window refcounting.** Each open window writes a marker file (`{pid, window_id}`) into the fastware instance-registry dir; the server is stopped only when zero live window markers remain (dead PIDs pruned by liveness). This means one process closing its last window never kills the server while another process still has a window open.
+
+**Process-group story.** wesktop group-manages only the detached server subprocess; pywebview owns the renderer child processes. Window markers plus the server's registry entry are the cross-process coordination surface -- enumerable via `wesktop.desktop.list_app_instances(pid_path)`.
+
+**Startup handshake + runtime config.** After the window is created, the runtime bridge fetches `/__fastware/version`; if it is unreachable or malformed within the timeout, a loud stderr error is logged (the window stays open). After the page loads, `window.__wesktop = {buildId, port, appName}` is injected via `evaluate_js` (best-effort, retried once).
 
 ### Headless mode
 
