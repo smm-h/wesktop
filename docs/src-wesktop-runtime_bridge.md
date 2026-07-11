@@ -1,8 +1,7 @@
 ---
 title: src.wesktop.runtime_bridge
-description: "Host-side native bridge for reacting to fastware build changes."
+description: "Host-side native bridge that reloads a pywebview window, clears its web cache, and polls the fastware version endpoint on focus to react to build changes."
 generated: true
-seeded: true
 nav_group: "API Reference"
 nav_order: 25
 ---
