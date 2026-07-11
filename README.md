@@ -135,7 +135,7 @@ npx wesktop diagnose
 
 | Package | Version Constraint |
 | --- | --- |
-| `fastware[all]` | * |
+| `fastware[all]` | >=0.5.0 |
 | `pywebview` | >=6.2.1 |
 | `strictcli` | * |
 | `pydantic` | * |
