@@ -101,7 +101,7 @@ wesktop config show # Current configuration
 
 ### SDUI primitives
 
-39 Pydantic-validated server-driven UI node types organized into 6 categories (layout, display, data, input, feedback, overlay) for building dynamic dashboards without shipping custom frontend code. Each model serializes to the exact dict shape the SDUI renderer expects.
+40 Pydantic-validated server-driven UI node types organized into 6 categories (layout, display, data, input, feedback, overlay) for building dynamic dashboards without shipping custom frontend code. Each model serializes to the exact dict shape the SDUI renderer expects.
 
 ### GUI backend detection
 
@@ -123,7 +123,7 @@ wesktop config show # Current configuration
 | Auth | No | JWT, password hashing, RBAC, rate limiting |
 | Desktop entries | No | Built-in (Linux, macOS, Windows) |
 | CLI | No | `wesktop diagnose`, `wesktop config` |
-| SDUI | No | 39 node types |
+| SDUI | No | 40 node types |
 | Dev mode | No | Vite + granian hot-reload |
 | Dependencies | pywebview only | pywebview + granian + fastware + msgspec |
 

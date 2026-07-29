@@ -93,24 +93,17 @@ Development mode with Vite frontend hot-reload. Starts a Vite dev server as a su
 
 ## SDUI Primitives
 
-The SDUI system provides 39 Pydantic-validated node types organized into 6 categories (layout, display, data, input, feedback, overlay) for building dynamic dashboards entirely from the server without shipping custom frontend code.
+The SDUI system provides 40 Pydantic-validated node types organized into 6 categories (layout, display, data, input, feedback, overlay) for building dynamic dashboards entirely from the server without shipping custom frontend code.
 
 :-: ref path="src.wesktop.sdui" target="SDUINode"
 
-wesktop includes 39 server-driven UI node types for building dynamic dashboards without shipping frontend code. Each model serializes to the `{"type", "props", "children"}` dict shape expected by the SDUI renderer.
+wesktop includes 40 server-driven UI node types for building dynamic dashboards without shipping frontend code. Each model serializes to the `{"type", "props", "children"}` dict shape expected by the SDUI renderer.
 
 For the full list of SDUI primitives (layout, display, data, input, feedback, overlay), see the [auto-generated SDUI reference](src-wesktop-sdui.html).
 
 ### Grouping
 
-| Category | Count | Nodes |
-|----------|-------|-------|
-| Layout | 9 | Stack, ZStack, Spacer, Divider, Grid, Card, Tabs, Breadcrumb, Empty |
-| Display | 10 | Heading, Text, Code, Status, Badge, ProgressBar, Spinner, Timeline, Diff, Markdown |
-| Data | 6 | Table, DataGrid, List, KeyValue, JsonView, Tree |
-| Input | 8 | Button, Input, TextArea, Select, Checkbox, Switch, Radio, Slider |
-| Feedback | 3 | Alert, Toast, Logs |
-| Overlay | 4 | Modal, Drawer, Popover, Confirm |
+:-: table-sdui
 
 ### Quick example
 

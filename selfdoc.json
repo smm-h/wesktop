@@ -26,6 +26,9 @@
       "default": true
     }
   ],
+  "directives": {
+    "table-sdui": "docs/_directives/sdui_table.py"
+  },
   "gen": {
     "exclude": [
       "src.wesktop"

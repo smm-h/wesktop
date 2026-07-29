@@ -49,7 +49,7 @@ Electron bundles a full Chromium browser and a Node.js runtime into every applic
 
 **Simpler architecture.** One Python process runs the server. The native webview connects to `http://127.0.0.1:<port>`. No IPC protocol, no main/renderer split, no preload scripts. If you can write a Flask or FastAPI app, you can write a wesktop app.
 
-**Server-side rendering.** The ASGI router (via fastware) handles all rendering server-side. You can also build fully dynamic UIs with the SDUI system -- 39 node types covering layout, display, data, input, feedback, and overlay.
+**Server-side rendering.** The ASGI router (via fastware) handles all rendering server-side. You can also build fully dynamic UIs with the SDUI system -- 40 node types covering layout, display, data, input, feedback, and overlay.
 
 ## When to choose which
 

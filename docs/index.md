@@ -14,7 +14,7 @@ wesktop re-exports the entire fastware API so consumers can `import wesktop` and
 
 - **Desktop window** -- start a granian server in a background thread, open a native OS window via pywebview, block until the user closes it
 - **Desktop entries** -- create and remove platform-native application shortcuts (Linux `.desktop` files, macOS `.app` bundles, Windows Start Menu shortcuts)
-- **SDUI primitives** -- 39 server-driven UI node types (layout, display, data, input, feedback, overlay) for building dynamic dashboards without shipping frontend code
+- **SDUI primitives** -- 40 server-driven UI node types (layout, display, data, input, feedback, overlay) for building dynamic dashboards without shipping frontend code
 - **Dev mode** -- Vite integration for frontend hot-reload during development
 - **GUI backend detection** -- automatic discovery of system PyGObject/Qt in isolated venvs
 
