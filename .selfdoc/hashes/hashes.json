@@ -23,9 +23,17 @@
     "content": "43c5edadb2ce76afe40266299506a59bb7bb36b938755651ed5d16d395e9599a",
     "description": "d666022be8ffe4410e5ac13ba9feca4f7c598f0d8485006c57d5d8d68c089929"
   },
+  "en/getting-started.md": {
+    "content": "085cf6d990a043141577277da0a560adc4c1901c9ddabbdcff640cfedea97828",
+    "description": "c878a20485b4bdd2e829bf00aaec74321adb8bb8b28b044165c8e864e4052d4b"
+  },
   "en/index.md": {
     "content": "da592a797e628643fba95c37f715c68d0aecc85304e65b35bdfa4dd2336223ae",
     "description": "561181262bbd5af9954ee2549eab5fd597869bbbbd58c432d266bdcd0516c4af"
+  },
+  "en/sdui-reference.md": {
+    "content": "e43fcddfc75e80b483229f88f303bf61996e38bf5f02bfb24fa13783094be8a7",
+    "description": "a2fceac92bbb21f0a1d7fbe2351c6a6eeaf34f3767fecbeb98e1271bbc441ebd"
   },
   "en/src-wesktop-__main__.md": {
     "content": "a563eed4d63c6fd551a2551ef6b00c098ecbee9b1a9307d3ef4b186adec91eec",
