@@ -6,9 +6,9 @@ date: 2026-07-01
 
 # API Reference
 
-wesktop exposes 116 public symbols via `import wesktop`. Most of these are re-exports from [fastware](https://docs.smmh.dev/fastware) -- the ASGI micro-framework that provides routing, responses, SSE, middleware, auth, dependency injection, config, testing, server lifecycle, background tasks, feature flags, audit logging, error logging, and MCP support. For documentation on those symbols, see the [fastware API reference](https://docs.smmh.dev/fastware/api.html).
+wesktop exposes 117 public symbols via `import wesktop`. Most of these are re-exports from [fastware](https://docs.smmh.dev/fastware) -- the ASGI micro-framework that provides routing, responses, SSE, middleware, auth, dependency injection, config, testing, server lifecycle, background tasks, feature flags, audit logging, error logging, and MCP support. For documentation on those symbols, see the [fastware API reference](https://docs.smmh.dev/fastware/api.html).
 
-This page documents the symbols that are native to wesktop -- the desktop shell, entry management, SDUI primitives, GUI backend detection, and dev mode. The library is validated by 131 tests across 8 test modules.
+This page documents the symbols that are native to wesktop -- the desktop shell, entry management, SDUI primitives, GUI backend detection, and dev mode. The library is validated by 271 tests across 13 test modules.
 
 ## Desktop Window
 
@@ -16,13 +16,18 @@ The desktop module provides the `run()` function for launching native OS windows
 
 :-: ref path="src.wesktop.desktop"
 
-### `wesktop.run(target, *, title, width, height, icon, host, port, pid_path, name, pre_serve, reload, js_api, single_instance)`
+### `wesktop.run(target, *, title, width, height, icon, host, port, pid_path, name, pre_serve, reload, js_api, single_instance, second_open)`
 
-Start a granian server in a background thread and open a native desktop window via pywebview. Blocks until the user closes the window. This is the primary entry point for desktop applications.
+Start a detached granian server subprocess and open a native desktop window via pywebview. Blocks until the user closes the window. This is the primary entry point for desktop applications.
 
 The `target` parameter is an ASGI import path (e.g., `"myapp:app"`) or a callable. pywebview is late-imported so headless environments that only use `serve()` never load the GUI dependency. In desktop mode the server binds to a random available port by default (port 0), so multiple instances do not collide.
 
-When `single_instance=True` (the default) and a `pid_path` is provided, `run()` checks for an already-running server. If found, it opens a new window pointing at the existing server instead of starting a second one.
+When `single_instance=True` (the default), `run()` checks for an already-running server. If found, the behavior depends on `second_open`:
+
+- `second_open="new-window"` (default): opens an additional native window joined to the running server. Windows are refcounted across processes via marker files; the server stops only when the last window (in any process) closes.
+- `second_open="focus-existing"`: does NOT open a new window. Drops a platform-neutral, file-based focus-request marker and exits. The process that owns the window raises it via a ~1s poll. Raising above other applications is window-manager dependent and best-effort. No DBus, no AppleEvents.
+
+Note: `pre_serve` and `reload` are hard errors on `run()` because the desktop server runs as a detached subprocess that re-imports the target. Use `wesktop.serve()` for both.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -33,16 +38,48 @@ When `single_instance=True` (the default) and a `pid_path` is provided, `run()` 
 | `icon` | `str \| None` | `None` | Path to window icon |
 | `host` | `str \| None` | `None` | Bind address (default: `127.0.0.1`) |
 | `port` | `int \| None` | `None` | Bind port (default: random) |
-| `pid_path` | `Path \| None` | `None` | PID file for lifecycle management |
+| `pid_path` | `Path \| None` | `None` | PID file for lifecycle management. Defaults to a stable per-app path under the platform state directory when not provided. |
 | `name` | `str` | `"WESKTOP"` | Server name for logging |
-| `pre_serve` | `Callable \| None` | `None` | Callback invoked before starting the server |
-| `reload` | `bool` | `False` | Enable auto-reload on code changes |
+| `pre_serve` | `Callable \| None` | `None` | Not supported in `run()` (hard error). Use `serve()` instead. |
+| `reload` | `bool` | `False` | Not supported in `run()` (hard error). Use `serve()` instead. |
 | `js_api` | `object \| None` | `None` | Python object exposed to JavaScript via `window.pywebview.api` |
 | `single_instance` | `bool` | `True` | Join existing instance if one is running |
+| `second_open` | `str` | `"new-window"` | Second-launch behavior: `"new-window"` opens another window; `"focus-existing"` signals the existing window and exits |
 
 ### `wesktop.ensure_gui_backend()`
 
 Make pywebview's GUI backend importable in isolated virtual environments. If `gi` (PyGObject) is not importable, searches common system site-packages locations (Linux, macOS Homebrew, macOS Framework) and adds the first match to `sys.path`. Returns `True` if a backend is available, `False` otherwise. Called automatically by `run()`.
+
+### Cross-process window refcounting
+
+`run()` coordinates window lifecycle across multiple OS processes through filesystem markers in the fastware instance-registry directory. Each open window writes a marker file (`{pid, window_id}`) before `webview.start()` and removes it after the window closes. The server is stopped only when zero live window markers remain (dead PIDs pruned by liveness checks via `kill -0`). This means one process closing its last window never kills the server while another process still has a window open.
+
+### `wesktop.desktop.list_app_instances(pid_path)`
+
+Enumerate the app's live server instance(s) and open window markers. Returns an `AppInstances` dataclass with two fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `servers` | `list` | Registered server descriptors (from the fastware instance registry) |
+| `windows` | `list` | Live per-window marker payloads (dicts with `pid` and `window_id`) |
+
+Stale entries are pruned automatically by the underlying registry reads.
+
+### Runtime bridge (`wesktop.runtime_bridge`)
+
+The runtime bridge is the host-side complement to the page-side update path. Native windows load the same page as the browser, so the framework's `/__fastware/client.js` reloads the page via SSE when the build id changes -- that is the primary update path, requiring no host involvement and no polling.
+
+The runtime bridge provides host-side functions for reset and reload flows:
+
+| Function | Description |
+|----------|-------------|
+| `reload(window)` | Reload the page by injecting `location.reload()` |
+| `clear_web_cache(window)` | Best-effort cache clear: native `clear_cache` if available, otherwise clears Cache Storage API via injected JS |
+| `fetch_build_id(version_url)` | GET `/__fastware/version` and return the `build_id` string, or `None` on any failure |
+| `check_and_reload(window, version_url, last_build_id)` | Probe the version endpoint; reload the window if the build id differs from `last_build_id` |
+| `install_focus_poll(window, version_url)` | Wire a version poll to the window's focus event (if pywebview exposes one). Returns `True` if wired, `False` otherwise. On builds without a focus event this is a no-op; the page-side `client.js` remains the update path. |
+
+Build ids have no ordering: reload happens on a DIFFERENT id, not a "newer" one.
 
 ## Desktop Entries
 
@@ -119,6 +156,27 @@ layout = Stack(children=[
 # Using the node() helper
 tree = node("stack", [node("heading", text="Hello", level=2)])
 ```
+
+### SDUI provider registry
+
+The SDUI module includes a provider registry for named async callables that produce UI trees and initial state.
+
+#### `wesktop.register_sdui_provider(name, provider)`
+
+Register an SDUI provider by name. A provider is an async callable that returns `(ui_tree, initial_state)` -- a tuple of two dicts. The UI tree is the serialized SDUI node structure; the initial state is arbitrary data passed alongside it.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `str` | Unique provider name |
+| `provider` | `Callable[[], Awaitable[tuple[dict, dict]]]` | Async callable returning `(ui_tree, initial_state)` |
+
+#### `wesktop.get_sdui_provider(name)`
+
+Return the SDUI provider registered under `name`, or `None` if not registered.
+
+#### `wesktop.list_sdui_providers()`
+
+Return a list of all registered SDUI provider names.
 
 ## Fastware Re-exports
 
