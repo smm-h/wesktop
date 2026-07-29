@@ -33,8 +33,18 @@
       "type": "doc"
     },
     {
+      "path": "getting-started.md",
+      "title": "Getting Started",
+      "type": "doc"
+    },
+    {
       "path": "index.md",
       "title": "wesktop",
+      "type": "doc"
+    },
+    {
+      "path": "sdui-reference.md",
+      "title": "SDUI Primitive Reference",
       "type": "doc"
     },
     {
@@ -204,5 +214,5 @@
     }
   ],
   "posts": [],
-  "last_gen": "2026-07-29T15:03:48.846287+00:00"
+  "last_gen": "2026-07-29T15:17:30.421448+00:00"
 }

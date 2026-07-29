@@ -1,4 +1,4 @@
-"""Native desktop window via pywebview, backed by a detached Granian ASGI server subprocess, with cross-process window refcounting and automatic server lifecycle.
+"""Native desktop window via pywebview, backed by a detached Granian ASGI server, with cross-process window refcounting and automatic server lifecycle.
 
 Process-group / coordination story
 ----------------------------------
