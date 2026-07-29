@@ -1,9 +1,9 @@
 {
   "_hash_version": 3,
   "en/api.md": {
-    "content": "878613fc30f921e7c3c47d65cf49e54f07a4bc4dc676c5fb355b8d0aeda8b4a2",
+    "content": "73719cdc3618d49acb94c35353ef12a3c04092bf02e586210cba3a28604d902a",
     "description": "3a7741b63c1f41c292e52e866e535d30e6b4f4b90429a261d420911d399ddfdf",
-    "source_docstring": "12d9fb9706b4e727763aef2043b813cf7d89152d43361dcbec02bd219162f63f"
+    "source_docstring": "f489daac0ea36a37169dcee52c4b3c72069736196cc12fc4fe119f43e8ea344a"
   },
   "en/cli-config.md": {
     "content": "59d24d9eee17e6f4a2c47a900d45615fcb7f9e612f49d5322824dcea94cd0afc",
@@ -28,7 +28,7 @@
     "description": "c878a20485b4bdd2e829bf00aaec74321adb8bb8b28b044165c8e864e4052d4b"
   },
   "en/index.md": {
-    "content": "da592a797e628643fba95c37f715c68d0aecc85304e65b35bdfa4dd2336223ae",
+    "content": "62c01cbc91ca7d8cebda138d0e8755d97f788db78e4226374abb13d8b7943433",
     "description": "561181262bbd5af9954ee2549eab5fd597869bbbbd58c432d266bdcd0516c4af"
   },
   "en/sdui-reference.md": {
@@ -68,7 +68,7 @@
   "en/src-wesktop-desktop.md": {
     "content": "46656872713d1ce85585f18f13a0b23bd6619cc9459b6195133397a6838cc9f7",
     "description": "f1889e2ea52cd4ca5c1102418e9132c365294ab1c2c8986ee7a491aba208c90a",
-    "source_docstring": "ce109ce50f656badc8b33705c84772d4b0cae108b6c5a0ed90ea0f3d7c964c81"
+    "source_docstring": "c8ca0a2c2674a18029443db9b064cd3f38803177ed0488d935290bc5ef538b8b"
   },
   "en/src-wesktop-dev.md": {
     "content": "354c7a5c1ab3e0a76b926f621c218a1ec3ddc281bd50f222d8883b6614441582",
@@ -186,11 +186,11 @@
     "source_docstring": "12cf68c38f217296e39a1d1039297dd9aeba31ee51bc862e3ae7152831bae861"
   },
   "en/vs-electron.md": {
-    "content": "668b54ce4b4bee7740c14846b659e40eb129964d988f4a33086d78af7f52194b",
+    "content": "ef9b651e4b7a057fa6475b62ecb68d4d27ad0d3f1edf0370942bb8d36b1f6073",
     "description": "96d8bcc82cfb5e41d65a37e7d4f66ece46f8ee5d07a23de084f7d659d6ee3121"
   },
   "en/vs-pywebview.md": {
-    "content": "630c7394e391c77ea12f99e3340bd5415b3d241a5c78171249b9475ae07e584a",
+    "content": "5659af63f4649e85dc61d1f7327a4fb18c7b517efd21f36997937994255813e6",
     "description": "0f5ac60c73e8fae7eb76f63b5b81091945cd068371db9f738b2e5e7d75a6f324"
   },
   "en/vs-tauri.md": {
