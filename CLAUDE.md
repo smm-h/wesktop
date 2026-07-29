@@ -76,7 +76,7 @@ Some stubs (`asgi.py`, `server.py`, `mcp.py`) also re-export private helpers use
 
 | Package | Version Constraint |
 | --- | --- |
-| `fastware[all]` | >=0.5.0 |
+| `fastware[all]` | * |
 | `pywebview` | >=6.2.1 |
 | `strictcli` | * |
 | `pydantic` | * |
