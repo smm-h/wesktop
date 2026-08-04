@@ -1107,14 +1107,14 @@ wheels = [
 
 [[package]]
 name = "strictcli"
-version = "0.30.1"
+version = "0.36.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "tomlkit" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/15/20/a9e3b10c3b051ec803177cda96ab276e4286e658770aed08a39b6f9ec34e/strictcli-0.30.1.tar.gz", hash = "sha256:770396463a7b32432f8e158d1a8eb1c4553fbf0597d3144753b4d7d79a7a7992", size = 201763, upload-time = "2026-07-18T17:53:02.025Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e3/b4/5ad0aa4f8912a87716e75614d85c8d8c27b6dcc6bdbf9b3de1303c22714a/strictcli-0.36.0.tar.gz", hash = "sha256:3ad801d2919ac1b0ecb68f04a1062e2cedd7d58d3ad6d4aa1ba0eca7e11d7d05", size = 260732, upload-time = "2026-08-04T20:49:45.559Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/be/9c/d4044f57cf8f8538eeedf749ebbf4e425856c0ee5991ad6b882f631ab7ab/strictcli-0.30.1-py3-none-any.whl", hash = "sha256:dee2f474aed6463fffc87a8bc2f4bcd14fd6d10c2c554cede1e024d3b9f14a03", size = 74502, upload-time = "2026-07-18T17:53:00.537Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/be/a924f2e95af0642a0c6358ec6b5b998b5adef5625814cb5024d1a564b677/strictcli-0.36.0-py3-none-any.whl", hash = "sha256:1aa2fa464fb7b1505485c79e3436942ca5c2dfe39958f8de7f2e3e7271baa98f", size = 101923, upload-time = "2026-08-04T20:49:43.962Z" },
 ]
 
 [[package]]

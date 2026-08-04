@@ -17,8 +17,12 @@ app = App(
 )
 
 
-@app.command("diagnose", help="Check runtime environment, installed dependencies, and configuration paths")
-def diagnose(ctx: Context, **_kw: object) -> None:
+@app.command(
+    "diagnose",
+    effect="read_only",
+    help="Check runtime environment, installed dependencies, and configuration paths",
+)
+def diagnose(ctx: Context) -> None:
     """Print a diagnostic table of the runtime environment."""
     rows: list[tuple[str, str]] = []
 
