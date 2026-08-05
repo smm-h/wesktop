@@ -1,3 +1,4 @@
 {"format_version":1,"id":"18c37fef8471b1ef316cd8d0fdb1488b894be3be2fb1c091","commits":["f44fca3fdf470896eb90e9c045f73177617c1dba"],"user_facing":false}
 {"format_version":1,"id":"18c645fbc9448319006611c8f05945e387f313ce10ca96bf","commits":["96f04e3d88f5ab6160fe19066a4119b12a215c7e"],"user_facing":false}
 {"format_version":1,"id":"18c8bdf45f6ccbb6696ad0fc049244ef8b00651e29436a62","commits":["c78e5071ee82ec4e311f0ebef68a4ce3ec355686"],"user_facing":true,"description":"**The CLI works again on strictcli 0.36.0.** strictcli made effect classification mandatory and tightened handler-signature validation, which hard-errored `wesktop`'s command registration -- `wesktop --help`, `wesktop diagnose` and any import of `wesktop.cli` all failed. `diagnose` is now classified `read_only`.","type":"fix"}
+{"format_version":1,"id":"18c8e4d5771b3991ae1541cd3ec144e8aaef758d282cea03","commits":["a41d870d462f7eff9a4aca1a79edcbae25fb437b"],"user_facing":false}
