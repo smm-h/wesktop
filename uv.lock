@@ -1354,7 +1354,7 @@ requires-dist = [
     { name = "fastware", extras = ["all"] },
     { name = "pydantic" },
     { name = "pywebview", specifier = ">=6.2.1" },
-    { name = "strictcli" },
+    { name = "strictcli", specifier = ">=0.36.0" },
 ]
 
 [package.metadata.requires-dev]

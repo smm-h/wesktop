@@ -9,7 +9,9 @@ keywords = ["desktop", "web", "gui", "pywebview", "granian", "asgi", "rlsbl"]
 dependencies = [
     "fastware[all]",
     "pywebview>=6.2.1",
-    "strictcli",
+    # 0.36.0 made effect classification mandatory; wesktop's CLI declares
+    # `effect="read_only"` on `diagnose` and will not register on anything older.
+    "strictcli>=0.36.0",
     "pydantic",
 ]
 
