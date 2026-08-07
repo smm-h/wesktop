@@ -19,7 +19,9 @@ dependencies = [
 wesktop = "wesktop.cli:main"
 
 [dependency-groups]
-dev = ["pytest", "httpx>=0.28"]
+# Installing stricttest IS adoption of the test-isolation floor; the stance is
+# declared in [tool.pytest.ini_options] below.
+dev = ["pytest", "httpx>=0.28", "stricttest>=0.2.0"]
 
 [build-system]
 requires = ["hatchling"]
@@ -30,3 +32,17 @@ packages = ["src/wesktop"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# The stricttest floor's stance. No implicit defaults exist: a missing key
+# aborts the session at configure time.
+stricttest_sockets = "deny"
+stricttest_socket_allowlist = []
+stricttest_unix_socket_allowlist = []
+# `allow`, not `allowlist`. Several suites (test_mcp_tools, test_desktop) stand
+# up a real threaded HTTPServer on 127.0.0.1 with port 0 and dial it back over
+# HTTP. The kernel picks the port, so the pair the guard would have to match is
+# unknown until after the bind -- an exact host:port allowlist cannot express
+# it. Off-machine traffic stays denied by `stricttest_sockets = "deny"`.
+stricttest_loopback = "allow"
+# No sandbox runner in this repo yet; the bwrap runner ships as an rlsbl
+# scaffold template. Flip to "true" at adoption.
+stricttest_sandbox_required = "false"
