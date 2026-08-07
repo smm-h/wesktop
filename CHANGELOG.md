@@ -2,6 +2,49 @@
 
 # Changelog
 
+## 0.11.0
+
+Restore the CLI on strictcli 0.36.0 and pin the floor that keeps it working, and expand the documentation site with a getting-started tutorial and a full SDUI primitive reference
+
+<details>
+<summary>Context</summary>
+
+Two threads land together.
+
+The first is the strictcli 0.36.0 migration. 0.36.0 made effect classification
+mandatory at registration and tightened handler-signature validation, which
+hard-errored wesktop's command registration -- `wesktop --help`, `wesktop
+diagnose` and any import of `wesktop.cli` all failed. `diagnose` is now
+classified `read_only`. The code fix alone was not enough: the dependency was
+declared unpinned, so a fresh install could still resolve a strictcli old
+enough to reinstate the breakage. The manifest now carries a
+`strictcli>=0.36.0` floor, so an incompatible combination fails to resolve
+instead of installing and then failing to start.
+
+The second is the documentation site. It gained a step-by-step getting-started
+tutorial and a reference page for every one of the 40 SDUI primitives, and the
+API reference was corrected against the shipped code -- surfaces it had drifted
+away from, or never documented, are now covered. Primitive counts quoted across
+the site are generated from the source rather than hand-maintained, so they
+cannot drift again.
+
+This release also adopts the stricttest test-isolation floor. The stance is
+recorded in pyproject.toml and pinned by tests/test_stricttest_floor.py:
+off-machine egress is denied, both allowlists are empty, and loopback is
+`allow` rather than an exact allowlist because several suites bind real servers
+on ("127.0.0.1", 0) and the kernel-assigned port cannot be named ahead of time.
+
+</details>
+
+### Features
+
+- **The documentation site gained a getting-started tutorial and a full SDUI primitive reference.** A step-by-step tutorial walks from an empty directory to a packaged desktop app, and every one of the 40 SDUI primitives now has a reference page with its fields and an example. The API reference was also corrected against the shipped code -- surfaces it had drifted away from or never documented are now covered, and the primitive counts quoted across the site are generated from the source instead of hand-maintained.
+
+### Fixes
+
+- **The CLI works again on strictcli 0.36.0.** strictcli made effect classification mandatory and tightened handler-signature validation, which hard-errored `wesktop`'s command registration -- `wesktop --help`, `wesktop diagnose` and any import of `wesktop.cli` all failed. `diagnose` is now classified `read_only`.
+- **`wesktop` now requires `strictcli>=0.36.0`.** The dependency was unpinned, so a fresh install could resolve a strictcli old enough to reject wesktop's command registration -- reinstating the `wesktop --help` / `wesktop diagnose` breakage the same release fixes. Resolution now fails loudly instead of installing a combination that cannot start.
+
 ## 0.10.0
 
 Cross-process window lifecycle with per-window marker refcounting (fixes the shared-server kill bug), configurable second-launch behavior, a startup handshake with runtime config injection, and a native runtime bridge.
