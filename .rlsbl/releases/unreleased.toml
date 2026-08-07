@@ -2,11 +2,36 @@
 format_version = 1
 # Version bump type: patch, minor, major, infra, or prerelease
 #   prerelease: advance an existing pre-release (0.6.0-beta.0 -> -beta.1)
-bump = ""
+bump = "minor"
 # Short description of this release (required)
-description = ""
+description = "Restore the CLI on strictcli 0.36.0 and pin the floor that keeps it working, and expand the documentation site with a getting-started tutorial and a full SDUI primitive reference"
 # Optional context explaining why these changes were made
-context = ""
+context = """
+Two threads land together.
+
+The first is the strictcli 0.36.0 migration. 0.36.0 made effect classification
+mandatory at registration and tightened handler-signature validation, which
+hard-errored wesktop's command registration -- `wesktop --help`, `wesktop
+diagnose` and any import of `wesktop.cli` all failed. `diagnose` is now
+classified `read_only`. The code fix alone was not enough: the dependency was
+declared unpinned, so a fresh install could still resolve a strictcli old
+enough to reinstate the breakage. The manifest now carries a
+`strictcli>=0.36.0` floor, so an incompatible combination fails to resolve
+instead of installing and then failing to start.
+
+The second is the documentation site. It gained a step-by-step getting-started
+tutorial and a reference page for every one of the 40 SDUI primitives, and the
+API reference was corrected against the shipped code -- surfaces it had drifted
+away from, or never documented, are now covered. Primitive counts quoted across
+the site are generated from the source rather than hand-maintained, so they
+cannot drift again.
+
+This release also adopts the stricttest test-isolation floor. The stance is
+recorded in pyproject.toml and pinned by tests/test_stricttest_floor.py:
+off-machine egress is denied, both allowlists are empty, and loopback is
+`allow` rather than an exact allowlist because several suites bind real servers
+on ("127.0.0.1", 0) and the kernel-assigned port cannot be named ahead of time.
+"""
 # Pre-release channel: alpha, beta, rc, or stable (ordered;
 # demotion is an error). With patch/minor/major it ENTERS the
 # channel (0.5.2 + minor + alpha -> 0.6.0-alpha.0); with
