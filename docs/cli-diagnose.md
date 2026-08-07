@@ -10,3 +10,5 @@ nav_order: 2
 # wesktop diagnose
 
 Check runtime environment, installed dependencies, and configuration paths
+
+**Effect:** read_only

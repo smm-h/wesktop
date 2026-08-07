@@ -54,7 +54,8 @@
   "commands": {
     "diagnose": {
       "name": "diagnose",
-      "help": "Check runtime environment, installed dependencies, and configuration paths"
+      "help": "Check runtime environment, installed dependencies, and configuration paths",
+      "effect": "read_only"
     }
   },
   "groups": {
@@ -64,11 +65,16 @@
       "commands": {
         "path": {
           "name": "path",
-          "help": "Print the absolute path to the config file for this application"
+          "help": "Print the absolute path to the config file for this application",
+          "effect": "read_only",
+          "forwarding": {
+            "reason": "framework-internal: absorbs app-defined global flag values"
+          }
         },
         "show": {
           "name": "show",
           "help": "Show all config values with their sources (config file, env, or default)",
+          "effect": "read_only",
           "flags": [
             {
               "name": "plain",
@@ -93,11 +99,15 @@
                 "json"
               ]
             }
-          ]
+          ],
+          "forwarding": {
+            "reason": "framework-internal: absorbs app-defined global flag values"
+          }
         },
         "set": {
           "name": "set",
           "help": "Set a persistent config value that overrides the default for a flag",
+          "effect": "mutating",
           "flags": [
             {
               "name": "clear",
@@ -124,16 +134,27 @@
               "help": "Value to set (comma-separated for repeatable flags, use backslash to escape commas)",
               "required": false
             }
-          ]
+          ],
+          "forwarding": {
+            "reason": "framework-internal: absorbs app-defined global flag values"
+          }
         },
         "edit": {
           "name": "edit",
           "help": "Open the config file for manual editing in $EDITOR (creates if missing)",
-          "interactive": true
+          "effect": "mutating",
+          "interactive": true,
+          "forwarding": {
+            "reason": "framework-internal: absorbs app-defined global flag values"
+          }
         },
         "init": {
           "name": "init",
-          "help": "Generate a template config file with documented fields and defaults"
+          "help": "Generate a template config file with documented fields and defaults",
+          "effect": "mutating",
+          "forwarding": {
+            "reason": "framework-internal: absorbs app-defined global flag values"
+          }
         }
       }
     }

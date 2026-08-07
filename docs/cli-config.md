@@ -15,9 +15,13 @@ Manage persistent configuration values stored in the config file
 
 Print the absolute path to the config file for this application
 
+**Effect:** read_only
+
 ## config show
 
 Show all config values with their sources (config file, env, or default)
+
+**Effect:** read_only
 
 ### Flags
 
@@ -29,6 +33,8 @@ Show all config values with their sources (config file, env, or default)
 ## config set
 
 Set a persistent config value that overrides the default for a flag
+
+**Effect:** mutating
 
 ### Flags
 
@@ -48,6 +54,10 @@ Set a persistent config value that overrides the default for a flag
 
 Open the config file for manual editing in $EDITOR (creates if missing)
 
+**Effect:** mutating
+
 ## config init
 
 Generate a template config file with documented fields and defaults
+
+**Effect:** mutating
