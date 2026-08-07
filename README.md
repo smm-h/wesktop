@@ -137,7 +137,7 @@ npx wesktop diagnose
 | --- | --- |
 | `fastware[all]` | * |
 | `pywebview` | >=6.2.1 |
-| `strictcli` | * |
+| `strictcli` | >=0.36.0 |
 | `pydantic` | * |
 
 ## Documentation

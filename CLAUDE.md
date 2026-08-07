@@ -78,10 +78,10 @@ Some stubs (`asgi.py`, `server.py`, `mcp.py`) also re-export private helpers use
 | --- | --- |
 | `fastware[all]` | * |
 | `pywebview` | >=6.2.1 |
-| `strictcli` | * |
+| `strictcli` | >=0.36.0 |
 | `pydantic` | * |
 
-Dev dependencies: `pytest`, `httpx` (async test client). 131 tests across 8 test modules.
+Dev dependencies: `pytest`, `httpx` (async test client), `stricttest` (test-isolation floor). 279 tests across 15 test modules.
 
 ## Public API
 
@@ -167,7 +167,7 @@ The CLI is also available as an npm shim: `npx wesktop diagnose`.
 
 ```bash
 uv sync                    # Install dependencies
-uv run pytest              # Run 131 tests
+uv run pytest              # Run 279 tests
 selfdoc build              # Build documentation site
 selfdoc check              # Lint docs for SEO and staleness
 ```
@@ -180,6 +180,7 @@ selfdoc check              # Lint docs for SEO and staleness
 - **sdui.py depends on pydantic at module level**: unlike pywebview, pydantic is a required dependency and is always imported.
 - **strictcli for CLI**: the CLI uses `strictcli.App` with `config=True`, which provides config subcommands automatically.
 - **PID files are optional**: `run()` and `serve()` accept `pid_path=None` (the default). PID files are only created when the caller explicitly provides a path.
+- **The stricttest floor is adopted**: installing the plugin IS adoption, and the stance lives in `[tool.pytest.ini_options]`. Off-machine egress is denied; `stricttest_loopback = "allow"` is deliberate, because `test_mcp_tools` and `test_desktop` bind real servers on `("127.0.0.1", 0)` and the kernel-assigned port cannot be named in an exact `host:port` allowlist. `tests/test_stricttest_floor.py` pins all five keys -- change them there too, on purpose.
 
 ## Relationship to fastware
 
@@ -195,7 +196,7 @@ All ASGI, server, middleware, SSE, auth, DI, testing, logging, tasks, features, 
 
 ```
 src/wesktop/         Source code (4 real modules + mcp_tools/ + 15 re-export stubs)
-tests/               Test suite (8 test modules, 131 tests)
+tests/               Test suite (15 test modules, 279 tests)
 docs/                Documentation (selfdoc templates)
 todo/                Planned work items
 ```
