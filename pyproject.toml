@@ -30,6 +30,22 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/wesktop"]
 
+# Allowlist, not a denylist: an sdist ships exactly what is named here. A
+# denylist silently ships every new repository directory, which is how 20
+# screenshots of a private application's UI reached PyPI in 0.8.1-0.11.0.
+# Repository housekeeping (todo/, .rlsbl/, .claude/, .selfdoc/, .strictcli/,
+# .github/, lockfiles, CLAUDE.md) is deliberately absent.
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/docs",
+    "/README.md",
+    "/LICENSE",
+    "/CHANGELOG.md",
+    "/pyproject.toml",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # The stricttest floor's stance. No implicit defaults exist: a missing key
