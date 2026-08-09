@@ -2,6 +2,29 @@
 
 # Changelog
 
+## 0.11.1
+
+Ships an sdist that contains only the package, its tests, its docs and its root metadata.
+
+<details>
+<summary>Context</summary>
+
+The source distribution had no file selection, so hatchling's default shipped
+the entire repository. Every sdist from 0.8.1 through 0.11.0 therefore carried
+`todo/`, `.rlsbl/`, `.claude/`, `.selfdoc/`, CI workflows and lockfiles to PyPI
+-- including twenty screenshots of a private application's interface that were
+never meant to leave the machine. The screenshots are deleted, and the sdist
+now uses an allowlist rather than the implicit everything-minus-VCS-ignores
+default, so a newly added repository directory cannot ship by accident.
+
+Wheels were never affected; they have always been built from `src/wesktop`.
+
+</details>
+
+### Fixes
+
+- **sdists no longer include repository housekeeping files.** The published source distribution now ships only `src/`, `tests/`, `docs/`, and the project's root metadata files. Earlier sdists carried the whole repository -- `todo/`, `.rlsbl/`, `.claude/`, `.selfdoc/`, CI workflows and lockfiles -- including image files that were never intended for publication.
+
 ## 0.11.0
 
 Restore the CLI on strictcli 0.36.0 and pin the floor that keeps it working, and expand the documentation site with a getting-started tutorial and a full SDUI primitive reference

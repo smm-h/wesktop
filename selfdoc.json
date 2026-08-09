@@ -1,5 +1,5 @@
 {
-  "version": "0.11.0",
+  "version": "0.11.1",
   "source": [
     {
       "path": "src/wesktop/",
@@ -15,7 +15,7 @@
   ],
   "versions": [
     {
-      "version": "0.11.0",
+      "version": "0.11.1",
       "indexed": true
     }
   ],
