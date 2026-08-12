@@ -16,11 +16,11 @@ Version: :-: var key="project.version"
 
 ## Commands
 
-- [diagnose](cli-diagnose.html) -- Check runtime environment, installed dependencies, and configuration paths
+- [diagnose](../cli-diagnose/) -- Check runtime environment, installed dependencies, and configuration paths
 
 ## Command Groups
 
-- [config](cli-config.html) -- Manage persistent configuration values stored in the config file
+- [config](../cli-config/) -- Manage persistent configuration values stored in the config file
 
 ## Framework flags
 

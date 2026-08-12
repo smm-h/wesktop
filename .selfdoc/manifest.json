@@ -2,7 +2,7 @@
   "schema_version": 1,
   "name": "wesktop",
   "slug": "wesktop",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "",
   "language": "python",
   "base_url": "https://wesktop.smmh.dev",
@@ -10,209 +10,2116 @@
     {
       "path": "api.md",
       "title": "API Reference",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "API Reference",
+          "anchor": "api-reference"
+        },
+        {
+          "level": 2,
+          "text": "Desktop Window",
+          "anchor": "desktop-window"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.desktop",
+          "anchor": "srcwesktopdesktop"
+        },
+        {
+          "level": 3,
+          "text": "_wire_runtime_bridge",
+          "anchor": "_wire_runtime_bridge"
+        },
+        {
+          "level": 3,
+          "text": "_app_url",
+          "anchor": "_app_url"
+        },
+        {
+          "level": 3,
+          "text": "_version_url",
+          "anchor": "_version_url"
+        },
+        {
+          "level": 3,
+          "text": "_port_from_url",
+          "anchor": "_port_from_url"
+        },
+        {
+          "level": 3,
+          "text": "_startup_handshake",
+          "anchor": "_startup_handshake"
+        },
+        {
+          "level": 3,
+          "text": "_inject_runtime_config",
+          "anchor": "_inject_runtime_config"
+        },
+        {
+          "level": 3,
+          "text": "_wire_runtime_config_injection",
+          "anchor": "_wire_runtime_config_injection"
+        },
+        {
+          "level": 3,
+          "text": "_raise_window",
+          "anchor": "_raise_window"
+        },
+        {
+          "level": 3,
+          "text": "_request_focus_existing",
+          "anchor": "_request_focus_existing"
+        },
+        {
+          "level": 3,
+          "text": "_install_focus_request_poll",
+          "anchor": "_install_focus_request_poll"
+        },
+        {
+          "level": 3,
+          "text": "AppInstances",
+          "anchor": "appinstances"
+        },
+        {
+          "level": 3,
+          "text": "list_app_instances",
+          "anchor": "list_app_instances"
+        },
+        {
+          "level": 3,
+          "text": "_require_webview_gui",
+          "anchor": "_require_webview_gui"
+        },
+        {
+          "level": 3,
+          "text": "_run_window",
+          "anchor": "_run_window"
+        },
+        {
+          "level": 3,
+          "text": "ensure_gui_backend",
+          "anchor": "ensure_gui_backend"
+        },
+        {
+          "level": 3,
+          "text": "_has_gui_backend",
+          "anchor": "_has_gui_backend"
+        },
+        {
+          "level": 3,
+          "text": "_default_pid_path",
+          "anchor": "_default_pid_path"
+        },
+        {
+          "level": 3,
+          "text": "_launch_command_parts",
+          "anchor": "_launch_command_parts"
+        },
+        {
+          "level": 3,
+          "text": "_auto_register_entry",
+          "anchor": "_auto_register_entry"
+        },
+        {
+          "level": 3,
+          "text": "run",
+          "anchor": "run"
+        },
+        {
+          "level": 3,
+          "text": "`wesktop.run(target, *, title, width, height, icon, host, port, pid_path, name, pre_serve, reload, js_api, single_instance, second_open)`",
+          "anchor": "wesktopruntarget-title-width-height-icon-host-port-pid_path-name-pre_serve-reload-js_api-single_instance-second_open"
+        },
+        {
+          "level": 3,
+          "text": "`wesktop.ensure_gui_backend()`",
+          "anchor": "wesktopensure_gui_backend"
+        },
+        {
+          "level": 3,
+          "text": "Cross-process window refcounting",
+          "anchor": "cross-process-window-refcounting"
+        },
+        {
+          "level": 3,
+          "text": "`wesktop.desktop.list_app_instances(pid_path)`",
+          "anchor": "wesktopdesktoplist_app_instancespid_path"
+        },
+        {
+          "level": 3,
+          "text": "Runtime bridge (`wesktop.runtime_bridge`)",
+          "anchor": "runtime-bridge-wesktopruntime_bridge"
+        },
+        {
+          "level": 2,
+          "text": "Desktop Entries",
+          "anchor": "desktop-entries"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.entries",
+          "anchor": "srcwesktopentries"
+        },
+        {
+          "level": 3,
+          "text": "create_entry",
+          "anchor": "create_entry"
+        },
+        {
+          "level": 3,
+          "text": "remove_entry",
+          "anchor": "remove_entry"
+        },
+        {
+          "level": 3,
+          "text": "entry_exists",
+          "anchor": "entry_exists"
+        },
+        {
+          "level": 3,
+          "text": "launcher_name",
+          "anchor": "launcher_name"
+        },
+        {
+          "level": 3,
+          "text": "launcher_path",
+          "anchor": "launcher_path"
+        },
+        {
+          "level": 3,
+          "text": "create_launcher",
+          "anchor": "create_launcher"
+        },
+        {
+          "level": 3,
+          "text": "remove_launcher",
+          "anchor": "remove_launcher"
+        },
+        {
+          "level": 3,
+          "text": "_split_windows_command",
+          "anchor": "_split_windows_command"
+        },
+        {
+          "level": 3,
+          "text": "quote_windows_command",
+          "anchor": "quote_windows_command"
+        },
+        {
+          "level": 3,
+          "text": "_windows_com_available",
+          "anchor": "_windows_com_available"
+        },
+        {
+          "level": 3,
+          "text": "`wesktop.create_entry(name, command, *, icon, comment, categories)`",
+          "anchor": "wesktopcreate_entryname-command-icon-comment-categories"
+        },
+        {
+          "level": 3,
+          "text": "`wesktop.remove_entry(name)`",
+          "anchor": "wesktopremove_entryname"
+        },
+        {
+          "level": 2,
+          "text": "Development Mode",
+          "anchor": "development-mode"
+        },
+        {
+          "level": 3,
+          "text": "`wesktop.dev(target, *, vite_command, vite_port, host, port, pid_path, name, pre_serve)`",
+          "anchor": "wesktopdevtarget-vite_command-vite_port-host-port-pid_path-name-pre_serve"
+        },
+        {
+          "level": 2,
+          "text": "SDUI Primitives",
+          "anchor": "sdui-primitives"
+        },
+        {
+          "level": 3,
+          "text": "SDUINode",
+          "anchor": "sduinode"
+        },
+        {
+          "level": 3,
+          "text": "Grouping",
+          "anchor": "grouping"
+        },
+        {
+          "level": 3,
+          "text": "Quick example",
+          "anchor": "quick-example"
+        },
+        {
+          "level": 3,
+          "text": "SDUI provider registry",
+          "anchor": "sdui-provider-registry"
+        },
+        {
+          "level": 4,
+          "text": "`wesktop.register_sdui_provider(name, provider)`",
+          "anchor": "wesktopregister_sdui_providername-provider"
+        },
+        {
+          "level": 4,
+          "text": "`wesktop.get_sdui_provider(name)`",
+          "anchor": "wesktopget_sdui_providername"
+        },
+        {
+          "level": 4,
+          "text": "`wesktop.list_sdui_providers()`",
+          "anchor": "wesktoplist_sdui_providers"
+        },
+        {
+          "level": 2,
+          "text": "Fastware Re-exports",
+          "anchor": "fastware-re-exports"
+        },
+        {
+          "level": 2,
+          "text": "Metadata",
+          "anchor": "metadata"
+        },
+        {
+          "level": 3,
+          "text": "`__version__`",
+          "anchor": "__version__"
+        }
+      ]
     },
     {
       "path": "cli-config.md",
       "title": "wesktop config",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "wesktop config",
+          "anchor": "wesktop-config"
+        },
+        {
+          "level": 2,
+          "text": "config path",
+          "anchor": "config-path"
+        },
+        {
+          "level": 2,
+          "text": "config show",
+          "anchor": "config-show"
+        },
+        {
+          "level": 3,
+          "text": "Flags",
+          "anchor": "flags"
+        },
+        {
+          "level": 2,
+          "text": "config set",
+          "anchor": "config-set"
+        },
+        {
+          "level": 3,
+          "text": "Flags",
+          "anchor": "flags-1"
+        },
+        {
+          "level": 3,
+          "text": "Arguments",
+          "anchor": "arguments"
+        },
+        {
+          "level": 2,
+          "text": "config edit",
+          "anchor": "config-edit"
+        },
+        {
+          "level": 2,
+          "text": "config init",
+          "anchor": "config-init"
+        }
+      ]
     },
     {
       "path": "cli-diagnose.md",
       "title": "wesktop diagnose",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "wesktop diagnose",
+          "anchor": "wesktop-diagnose"
+        }
+      ]
     },
     {
       "path": "cli-index.md",
       "title": "wesktop CLI Reference",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "wesktop CLI Reference",
+          "anchor": "wesktop-cli-reference"
+        },
+        {
+          "level": 2,
+          "text": "Commands",
+          "anchor": "commands"
+        },
+        {
+          "level": 2,
+          "text": "Command Groups",
+          "anchor": "command-groups"
+        },
+        {
+          "level": 2,
+          "text": "Framework flags",
+          "anchor": "framework-flags"
+        }
+      ]
     },
     {
       "path": "gen-index.md",
       "title": "API Reference",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "API Reference",
+          "anchor": "api-reference"
+        }
+      ]
     },
     {
       "path": "getting-started.md",
       "title": "Getting Started",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "Getting Started",
+          "anchor": "getting-started"
+        },
+        {
+          "level": 2,
+          "text": "Prerequisites",
+          "anchor": "prerequisites"
+        },
+        {
+          "level": 2,
+          "text": "Installation",
+          "anchor": "installation"
+        },
+        {
+          "level": 2,
+          "text": "Step 1: A basic app with routing",
+          "anchor": "step-1-a-basic-app-with-routing"
+        },
+        {
+          "level": 3,
+          "text": "Reading request data",
+          "anchor": "reading-request-data"
+        },
+        {
+          "level": 3,
+          "text": "Composing routers",
+          "anchor": "composing-routers"
+        },
+        {
+          "level": 2,
+          "text": "Step 2: Adding SSE for real-time updates",
+          "anchor": "step-2-adding-sse-for-real-time-updates"
+        },
+        {
+          "level": 3,
+          "text": "Heartbeats",
+          "anchor": "heartbeats"
+        },
+        {
+          "level": 2,
+          "text": "Step 3: Building an SDUI dashboard",
+          "anchor": "step-3-building-an-sdui-dashboard"
+        },
+        {
+          "level": 3,
+          "text": "Typed primitives (Pydantic models)",
+          "anchor": "typed-primitives-pydantic-models"
+        },
+        {
+          "level": 3,
+          "text": "Quick dict builder",
+          "anchor": "quick-dict-builder"
+        },
+        {
+          "level": 3,
+          "text": "SDUI providers",
+          "anchor": "sdui-providers"
+        },
+        {
+          "level": 3,
+          "text": "Conditional rendering",
+          "anchor": "conditional-rendering"
+        },
+        {
+          "level": 2,
+          "text": "Step 4: Packaging as a desktop app",
+          "anchor": "step-4-packaging-as-a-desktop-app"
+        },
+        {
+          "level": 3,
+          "text": "How `run()` works",
+          "anchor": "how-run-works"
+        },
+        {
+          "level": 3,
+          "text": "Single-instance behavior",
+          "anchor": "single-instance-behavior"
+        },
+        {
+          "level": 3,
+          "text": "Desktop entries",
+          "anchor": "desktop-entries"
+        },
+        {
+          "level": 3,
+          "text": "Custom window icon",
+          "anchor": "custom-window-icon"
+        },
+        {
+          "level": 2,
+          "text": "Step 5: Complete example",
+          "anchor": "step-5-complete-example"
+        },
+        {
+          "level": 3,
+          "text": "`app.py`",
+          "anchor": "apppy"
+        },
+        {
+          "level": 3,
+          "text": "`main.py`",
+          "anchor": "mainpy"
+        },
+        {
+          "level": 2,
+          "text": "Running and debugging",
+          "anchor": "running-and-debugging"
+        },
+        {
+          "level": 3,
+          "text": "Development (server only, with auto-reload)",
+          "anchor": "development-server-only-with-auto-reload"
+        },
+        {
+          "level": 3,
+          "text": "Desktop mode",
+          "anchor": "desktop-mode"
+        },
+        {
+          "level": 3,
+          "text": "Headless deployment",
+          "anchor": "headless-deployment"
+        },
+        {
+          "level": 3,
+          "text": "GUI backend troubleshooting",
+          "anchor": "gui-backend-troubleshooting"
+        },
+        {
+          "level": 3,
+          "text": "CLI diagnostics",
+          "anchor": "cli-diagnostics"
+        },
+        {
+          "level": 3,
+          "text": "Testing",
+          "anchor": "testing"
+        }
+      ]
     },
     {
       "path": "index.md",
       "title": "wesktop",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "wesktop 0.11.1",
+          "anchor": "wesktop"
+        },
+        {
+          "level": 2,
+          "text": "Built on fastware",
+          "anchor": "built-on-fastware"
+        },
+        {
+          "level": 2,
+          "text": "Installation",
+          "anchor": "installation"
+        },
+        {
+          "level": 2,
+          "text": "Minimal Desktop App",
+          "anchor": "minimal-desktop-app"
+        },
+        {
+          "level": 2,
+          "text": "Headless Server",
+          "anchor": "headless-server"
+        },
+        {
+          "level": 2,
+          "text": "Development Mode",
+          "anchor": "development-mode"
+        },
+        {
+          "level": 2,
+          "text": "SSE (Server-Sent Events)",
+          "anchor": "sse-server-sent-events"
+        },
+        {
+          "level": 2,
+          "text": "Desktop Entries",
+          "anchor": "desktop-entries"
+        },
+        {
+          "level": 2,
+          "text": "API Reference",
+          "anchor": "api-reference"
+        }
+      ]
     },
     {
       "path": "sdui-reference.md",
       "title": "SDUI Primitive Reference",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "SDUI Primitive Reference",
+          "anchor": "sdui-primitive-reference"
+        },
+        {
+          "level": 2,
+          "text": "Prop Sub-Models",
+          "anchor": "prop-sub-models"
+        },
+        {
+          "level": 3,
+          "text": "TabItem",
+          "anchor": "tabitem"
+        },
+        {
+          "level": 3,
+          "text": "BreadcrumbItem",
+          "anchor": "breadcrumbitem"
+        },
+        {
+          "level": 3,
+          "text": "TimelineItem",
+          "anchor": "timelineitem"
+        },
+        {
+          "level": 3,
+          "text": "ColumnDef",
+          "anchor": "columndef"
+        },
+        {
+          "level": 3,
+          "text": "DataGridColumnDef",
+          "anchor": "datagridcolumndef"
+        },
+        {
+          "level": 3,
+          "text": "KVEntry",
+          "anchor": "kventry"
+        },
+        {
+          "level": 3,
+          "text": "OptionItem",
+          "anchor": "optionitem"
+        },
+        {
+          "level": 2,
+          "text": "Layout (9 primitives)",
+          "anchor": "layout-9-primitives"
+        },
+        {
+          "level": 3,
+          "text": "Stack",
+          "anchor": "stack"
+        },
+        {
+          "level": 3,
+          "text": "ZStack",
+          "anchor": "zstack"
+        },
+        {
+          "level": 3,
+          "text": "Spacer",
+          "anchor": "spacer"
+        },
+        {
+          "level": 3,
+          "text": "Divider",
+          "anchor": "divider"
+        },
+        {
+          "level": 3,
+          "text": "Grid",
+          "anchor": "grid"
+        },
+        {
+          "level": 3,
+          "text": "Card",
+          "anchor": "card"
+        },
+        {
+          "level": 3,
+          "text": "Tabs",
+          "anchor": "tabs"
+        },
+        {
+          "level": 3,
+          "text": "Breadcrumb",
+          "anchor": "breadcrumb"
+        },
+        {
+          "level": 3,
+          "text": "Empty",
+          "anchor": "empty"
+        },
+        {
+          "level": 2,
+          "text": "Display (10 primitives)",
+          "anchor": "display-10-primitives"
+        },
+        {
+          "level": 3,
+          "text": "Heading",
+          "anchor": "heading"
+        },
+        {
+          "level": 3,
+          "text": "Text",
+          "anchor": "text"
+        },
+        {
+          "level": 3,
+          "text": "Code",
+          "anchor": "code"
+        },
+        {
+          "level": 3,
+          "text": "Status",
+          "anchor": "status"
+        },
+        {
+          "level": 3,
+          "text": "Badge",
+          "anchor": "badge"
+        },
+        {
+          "level": 3,
+          "text": "ProgressBar",
+          "anchor": "progressbar"
+        },
+        {
+          "level": 3,
+          "text": "Spinner",
+          "anchor": "spinner"
+        },
+        {
+          "level": 3,
+          "text": "Timeline",
+          "anchor": "timeline"
+        },
+        {
+          "level": 3,
+          "text": "Diff",
+          "anchor": "diff"
+        },
+        {
+          "level": 3,
+          "text": "Markdown",
+          "anchor": "markdown"
+        },
+        {
+          "level": 2,
+          "text": "Data (6 primitives)",
+          "anchor": "data-6-primitives"
+        },
+        {
+          "level": 3,
+          "text": "Table",
+          "anchor": "table"
+        },
+        {
+          "level": 3,
+          "text": "DataGrid",
+          "anchor": "datagrid"
+        },
+        {
+          "level": 3,
+          "text": "List",
+          "anchor": "list"
+        },
+        {
+          "level": 3,
+          "text": "KeyValue",
+          "anchor": "keyvalue"
+        },
+        {
+          "level": 3,
+          "text": "JsonView",
+          "anchor": "jsonview"
+        },
+        {
+          "level": 3,
+          "text": "Tree",
+          "anchor": "tree"
+        },
+        {
+          "level": 2,
+          "text": "Input (8 primitives)",
+          "anchor": "input-8-primitives"
+        },
+        {
+          "level": 3,
+          "text": "Button",
+          "anchor": "button"
+        },
+        {
+          "level": 3,
+          "text": "Input",
+          "anchor": "input"
+        },
+        {
+          "level": 3,
+          "text": "TextArea",
+          "anchor": "textarea"
+        },
+        {
+          "level": 3,
+          "text": "Select",
+          "anchor": "select"
+        },
+        {
+          "level": 3,
+          "text": "Checkbox",
+          "anchor": "checkbox"
+        },
+        {
+          "level": 3,
+          "text": "Switch",
+          "anchor": "switch"
+        },
+        {
+          "level": 3,
+          "text": "Radio",
+          "anchor": "radio"
+        },
+        {
+          "level": 3,
+          "text": "Slider",
+          "anchor": "slider"
+        },
+        {
+          "level": 2,
+          "text": "Feedback (3 primitives)",
+          "anchor": "feedback-3-primitives"
+        },
+        {
+          "level": 3,
+          "text": "Alert",
+          "anchor": "alert"
+        },
+        {
+          "level": 3,
+          "text": "Toast",
+          "anchor": "toast"
+        },
+        {
+          "level": 3,
+          "text": "Logs",
+          "anchor": "logs"
+        },
+        {
+          "level": 2,
+          "text": "Overlay (4 primitives)",
+          "anchor": "overlay-4-primitives"
+        },
+        {
+          "level": 3,
+          "text": "Modal",
+          "anchor": "modal"
+        },
+        {
+          "level": 3,
+          "text": "Drawer",
+          "anchor": "drawer"
+        },
+        {
+          "level": 3,
+          "text": "Popover",
+          "anchor": "popover"
+        },
+        {
+          "level": 3,
+          "text": "Confirm",
+          "anchor": "confirm"
+        },
+        {
+          "level": 2,
+          "text": "Conditional Rendering",
+          "anchor": "conditional-rendering"
+        },
+        {
+          "level": 2,
+          "text": "Provider Registry",
+          "anchor": "provider-registry"
+        }
+      ]
     },
     {
       "path": "src-wesktop-__main__.md",
       "title": "src.wesktop.__main__",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.__main__",
+          "anchor": "srcwesktop__main__"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.__main__",
+          "anchor": "srcwesktop__main__"
+        }
+      ]
     },
     {
       "path": "src-wesktop-asgi.md",
       "title": "src.wesktop.asgi",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.asgi",
+          "anchor": "srcwesktopasgi"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.asgi",
+          "anchor": "srcwesktopasgi"
+        }
+      ]
     },
     {
       "path": "src-wesktop-audit.md",
       "title": "src.wesktop.audit",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.audit",
+          "anchor": "srcwesktopaudit"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.audit",
+          "anchor": "srcwesktopaudit"
+        }
+      ]
     },
     {
       "path": "src-wesktop-auth.md",
       "title": "src.wesktop.auth",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.auth",
+          "anchor": "srcwesktopauth"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.auth",
+          "anchor": "srcwesktopauth"
+        }
+      ]
     },
     {
       "path": "src-wesktop-cli.md",
       "title": "src.wesktop.cli",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.cli",
+          "anchor": "srcwesktopcli"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.cli",
+          "anchor": "srcwesktopcli"
+        },
+        {
+          "level": 3,
+          "text": "diagnose",
+          "anchor": "diagnose"
+        },
+        {
+          "level": 3,
+          "text": "main",
+          "anchor": "main"
+        }
+      ]
     },
     {
       "path": "src-wesktop-config.md",
       "title": "src.wesktop.config",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.config",
+          "anchor": "srcwesktopconfig"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.config",
+          "anchor": "srcwesktopconfig"
+        }
+      ]
     },
     {
       "path": "src-wesktop-desktop.md",
       "title": "src.wesktop.desktop",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.desktop",
+          "anchor": "srcwesktopdesktop"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.desktop",
+          "anchor": "srcwesktopdesktop"
+        },
+        {
+          "level": 3,
+          "text": "_wire_runtime_bridge",
+          "anchor": "_wire_runtime_bridge"
+        },
+        {
+          "level": 3,
+          "text": "_app_url",
+          "anchor": "_app_url"
+        },
+        {
+          "level": 3,
+          "text": "_version_url",
+          "anchor": "_version_url"
+        },
+        {
+          "level": 3,
+          "text": "_port_from_url",
+          "anchor": "_port_from_url"
+        },
+        {
+          "level": 3,
+          "text": "_startup_handshake",
+          "anchor": "_startup_handshake"
+        },
+        {
+          "level": 3,
+          "text": "_inject_runtime_config",
+          "anchor": "_inject_runtime_config"
+        },
+        {
+          "level": 3,
+          "text": "_wire_runtime_config_injection",
+          "anchor": "_wire_runtime_config_injection"
+        },
+        {
+          "level": 3,
+          "text": "_raise_window",
+          "anchor": "_raise_window"
+        },
+        {
+          "level": 3,
+          "text": "_request_focus_existing",
+          "anchor": "_request_focus_existing"
+        },
+        {
+          "level": 3,
+          "text": "_install_focus_request_poll",
+          "anchor": "_install_focus_request_poll"
+        },
+        {
+          "level": 3,
+          "text": "AppInstances",
+          "anchor": "appinstances"
+        },
+        {
+          "level": 3,
+          "text": "list_app_instances",
+          "anchor": "list_app_instances"
+        },
+        {
+          "level": 3,
+          "text": "_require_webview_gui",
+          "anchor": "_require_webview_gui"
+        },
+        {
+          "level": 3,
+          "text": "_run_window",
+          "anchor": "_run_window"
+        },
+        {
+          "level": 3,
+          "text": "ensure_gui_backend",
+          "anchor": "ensure_gui_backend"
+        },
+        {
+          "level": 3,
+          "text": "_has_gui_backend",
+          "anchor": "_has_gui_backend"
+        },
+        {
+          "level": 3,
+          "text": "_default_pid_path",
+          "anchor": "_default_pid_path"
+        },
+        {
+          "level": 3,
+          "text": "_launch_command_parts",
+          "anchor": "_launch_command_parts"
+        },
+        {
+          "level": 3,
+          "text": "_auto_register_entry",
+          "anchor": "_auto_register_entry"
+        },
+        {
+          "level": 3,
+          "text": "run",
+          "anchor": "run"
+        }
+      ]
     },
     {
       "path": "src-wesktop-dev.md",
       "title": "src.wesktop.dev",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.dev",
+          "anchor": "srcwesktopdev"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.dev",
+          "anchor": "srcwesktopdev"
+        }
+      ]
     },
     {
       "path": "src-wesktop-di.md",
       "title": "src.wesktop.di",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.di",
+          "anchor": "srcwesktopdi"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.di",
+          "anchor": "srcwesktopdi"
+        }
+      ]
     },
     {
       "path": "src-wesktop-entries.md",
       "title": "src.wesktop.entries",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.entries",
+          "anchor": "srcwesktopentries"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.entries",
+          "anchor": "srcwesktopentries"
+        },
+        {
+          "level": 3,
+          "text": "create_entry",
+          "anchor": "create_entry"
+        },
+        {
+          "level": 3,
+          "text": "remove_entry",
+          "anchor": "remove_entry"
+        },
+        {
+          "level": 3,
+          "text": "entry_exists",
+          "anchor": "entry_exists"
+        },
+        {
+          "level": 3,
+          "text": "launcher_name",
+          "anchor": "launcher_name"
+        },
+        {
+          "level": 3,
+          "text": "launcher_path",
+          "anchor": "launcher_path"
+        },
+        {
+          "level": 3,
+          "text": "create_launcher",
+          "anchor": "create_launcher"
+        },
+        {
+          "level": 3,
+          "text": "remove_launcher",
+          "anchor": "remove_launcher"
+        },
+        {
+          "level": 3,
+          "text": "_split_windows_command",
+          "anchor": "_split_windows_command"
+        },
+        {
+          "level": 3,
+          "text": "quote_windows_command",
+          "anchor": "quote_windows_command"
+        },
+        {
+          "level": 3,
+          "text": "_windows_com_available",
+          "anchor": "_windows_com_available"
+        }
+      ]
     },
     {
       "path": "src-wesktop-error_log.md",
       "title": "src.wesktop.error_log",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.error_log",
+          "anchor": "srcwesktoperror_log"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.error_log",
+          "anchor": "srcwesktoperror_log"
+        }
+      ]
     },
     {
       "path": "src-wesktop-features.md",
       "title": "src.wesktop.features",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.features",
+          "anchor": "srcwesktopfeatures"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.features",
+          "anchor": "srcwesktopfeatures"
+        }
+      ]
     },
     {
       "path": "src-wesktop-logging.md",
       "title": "src.wesktop.logging",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.logging",
+          "anchor": "srcwesktoplogging"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.logging",
+          "anchor": "srcwesktoplogging"
+        }
+      ]
     },
     {
       "path": "src-wesktop-mcp.md",
       "title": "src.wesktop.mcp",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.mcp",
+          "anchor": "srcwesktopmcp"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.mcp",
+          "anchor": "srcwesktopmcp"
+        },
+        {
+          "level": 3,
+          "text": "ROLES",
+          "anchor": "roles"
+        },
+        {
+          "level": 3,
+          "text": "DEFAULT_ROLE",
+          "anchor": "default_role"
+        },
+        {
+          "level": 3,
+          "text": "create_mcp_server",
+          "anchor": "create_mcp_server"
+        },
+        {
+          "level": 3,
+          "text": "register_tools_for_role",
+          "anchor": "register_tools_for_role"
+        },
+        {
+          "level": 3,
+          "text": "ROLES",
+          "anchor": "roles-1"
+        },
+        {
+          "level": 3,
+          "text": "DEFAULT_ROLE",
+          "anchor": "default_role-1"
+        }
+      ]
     },
     {
       "path": "src-wesktop-mcp_tools-_http.md",
       "title": "src.wesktop.mcp_tools._http",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.mcp_tools._http",
+          "anchor": "srcwesktopmcp_tools_http"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.mcp_tools._http",
+          "anchor": "srcwesktopmcp_tools_http"
+        },
+        {
+          "level": 3,
+          "text": "request",
+          "anchor": "request"
+        }
+      ]
     },
     {
       "path": "src-wesktop-mcp_tools-_paths.md",
       "title": "src.wesktop.mcp_tools._paths",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.mcp_tools._paths",
+          "anchor": "srcwesktopmcp_tools_paths"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.mcp_tools._paths",
+          "anchor": "srcwesktopmcp_tools_paths"
+        },
+        {
+          "level": 3,
+          "text": "guard_path",
+          "anchor": "guard_path"
+        }
+      ]
     },
     {
       "path": "src-wesktop-mcp_tools-ask_user.md",
       "title": "src.wesktop.mcp_tools.ask_user",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.mcp_tools.ask_user",
+          "anchor": "srcwesktopmcp_toolsask_user"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.mcp_tools.ask_user",
+          "anchor": "srcwesktopmcp_toolsask_user"
+        },
+        {
+          "level": 3,
+          "text": "ask_user",
+          "anchor": "ask_user"
+        }
+      ]
     },
     {
       "path": "src-wesktop-mcp_tools-deployment.md",
       "title": "src.wesktop.mcp_tools.deployment",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.mcp_tools.deployment",
+          "anchor": "srcwesktopmcp_toolsdeployment"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.mcp_tools.deployment",
+          "anchor": "srcwesktopmcp_toolsdeployment"
+        },
+        {
+          "level": 3,
+          "text": "stage_branch",
+          "anchor": "stage_branch"
+        },
+        {
+          "level": 3,
+          "text": "create_prod_pr",
+          "anchor": "create_prod_pr"
+        },
+        {
+          "level": 3,
+          "text": "check_pipeline",
+          "anchor": "check_pipeline"
+        }
+      ]
     },
     {
       "path": "src-wesktop-mcp_tools-filesystem.md",
       "title": "src.wesktop.mcp_tools.filesystem",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.mcp_tools.filesystem",
+          "anchor": "srcwesktopmcp_toolsfilesystem"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.mcp_tools.filesystem",
+          "anchor": "srcwesktopmcp_toolsfilesystem"
+        },
+        {
+          "level": 3,
+          "text": "read_file",
+          "anchor": "read_file"
+        },
+        {
+          "level": 3,
+          "text": "write_file",
+          "anchor": "write_file"
+        },
+        {
+          "level": 3,
+          "text": "edit_file",
+          "anchor": "edit_file"
+        },
+        {
+          "level": 3,
+          "text": "list_files",
+          "anchor": "list_files"
+        },
+        {
+          "level": 3,
+          "text": "search_files",
+          "anchor": "search_files"
+        }
+      ]
     },
     {
       "path": "src-wesktop-mcp_tools-git.md",
       "title": "src.wesktop.mcp_tools.git",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.mcp_tools.git",
+          "anchor": "srcwesktopmcp_toolsgit"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.mcp_tools.git",
+          "anchor": "srcwesktopmcp_toolsgit"
+        },
+        {
+          "level": 3,
+          "text": "_run",
+          "anchor": "_run"
+        },
+        {
+          "level": 3,
+          "text": "git_status",
+          "anchor": "git_status"
+        },
+        {
+          "level": 3,
+          "text": "git_diff",
+          "anchor": "git_diff"
+        },
+        {
+          "level": 3,
+          "text": "git_commit",
+          "anchor": "git_commit"
+        },
+        {
+          "level": 3,
+          "text": "git_log",
+          "anchor": "git_log"
+        }
+      ]
     },
     {
       "path": "src-wesktop-mcp_tools-review.md",
       "title": "src.wesktop.mcp_tools.review",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.mcp_tools.review",
+          "anchor": "srcwesktopmcp_toolsreview"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.mcp_tools.review",
+          "anchor": "srcwesktopmcp_toolsreview"
+        },
+        {
+          "level": 3,
+          "text": "post_review_comment",
+          "anchor": "post_review_comment"
+        }
+      ]
     },
     {
       "path": "src-wesktop-mcp_tools-testing.md",
       "title": "src.wesktop.mcp_tools.testing",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.mcp_tools.testing",
+          "anchor": "srcwesktopmcp_toolstesting"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.mcp_tools.testing",
+          "anchor": "srcwesktopmcp_toolstesting"
+        },
+        {
+          "level": 3,
+          "text": "run_tests",
+          "anchor": "run_tests"
+        }
+      ]
     },
     {
       "path": "src-wesktop-mcp_tools.md",
       "title": "src.wesktop.mcp_tools",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.mcp_tools",
+          "anchor": "srcwesktopmcp_tools"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.mcp_tools",
+          "anchor": "srcwesktopmcp_tools"
+        }
+      ]
     },
     {
       "path": "src-wesktop-middleware.md",
       "title": "src.wesktop.middleware",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.middleware",
+          "anchor": "srcwesktopmiddleware"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.middleware",
+          "anchor": "srcwesktopmiddleware"
+        }
+      ]
     },
     {
       "path": "src-wesktop-runtime_bridge.md",
       "title": "src.wesktop.runtime_bridge",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.runtime_bridge",
+          "anchor": "srcwesktopruntime_bridge"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.runtime_bridge",
+          "anchor": "srcwesktopruntime_bridge"
+        },
+        {
+          "level": 3,
+          "text": "reload",
+          "anchor": "reload"
+        },
+        {
+          "level": 3,
+          "text": "clear_web_cache",
+          "anchor": "clear_web_cache"
+        },
+        {
+          "level": 3,
+          "text": "fetch_build_id",
+          "anchor": "fetch_build_id"
+        },
+        {
+          "level": 3,
+          "text": "check_and_reload",
+          "anchor": "check_and_reload"
+        },
+        {
+          "level": 3,
+          "text": "install_focus_poll",
+          "anchor": "install_focus_poll"
+        }
+      ]
     },
     {
       "path": "src-wesktop-sdui.md",
       "title": "src.wesktop.sdui",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.sdui",
+          "anchor": "srcwesktopsdui"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.sdui",
+          "anchor": "srcwesktopsdui"
+        },
+        {
+          "level": 3,
+          "text": "SDUINode",
+          "anchor": "sduinode"
+        },
+        {
+          "level": 3,
+          "text": "node",
+          "anchor": "node"
+        },
+        {
+          "level": 3,
+          "text": "TabItem",
+          "anchor": "tabitem"
+        },
+        {
+          "level": 3,
+          "text": "BreadcrumbItem",
+          "anchor": "breadcrumbitem"
+        },
+        {
+          "level": 3,
+          "text": "TimelineItem",
+          "anchor": "timelineitem"
+        },
+        {
+          "level": 3,
+          "text": "ColumnDef",
+          "anchor": "columndef"
+        },
+        {
+          "level": 3,
+          "text": "KVEntry",
+          "anchor": "kventry"
+        },
+        {
+          "level": 3,
+          "text": "OptionItem",
+          "anchor": "optionitem"
+        },
+        {
+          "level": 3,
+          "text": "DataGridColumnDef",
+          "anchor": "datagridcolumndef"
+        },
+        {
+          "level": 3,
+          "text": "_PrimitiveBase",
+          "anchor": "_primitivebase"
+        },
+        {
+          "level": 4,
+          "text": "to_node",
+          "anchor": "to_node"
+        },
+        {
+          "level": 3,
+          "text": "Stack",
+          "anchor": "stack"
+        },
+        {
+          "level": 3,
+          "text": "ZStack",
+          "anchor": "zstack"
+        },
+        {
+          "level": 3,
+          "text": "Spacer",
+          "anchor": "spacer"
+        },
+        {
+          "level": 3,
+          "text": "Divider",
+          "anchor": "divider"
+        },
+        {
+          "level": 3,
+          "text": "Grid",
+          "anchor": "grid"
+        },
+        {
+          "level": 3,
+          "text": "Card",
+          "anchor": "card"
+        },
+        {
+          "level": 3,
+          "text": "Tabs",
+          "anchor": "tabs"
+        },
+        {
+          "level": 3,
+          "text": "Breadcrumb",
+          "anchor": "breadcrumb"
+        },
+        {
+          "level": 3,
+          "text": "Empty",
+          "anchor": "empty"
+        },
+        {
+          "level": 3,
+          "text": "Heading",
+          "anchor": "heading"
+        },
+        {
+          "level": 3,
+          "text": "Text",
+          "anchor": "text"
+        },
+        {
+          "level": 3,
+          "text": "Code",
+          "anchor": "code"
+        },
+        {
+          "level": 3,
+          "text": "Status",
+          "anchor": "status"
+        },
+        {
+          "level": 3,
+          "text": "Badge",
+          "anchor": "badge"
+        },
+        {
+          "level": 3,
+          "text": "ProgressBar",
+          "anchor": "progressbar"
+        },
+        {
+          "level": 3,
+          "text": "Spinner",
+          "anchor": "spinner"
+        },
+        {
+          "level": 3,
+          "text": "Timeline",
+          "anchor": "timeline"
+        },
+        {
+          "level": 3,
+          "text": "Diff",
+          "anchor": "diff"
+        },
+        {
+          "level": 3,
+          "text": "Markdown",
+          "anchor": "markdown"
+        },
+        {
+          "level": 3,
+          "text": "Table",
+          "anchor": "table"
+        },
+        {
+          "level": 3,
+          "text": "DataGrid",
+          "anchor": "datagrid"
+        },
+        {
+          "level": 3,
+          "text": "List",
+          "anchor": "list"
+        },
+        {
+          "level": 3,
+          "text": "KeyValue",
+          "anchor": "keyvalue"
+        },
+        {
+          "level": 3,
+          "text": "JsonView",
+          "anchor": "jsonview"
+        },
+        {
+          "level": 3,
+          "text": "Tree",
+          "anchor": "tree"
+        },
+        {
+          "level": 3,
+          "text": "Button",
+          "anchor": "button"
+        },
+        {
+          "level": 3,
+          "text": "Input",
+          "anchor": "input"
+        },
+        {
+          "level": 3,
+          "text": "TextArea",
+          "anchor": "textarea"
+        },
+        {
+          "level": 3,
+          "text": "Select",
+          "anchor": "select"
+        },
+        {
+          "level": 3,
+          "text": "Checkbox",
+          "anchor": "checkbox"
+        },
+        {
+          "level": 3,
+          "text": "Switch",
+          "anchor": "switch"
+        },
+        {
+          "level": 3,
+          "text": "Radio",
+          "anchor": "radio"
+        },
+        {
+          "level": 3,
+          "text": "Slider",
+          "anchor": "slider"
+        },
+        {
+          "level": 3,
+          "text": "Alert",
+          "anchor": "alert"
+        },
+        {
+          "level": 3,
+          "text": "Toast",
+          "anchor": "toast"
+        },
+        {
+          "level": 3,
+          "text": "Logs",
+          "anchor": "logs"
+        },
+        {
+          "level": 3,
+          "text": "Modal",
+          "anchor": "modal"
+        },
+        {
+          "level": 3,
+          "text": "Drawer",
+          "anchor": "drawer"
+        },
+        {
+          "level": 3,
+          "text": "Popover",
+          "anchor": "popover"
+        },
+        {
+          "level": 3,
+          "text": "Confirm",
+          "anchor": "confirm"
+        },
+        {
+          "level": 3,
+          "text": "register_sdui_provider",
+          "anchor": "register_sdui_provider"
+        },
+        {
+          "level": 3,
+          "text": "get_sdui_provider",
+          "anchor": "get_sdui_provider"
+        },
+        {
+          "level": 3,
+          "text": "list_sdui_providers",
+          "anchor": "list_sdui_providers"
+        }
+      ]
     },
     {
       "path": "src-wesktop-server.md",
       "title": "src.wesktop.server",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.server",
+          "anchor": "srcwesktopserver"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.server",
+          "anchor": "srcwesktopserver"
+        }
+      ]
     },
     {
       "path": "src-wesktop-sse.md",
       "title": "src.wesktop.sse",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.sse",
+          "anchor": "srcwesktopsse"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.sse",
+          "anchor": "srcwesktopsse"
+        }
+      ]
     },
     {
       "path": "src-wesktop-tasks.md",
       "title": "src.wesktop.tasks",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.tasks",
+          "anchor": "srcwesktoptasks"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.tasks",
+          "anchor": "srcwesktoptasks"
+        }
+      ]
     },
     {
       "path": "src-wesktop-testing.md",
       "title": "src.wesktop.testing",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "src.wesktop.testing",
+          "anchor": "srcwesktoptesting"
+        },
+        {
+          "level": 2,
+          "text": "src.wesktop.testing",
+          "anchor": "srcwesktoptesting"
+        }
+      ]
     },
     {
       "path": "vs-electron.md",
       "title": "wesktop vs Electron",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "wesktop vs Electron",
+          "anchor": "wesktop-vs-electron"
+        },
+        {
+          "level": 2,
+          "text": "Comparison",
+          "anchor": "comparison"
+        },
+        {
+          "level": 2,
+          "text": "Where Electron is stronger",
+          "anchor": "where-electron-is-stronger"
+        },
+        {
+          "level": 2,
+          "text": "Where wesktop is stronger",
+          "anchor": "where-wesktop-is-stronger"
+        },
+        {
+          "level": 2,
+          "text": "When to choose which",
+          "anchor": "when-to-choose-which"
+        }
+      ]
     },
     {
       "path": "vs-pywebview.md",
       "title": "wesktop vs pywebview",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "wesktop vs pywebview",
+          "anchor": "wesktop-vs-pywebview"
+        },
+        {
+          "level": 2,
+          "text": "What pywebview provides",
+          "anchor": "what-pywebview-provides"
+        },
+        {
+          "level": 2,
+          "text": "What wesktop adds",
+          "anchor": "what-wesktop-adds"
+        },
+        {
+          "level": 3,
+          "text": "ASGI routing (via fastware)",
+          "anchor": "asgi-routing-via-fastware"
+        },
+        {
+          "level": 3,
+          "text": "SSE broadcasting",
+          "anchor": "sse-broadcasting"
+        },
+        {
+          "level": 3,
+          "text": "Server lifecycle management",
+          "anchor": "server-lifecycle-management"
+        },
+        {
+          "level": 3,
+          "text": "Middleware suite",
+          "anchor": "middleware-suite"
+        },
+        {
+          "level": 3,
+          "text": "Auth system",
+          "anchor": "auth-system"
+        },
+        {
+          "level": 3,
+          "text": "Desktop entry creation",
+          "anchor": "desktop-entry-creation"
+        },
+        {
+          "level": 3,
+          "text": "CLI diagnostics",
+          "anchor": "cli-diagnostics"
+        },
+        {
+          "level": 3,
+          "text": "SDUI primitives",
+          "anchor": "sdui-primitives"
+        },
+        {
+          "level": 3,
+          "text": "GUI backend detection",
+          "anchor": "gui-backend-detection"
+        },
+        {
+          "level": 3,
+          "text": "Development mode",
+          "anchor": "development-mode"
+        },
+        {
+          "level": 2,
+          "text": "Side-by-side",
+          "anchor": "side-by-side"
+        },
+        {
+          "level": 2,
+          "text": "When to use bare pywebview",
+          "anchor": "when-to-use-bare-pywebview"
+        },
+        {
+          "level": 2,
+          "text": "When to use wesktop",
+          "anchor": "when-to-use-wesktop"
+        }
+      ]
     },
     {
       "path": "vs-tauri.md",
       "title": "wesktop vs Tauri",
-      "type": "doc"
+      "type": "doc",
+      "headings": [
+        {
+          "level": 1,
+          "text": "wesktop vs Tauri",
+          "anchor": "wesktop-vs-tauri"
+        },
+        {
+          "level": 2,
+          "text": "Comparison",
+          "anchor": "comparison"
+        },
+        {
+          "level": 2,
+          "text": "Where Tauri is stronger",
+          "anchor": "where-tauri-is-stronger"
+        },
+        {
+          "level": 2,
+          "text": "Where wesktop is stronger",
+          "anchor": "where-wesktop-is-stronger"
+        },
+        {
+          "level": 2,
+          "text": "When to choose which",
+          "anchor": "when-to-choose-which"
+        }
+      ]
     }
   ],
   "posts": [],
-  "last_gen": "2026-08-09T12:05:33.489305+00:00"
+  "last_gen": "2026-08-12T03:38:53.197062+00:00"
 }
