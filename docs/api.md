@@ -6,7 +6,7 @@ date: 2026-07-01
 
 # API Reference
 
-wesktop exposes 117 public symbols via `import wesktop`. Most of these are re-exports from [fastware](https://docs.smmh.dev/fastware) -- the ASGI micro-framework that provides routing, responses, SSE, middleware, auth, dependency injection, config, testing, server lifecycle, background tasks, feature flags, audit logging, error logging, and MCP support. For documentation on those symbols, see the [fastware API reference](https://docs.smmh.dev/fastware/api.html).
+wesktop exposes 117 public symbols via `import wesktop`. Most of these are re-exports from [fastware](https://docs.smmh.dev/fastware) -- the ASGI micro-framework that provides routing, responses, SSE, middleware, auth, dependency injection, config, testing, server lifecycle, background tasks, feature flags, audit logging, error logging, and MCP support. For documentation on those symbols, see the [fastware API reference](https://docs.smmh.dev/fastware/api/).
 
 This page documents the symbols that are native to wesktop -- the desktop shell, entry management, SDUI primitives, GUI backend detection, and dev mode. The library is validated by 271 tests across 13 test modules.
 
@@ -136,7 +136,7 @@ The SDUI system provides 40 Pydantic-validated node types organized into 6 categ
 
 wesktop includes 40 server-driven UI node types for building dynamic dashboards without shipping frontend code. Each model serializes to the `{"type", "props", "children"}` dict shape expected by the SDUI renderer.
 
-For the full list of SDUI primitives (layout, display, data, input, feedback, overlay), see the [auto-generated SDUI reference](src-wesktop-sdui.html).
+For the full list of SDUI primitives (layout, display, data, input, feedback, overlay), see the [auto-generated SDUI reference](src-wesktop-sdui.md).
 
 ### Grouping
 
@@ -180,7 +180,7 @@ Return a list of all registered SDUI provider names.
 
 ## Fastware Re-exports
 
-The following 15 modules are re-exported from fastware, providing the full ASGI framework stack (routing, responses, middleware, auth, DI, testing, server lifecycle, and more) without requiring a separate `import fastware` statement. See the [fastware API docs](https://docs.smmh.dev/fastware/api.html) for full documentation.
+The following 15 modules are re-exported from fastware, providing the full ASGI framework stack (routing, responses, middleware, auth, DI, testing, server lifecycle, and more) without requiring a separate `import fastware` statement. See the [fastware API docs](https://docs.smmh.dev/fastware/api/) for full documentation.
 
 | wesktop module | fastware source | Provides |
 |---------------|----------------|----------|

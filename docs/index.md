@@ -131,4 +131,4 @@ When using `wesktop.run()`, desktop entries are created automatically on first l
 
 ## API Reference
 
-See the [API docs](api.md) for all 116 wesktop-native symbols (desktop window, entries, SDUI primitives, GUI backend detection, and dev mode). For ASGI routing, middleware, auth, SSE, dependency injection, and server lifecycle, see the [fastware API docs](https://docs.smmh.dev/fastware/api.html).
+See the [API docs](api.md) for all 116 wesktop-native symbols (desktop window, entries, SDUI primitives, GUI backend detection, and dev mode). For ASGI routing, middleware, auth, SSE, dependency injection, and server lifecycle, see the [fastware API docs](https://docs.smmh.dev/fastware/api/).

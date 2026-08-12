@@ -41,10 +41,6 @@
       "src.wesktop"
     ]
   },
-  "deploy": {
-    "provider": "cloudflare-pages",
-    "project": "wesktop"
-  },
   "topology": {
     "slug": "wesktop",
     "docs_base": "https://smmh.dev",
