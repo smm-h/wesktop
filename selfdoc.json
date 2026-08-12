@@ -9,14 +9,21 @@
   "docs": "docs/",
   "output": "docs/_build/",
   "base_url": "https://wesktop.smmh.dev",
+  "search_engine": "pagefind",
+  "author": {
+    "name": "SMMH",
+    "url": "https://smmh.dev",
+    "same_as": [
+      "https://github.com/smm-h"
+    ]
+  },
   "root_files": [
     "docs/_README.md",
     "docs/_CLAUDE.md"
   ],
   "versions": [
     {
-      "version": "0.11.1",
-      "indexed": true
+      "version": "0.11.1"
     }
   ],
   "locales": [
@@ -40,7 +47,7 @@
   },
   "topology": {
     "slug": "wesktop",
-    "docs_base": "https://docs.smmh.dev",
+    "docs_base": "https://smmh.dev",
     "posts_base": "https://blog.smmh.dev",
     "projects": {
       "pixelweaver": "https://docs.smmh.dev/pixelweaver",
