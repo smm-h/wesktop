@@ -27,3 +27,7 @@ Wheels were never affected; they have always been built from `src/wesktop`.
 # blog = false
 include = ["pypi", "npm"]
 exclude = []
+candidate_sha = "fc5efe2c8505198b941663bfbb78853b5ffc988a"
+
+[tree_hashes]
+"." = "ce7b2736050b6bf017d41092340850f3106e3e49"

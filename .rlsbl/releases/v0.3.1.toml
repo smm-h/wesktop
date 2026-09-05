@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "patch"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.3.1
+description = "**New feature.** AppConfig dataclass for centralized app configuration via create_app()."
+candidate_sha = "a90905dc58aa2bf87aa9393f4d3e511993792513"
+
+[tree_hashes]
+"." = "8a0b0ea5756978e7bc980afd333d17d441d56e8c"

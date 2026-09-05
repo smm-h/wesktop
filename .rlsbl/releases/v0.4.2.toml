@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "patch"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.4.2
+description = "**Fix.** `run()` no longer crashes when pywebview has no GUI backend available (e.g., missing GTK/Qt in uv virtual environments)."
+candidate_sha = "21ef54628223dc936d9e7dc4856ffc73a335aa49"
+
+[tree_hashes]
+"." = "1c5155f83de47818b5a93e1e31ffbe072e947933"

@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "patch"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.4.1
+description = "**Fix.** `serve(foreground=False)` no longer crashes with granian's signal handler registration in daemon threads. Fixes desktop mode (`run()`) and any background-server usage."
+candidate_sha = "8d33bc594d9234f1d7b76dd0701a2a84bbb12fe3"
+
+[tree_hashes]
+"." = "c1e27ff5a4d1a2500347dd16d7484d5b305e8bfe"

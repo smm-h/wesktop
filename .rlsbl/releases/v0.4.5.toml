@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "patch"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.4.5
+description = "**Feature.** `ensure_gui_backend()` now searches macOS paths (Homebrew and Framework) for system PyGObject."
+candidate_sha = "374a48ffd28e8d256b99090a8e1bd78ba125f822"
+
+[tree_hashes]
+"." = "7b03c8d4ee57264b42329219599eb42280b2720d"

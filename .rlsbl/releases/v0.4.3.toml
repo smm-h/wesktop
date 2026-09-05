@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "patch"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.4.3
+description = "**Fix.** `serve(foreground=False)` signal handler patch now survives thread start race condition. Previous fix was ineffective because the noop was restored before the daemon thread executed startup."
+candidate_sha = "dd37a931eb4dece492467d2aacb557dfa100c556"
+
+[tree_hashes]
+"." = "485a183ac25e850bcb639cf977e3d19e097cd0b3"

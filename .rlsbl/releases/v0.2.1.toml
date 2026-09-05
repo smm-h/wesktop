@@ -1,0 +1,21 @@
+# Materialized by `rlsbl release backfill`: this version shipped before
+# rlsbl archived a release file per version, so no archive existed.
+# Every reconstructed value names its source on the field below it. A
+# description is recovered from the first source that yields one: an
+# operator-reviewed --overrides file, then the version's GitHub Release
+# body, then its CHANGELOG.md section, then the commit subjects in its tag
+# range, and otherwise a placeholder naming the recovery obligation. bump
+# is derived by version arithmetic against the predecessor, and include
+# reflects the targets detected at backfill time (the historical target set
+# is not recoverable).
+# This archive's description came from: github-release:v0.2.1.
+# strictspec document version gate (do not remove)
+format_version = 1
+bump = "patch"
+include = ["pypi", "npm"]
+exclude = []
+description = "**Fix.** Use PyPI-published strictcli instead of local source override. Fixes CI test failures."
+candidate_sha = "11061c2b3edf035621c4b99162f1b195e711c2e6"
+
+[tree_hashes]
+"." = "f847b4bfaf2a315563d21ceb8a01e29af7a3ec2d"

@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "minor"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.3.0
+description = "**Breaking.** serve() API redesigned: foreground parameter is required (no default), host/port have no implicit defaults (must be explicit or via env vars)."
+candidate_sha = "15ebca22102fc3002af3b11c0eaa2f6d5f90c1b8"
+
+[tree_hashes]
+"." = "838e9b7a5f8aeae813c671cf48a0c89d22889795"

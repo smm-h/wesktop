@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "minor"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.5.0
+description = "**Remove browser fallback from run().** run() no longer silently falls back to opening a browser when pywebview is unavailable. It now raises RuntimeError, making the failure explicit. Use serve() for headless/browser workflows."
+candidate_sha = "a8eeacef23f59761e427bf04fbc8acb4da5cdb66"
+
+[tree_hashes]
+"." = "b89a40c31572df593dd58078d19f206c77503696"

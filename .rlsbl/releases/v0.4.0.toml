@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "minor"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.4.0
+description = "**New feature.** `run()` accepts a `js_api` parameter, passed through to pywebview's `create_window()` for exposing Python methods to JavaScript."
+candidate_sha = "2b4a3db2360afbd82bdd565f914874e5758a9dd8"
+
+[tree_hashes]
+"." = "4321642be318da13cea8145deacaa642d357ee58"

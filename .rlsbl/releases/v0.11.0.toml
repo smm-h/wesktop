@@ -42,3 +42,7 @@ on ("127.0.0.1", 0) and the kernel-assigned port cannot be named ahead of time.
 # blog = false
 include = ["pypi", "npm"]
 exclude = []
+candidate_sha = "d59ef1f8fd936d97d1264496510d1f6ee15d509c"
+
+[tree_hashes]
+"." = "644cb11ff5eac77923ddc3510d5f0377249a1135"

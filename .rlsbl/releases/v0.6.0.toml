@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "minor"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.6.0
+description = "**Feature.** `serve_background()` runs the server as an independent subprocess that survives the parent process exiting. `run()` now uses this for full window/server lifecycle separation."
+candidate_sha = "b8be10ab5a2a9c1110af9ff957e6de5e5bec1dbf"
+
+[tree_hashes]
+"." = "e0b281baa52241caead739c281adc82fe88652ec"

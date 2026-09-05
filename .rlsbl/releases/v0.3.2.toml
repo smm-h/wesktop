@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "patch"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.3.2
+description = "**New feature.** Forward reload parameter to run()."
+candidate_sha = "607a594f6bb108538a99a56909945425be4240ac"
+
+[tree_hashes]
+"." = "f01d4a305b13ed36a1f31dccbe33bdee9c987a0d"

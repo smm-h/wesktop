@@ -1,3 +1,5 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 # Version bump type: patch, minor, major, hotfix, or prerelease
 bump = "minor"
 # Short description of this release (required)
@@ -30,3 +32,7 @@ windows. A host-side native runtime bridge reacts to fastware build changes.
 # blog = false
 include = ["pypi", "npm"]
 exclude = []
+candidate_sha = "8b9fd0016c36a3d13b19abda811009c7903f7085"
+
+[tree_hashes]
+"." = "8eaf59d6ee68e8c05e8df4ed0771b925f76a7cf0"

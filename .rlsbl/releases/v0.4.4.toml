@@ -1,3 +1,11 @@
+# strictspec document version gate (do not remove)
+format_version = 1
 bump = "patch"
 include = ["pypi"]
 exclude = []
+# description reconstructed by `rlsbl release backfill` from github-release:v0.4.4
+description = "**Feature.** `ensure_gui_backend()` finds and loads system PyGObject in isolated venvs. Called automatically by `run()`."
+candidate_sha = "2b0e2ce10103e5c07a1f106b520a40a93c02e11a"
+
+[tree_hashes]
+"." = "24d416c78e1ea7990f6ae40814297e180c8c3d8b"
