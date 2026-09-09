@@ -1488,3 +1488,114 @@ def test_join_forwards_chrome(
     assert kwargs["frameless"] is True
     assert kwargs["on_top"] is True
     assert kwargs["url"] == f"http://127.0.0.1:{port}"
+
+
+# ---------------------------------------------------------------------------
+# Frameless-window host operations
+# ---------------------------------------------------------------------------
+
+
+class _FakeGtkWindow:
+    """Stand-in GTK toplevel recording what was asked of it."""
+
+    def __init__(self) -> None:
+        self.regions: list[object] = []
+        self.drags: list[int] = []
+
+    def input_shape_combine_region(self, region: object) -> None:
+        self.regions.append(region)
+
+    def begin_move_drag(self, button: int, x: int, y: int, time: int) -> None:
+        self.drags.append(button)
+
+    def get_display(self) -> object:
+        raise AssertionError("the test drives begin_move_drag directly")
+
+
+def _fake_pywebview_window(gtk_window: object | None) -> object:
+    """A pywebview-shaped window handle whose GTK toplevel is *gtk_window*."""
+    browser_view = MagicMock()
+    browser_view.instances = {} if gtk_window is None else {"w1": MagicMock(window=gtk_window)}
+    gui = MagicMock()
+    gui.BrowserView = browser_view
+    window = MagicMock()
+    window.gui = gui
+    window.uid = "w1"
+    return window
+
+
+def test_active_window_is_none_before_any_window(monkeypatch: pytest.MonkeyPatch) -> None:
+    """active_window() answers None rather than raising when nothing is open."""
+    from wesktop import desktop
+
+    monkeypatch.setattr(desktop, "_active_window", None)
+    assert desktop.active_window() is None
+
+
+def test_active_window_returns_the_captured_handle(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The handle _wire_runtime_bridge captured is what active_window() hands back."""
+    from wesktop import desktop
+
+    sentinel = object()
+    monkeypatch.setattr(desktop, "_active_window", sentinel)
+    assert desktop.active_window() is sentinel
+
+
+def test_set_input_region_refuses_a_non_gtk_backend() -> None:
+    """A backend with no GTK toplevel is named in the error, and nothing changes."""
+    from wesktop.desktop import set_input_region
+
+    with pytest.raises(RuntimeError, match="GTK backend only"):
+        set_input_region(_fake_pywebview_window(None), [(0, 0, 10, 10)])
+
+
+def test_begin_window_drag_refuses_a_non_gtk_backend() -> None:
+    """The drag refuses the same way, rather than silently doing nothing."""
+    from wesktop.desktop import begin_window_drag
+
+    with pytest.raises(RuntimeError, match="GTK backend only"):
+        begin_window_drag(_fake_pywebview_window(None))
+
+
+def test_set_input_region_builds_a_region_from_the_rectangles() -> None:
+    """Each rectangle reaches cairo.Region, and the work is queued on the GTK loop."""
+    wesktop.ensure_gui_backend()  # makes the system PyGObject importable here
+    cairo = pytest.importorskip("cairo")
+    glib = pytest.importorskip("gi.repository.GLib")
+
+    gtk_window = _FakeGtkWindow()
+    window = _fake_pywebview_window(gtk_window)
+
+    queued: list[object] = []
+    with patch.object(glib, "idle_add", side_effect=lambda fn: queued.append(fn)):
+        from wesktop.desktop import set_input_region
+
+        set_input_region(window, [(4, 5, 60, 70), (0, 0, 10, 10)])
+
+    assert len(queued) == 1
+    queued[0]()  # run what would have run on the GTK main loop
+
+    assert len(gtk_window.regions) == 1
+    region = gtk_window.regions[0]
+    assert isinstance(region, cairo.Region)
+    assert region.contains_point(10, 10)
+    assert not region.contains_point(500, 500)
+
+
+def test_set_input_region_none_restores_the_whole_window() -> None:
+    """Passing None hands GTK a null region, which is how the default comes back."""
+    wesktop.ensure_gui_backend()  # makes the system PyGObject importable here
+    glib = pytest.importorskip("gi.repository.GLib")
+    pytest.importorskip("cairo")
+
+    gtk_window = _FakeGtkWindow()
+    window = _fake_pywebview_window(gtk_window)
+
+    queued: list[object] = []
+    with patch.object(glib, "idle_add", side_effect=lambda fn: queued.append(fn)):
+        from wesktop.desktop import set_input_region
+
+        set_input_region(window, None)
+
+    queued[0]()
+    assert gtk_window.regions == [None]

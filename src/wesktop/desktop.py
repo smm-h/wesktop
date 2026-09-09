@@ -378,6 +378,105 @@ def _create_window(
     )
 
 
+def active_window() -> object | None:
+    """The most recently created native window, or ``None`` before there is one.
+
+    ``run()`` blocks in ``webview.start()`` and returns nothing, so a background
+    thread that has to reach the live window -- to close it on a decision taken
+    elsewhere, to reshape it -- needs a way to ask for it. This is that way.
+    """
+    return _active_window
+
+
+def _gtk_toplevel(window: object) -> object | None:
+    """The GTK toplevel behind a pywebview window handle, or None on another backend."""
+    gui = getattr(window, "gui", None)
+    browser_view = getattr(gui, "BrowserView", None)
+    if browser_view is None:
+        return None
+    instance = browser_view.instances.get(getattr(window, "uid", None))
+    return getattr(instance, "window", None)
+
+
+def _require_gtk_toplevel(window: object, operation: str) -> object:
+    """The GTK toplevel for *window*, or a RuntimeError naming what is unsupported."""
+    toplevel = _gtk_toplevel(window)
+    if toplevel is None:
+        backend = getattr(getattr(window, "gui", None), "__name__", "unknown")
+        raise RuntimeError(
+            f"{operation} is implemented for the GTK backend only; this window "
+            f"is on {backend!r}. Nothing was changed."
+        )
+    return toplevel
+
+
+def set_input_region(
+    window: object, rects: list[tuple[int, int, int, int]] | None
+) -> None:
+    """Restrict the pointer input the window accepts to *rects*.
+
+    A transparent window is still a solid rectangle to the pointer: the parts
+    the page draws nothing on go on swallowing clicks, so whatever is behind
+    them cannot be reached. This hands the compositor an input region instead,
+    so a click outside *rects* lands on whatever is underneath.
+
+    *rects* are ``(x, y, width, height)`` in window coordinates -- the same
+    coordinates ``getBoundingClientRect()`` reports to the page. A shape with a
+    diagonal or a hole is approximated by listing several rectangles. ``None``
+    restores the default: the whole window accepts input.
+
+    GTK backend only (X11 and Wayland alike). On any other backend this raises
+    rather than quietly leaving the window solid.
+    """
+    toplevel = _require_gtk_toplevel(window, "set_input_region")
+
+    import cairo
+    from gi.repository import GLib
+
+    if rects is None:
+        region = None
+    else:
+        region = cairo.Region(
+            [
+                cairo.RectangleInt(int(x), int(y), max(0, int(w)), max(0, int(h)))
+                for x, y, w, h in rects
+            ]
+        )
+
+    # GTK is not thread-safe; the shape is applied on the main loop.
+    GLib.idle_add(lambda: (toplevel.input_shape_combine_region(region), False)[1])
+
+
+def begin_window_drag(window: object, button: int = 1) -> None:
+    """Ask the window manager to start an interactive move of the window.
+
+    This is what a frameless window needs to be draggable, and it is not what
+    pywebview's ``easy_drag`` does: ``easy_drag`` repositions the window itself
+    with ``gtk_window_move``, which a Wayland compositor ignores outright -- a
+    Wayland client cannot place its own surfaces. Handing the move to the
+    compositor works on Wayland and X11 alike.
+
+    Call it from a pointer-press the page reports (a ``js_api`` method reached
+    as ``pywebview.api.<name>()``), while the implicit pointer grab from that
+    press is still the seat's most recent one.
+
+    GTK backend only. On any other backend this raises.
+    """
+    toplevel = _require_gtk_toplevel(window, "begin_window_drag")
+
+    from gi.repository import Gdk, GLib
+
+    def _start() -> bool:
+        display = toplevel.get_display()
+        seat = display.get_default_seat()
+        pointer = seat.get_pointer()
+        _screen, x_root, y_root = pointer.get_position()
+        toplevel.begin_move_drag(button, x_root, y_root, Gdk.CURRENT_TIME)
+        return False
+
+    GLib.idle_add(_start)
+
+
 def _run_window(
     webview: object,
     window: object,

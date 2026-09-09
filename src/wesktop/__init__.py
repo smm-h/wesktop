@@ -137,6 +137,9 @@ _LAZY_ATTRS: dict[str, str] = {
     # desktop (pywebview)
     "run": "wesktop.desktop",
     "WindowChrome": "wesktop.desktop",
+    "active_window": "wesktop.desktop",
+    "set_input_region": "wesktop.desktop",
+    "begin_window_drag": "wesktop.desktop",
     "ensure_gui_backend": "wesktop.desktop",
     # server lifecycle (granian)
     "serve": "wesktop.server",
@@ -238,6 +241,9 @@ __all__ = [
     "dev",
     # desktop (lazy)
     "WindowChrome",
+    "active_window",
+    "set_input_region",
+    "begin_window_drag",
     "ensure_gui_backend",
     # features
     "FeatureFlags",
