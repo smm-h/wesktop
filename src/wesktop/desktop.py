@@ -33,6 +33,7 @@ in-process state:
 
 from __future__ import annotations
 
+import contextlib
 import glob
 import importlib.util
 import json
@@ -42,6 +43,7 @@ import platform
 import shlex
 import shutil
 import sys
+import tempfile
 import threading
 import time
 import urllib.parse
@@ -330,6 +332,12 @@ class WindowChrome:
     Platform truth for ``transparent``: honoured by the GTK/WebKit backend on
     Linux (a compositor supplying an RGBA visual) and by Cocoa on macOS; the
     Windows Edge WebView2 backend ignores it and paints ``background_color``.
+
+    ``zoomable`` is enforced by wesktop rather than merely forwarded. pywebview
+    stores the flag and its GTK backend never reads it, so a touchpad pinch or
+    a ctrl+scroll rescales the page of every GTK window whatever the flag says.
+    With ``zoomable=False`` (the default) wesktop refuses those events and pins
+    the page's zoom level at 1.0.
     """
 
     resizable: bool = True
@@ -376,6 +384,68 @@ def _create_window(
         js_api=js_api,
         **chrome.as_window_kwargs(),
     )
+
+
+@dataclass(frozen=True)
+class HeadlessApp:
+    """A running wesktop app with no window: the server, and where to reach it."""
+
+    url: str
+    host: str
+    port: int
+    pid_path: Path
+
+
+@contextlib.contextmanager
+def headless(
+    target: str | Callable,
+    *,
+    host: str = "127.0.0.1",
+    port: int = 0,
+    pid_path: Path | None = None,
+    name: str = "WESKTOP",
+):
+    """Run the app with no window at all, and stop it on the way out.
+
+    This is the shape a test wants. ``run()`` needs a GUI backend, opens a real
+    window, and blocks until a human closes it -- none of which a test can do.
+    ``headless()`` starts the same server the same way, hands back the URL it is
+    listening on, and stops it when the block ends, including when the block
+    raises. pywebview is never imported, so this works on a machine with no
+    display, in CI, and over ssh.
+
+    ::
+
+        with wesktop.headless("myapp:app") as app:
+            assert httpx.get(f"{app.url}/api/health").json()["status"] == "ok"
+
+    The port defaults to 0, meaning a free one is chosen -- so two tests running
+    at once do not collide. With no ``pid_path`` the run gets a private
+    temporary one, which is removed with the server; passing a real one makes
+    the run visible to ``status()`` and ``stop()`` like any other instance.
+    """
+    from wesktop import server as _srv
+
+    owned_dir: str | None = None
+    if pid_path is None:
+        owned_dir = tempfile.mkdtemp(prefix="wesktop-headless-")
+        slug = name.lower().replace(" ", "-")
+        pid_path = Path(owned_dir) / f"{slug}.pid"
+
+    url = _srv.serve_background(
+        target, host=host, port=port, pid_path=pid_path, name=name
+    )
+    try:
+        yield HeadlessApp(
+            url=url, host=host, port=_port_from_url(url), pid_path=pid_path
+        )
+    finally:
+        try:
+            _srv.stop(pid_path)
+        except (FileNotFoundError, ProcessLookupError, PermissionError):
+            pass
+        if owned_dir is not None:
+            shutil.rmtree(owned_dir, ignore_errors=True)
 
 
 def active_window() -> object | None:
@@ -566,6 +636,71 @@ def capture_window(
     surface = result["surface"]
     surface.write_to_png(str(out))  # type: ignore[attr-defined]
     return out
+
+
+def _install_zoom_lock(window: object) -> bool:
+    """Hold the page at 1:1 on the GTK backend. Returns whether the lock went on.
+
+    pywebview accepts ``zoomable=False`` and its GTK backend never reads it: the
+    flag is stored on the window and nothing consults it, so a touchpad pinch or
+    a ctrl+scroll rescales the page of every GTK window regardless. An app whose
+    window IS its layout -- a frameless dialog sized to its own content -- has
+    no use for a reader-controlled zoom, and asked for it to be off.
+
+    Two mechanisms, because they answer different questions. The events that
+    ask for a zoom are refused, so nothing visibly moves; and the zoom level
+    itself is pinned, so anything that reaches it another way is undone.
+    """
+    web_view = _gtk_web_view(window)
+    if web_view is None:
+        return False
+
+    from gi.repository import Gdk
+
+    web_view.set_zoom_level(1.0)
+
+    restoring = False
+
+    def _on_zoom_changed(view: object, _param: object) -> None:
+        nonlocal restoring
+        if restoring:
+            return
+        if view.get_zoom_level() == 1.0:
+            return
+        restoring = True
+        try:
+            view.set_zoom_level(1.0)
+        finally:
+            restoring = False
+
+    def _on_scroll(_view: object, event: object) -> bool:
+        # ctrl+scroll is the pointer spelling of zoom.
+        return bool(event.state & Gdk.ModifierType.CONTROL_MASK)
+
+    def _on_event(_view: object, event: object) -> bool:
+        return event.type == Gdk.EventType.TOUCHPAD_PINCH
+
+    web_view.connect("notify::zoom-level", _on_zoom_changed)
+    web_view.connect("scroll-event", _on_scroll)
+    web_view.connect("event", _on_event)
+    return True
+
+
+def _wire_zoom_lock(window: object, zoomable: bool) -> None:
+    """Install the zoom lock once the page is loaded, unless the app wants zoom."""
+    if zoomable:
+        return
+
+    events = getattr(window, "events", None)
+    loaded = getattr(events, "loaded", None) if events is not None else None
+    iadd = getattr(loaded, "__iadd__", None)
+    if iadd is None:
+        return
+
+    def _on_loaded(*_args: object) -> None:
+        _install_zoom_lock(window)
+
+    setattr(events, "loaded", iadd(_on_loaded))
 
 
 def _wire_capture(window: object, capture_to: Path | None, delay: float) -> None:
@@ -937,6 +1072,7 @@ def run(
                     js_api=js_api,
                     chrome=chrome,
                 )
+                _wire_zoom_lock(window, chrome.zoomable)
                 _wire_capture(window, capture_path, capture_delay)
                 _run_window(webview, window, url, pid_path, existing_port, name, icon)
                 return
@@ -974,5 +1110,6 @@ def run(
         js_api=js_api,
         chrome=chrome,
     )
+    _wire_zoom_lock(window, chrome.zoomable)
     _wire_capture(window, capture_path, capture_delay)
     _run_window(webview, window, url, pid_path, port_num, name, icon)

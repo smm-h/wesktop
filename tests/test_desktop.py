@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import socket
 import sys
 import time
@@ -1661,6 +1662,9 @@ def test_run_captures_on_load(
 
     window = MagicMock()
     window.events.loaded = _Loaded()
+    # No GTK backend behind this window, so the zoom lock that shares the
+    # loaded event skips itself and only the capture is exercised.
+    window.gui = None
     mock_create_window.return_value = window
 
     out = tmp_path / "shot.png"
@@ -1677,3 +1681,155 @@ def test_run_captures_on_load(
         time.sleep(0.5)
 
     mock_capture.assert_called_once_with(window, out)
+
+
+# ---------------------------------------------------------------------------
+# Headless runs
+# ---------------------------------------------------------------------------
+
+
+def test_headless_serves_and_stops(tmp_path: Path) -> None:
+    """A real headless run answers over HTTP and is stopped when the block ends."""
+    import urllib.error
+    import urllib.request
+
+    app_file = tmp_path / "headless_app.py"
+    app_file.write_text(
+        "import wesktop\n"
+        "router = wesktop.Router()\n"
+        "@router.get('/health')\n"
+        "async def health(req):\n"
+        "    return {'status': 'ok'}\n"
+        "app = wesktop.create_app(router)\n"
+    )
+    monkeypatched = sys.path[:]
+    sys.path.insert(0, str(tmp_path))
+    try:
+        with wesktop.headless("headless_app:app", pid_path=tmp_path / "app.pid") as app:
+            assert app.port > 0
+            assert app.url == f"http://127.0.0.1:{app.port}"
+            assert app.pid_path.exists()
+            with urllib.request.urlopen(f"{app.url}/health", timeout=5) as response:
+                assert json.loads(response.read())["status"] == "ok"
+        # The server is gone with the block.
+        with pytest.raises(urllib.error.URLError):
+            urllib.request.urlopen(f"{app.url}/health", timeout=2)
+    finally:
+        sys.path[:] = monkeypatched
+
+
+def test_headless_never_imports_pywebview(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A headless run needs no GUI: importing pywebview would be a hard error here."""
+    calls: dict[str, object] = {}
+
+    def _fake_serve_background(target, *, host, port, pid_path, name):
+        calls["pid_path"] = pid_path
+        return f"http://{host}:4321"
+
+    def _fake_stop(pid_path):
+        calls["stopped"] = pid_path
+
+    monkeypatch.setattr("wesktop.server.serve_background", _fake_serve_background)
+    monkeypatch.setattr("wesktop.server.stop", _fake_stop)
+    monkeypatch.setattr(
+        "wesktop.desktop._require_webview_gui",
+        lambda: (_ for _ in ()).throw(AssertionError("a headless run must not need a GUI")),
+    )
+
+    with wesktop.headless("myapp:app") as app:
+        assert app.port == 4321
+        private_dir = app.pid_path.parent
+
+    assert calls["stopped"] == calls["pid_path"]
+    # The private pid directory it made for itself is gone too.
+    assert not private_dir.exists()
+
+
+def test_headless_stops_the_server_when_the_block_raises(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """An exception inside the block still stops the server -- no leaked instance."""
+    stopped: list[Path] = []
+    monkeypatch.setattr(
+        "wesktop.server.serve_background",
+        lambda target, *, host, port, pid_path, name: f"http://{host}:5555",
+    )
+    monkeypatch.setattr("wesktop.server.stop", lambda pid_path: stopped.append(pid_path))
+
+    pid_path = tmp_path / "app.pid"
+    with pytest.raises(ValueError, match="boom"):
+        with wesktop.headless("myapp:app", pid_path=pid_path):
+            raise ValueError("boom")
+
+    assert stopped == [pid_path]
+
+
+# ---------------------------------------------------------------------------
+# Zoom lock
+# ---------------------------------------------------------------------------
+
+
+def test_zoom_lock_is_skipped_on_a_non_gtk_backend() -> None:
+    """No WebKit view means no lock, and no exception either."""
+    from wesktop.desktop import _install_zoom_lock
+
+    assert _install_zoom_lock(_fake_pywebview_window(None)) is False
+
+
+def test_zoom_lock_pins_the_level_and_refuses_the_gestures() -> None:
+    """The level snaps back to 1.0, ctrl+scroll is swallowed, pinch is swallowed."""
+    wesktop.ensure_gui_backend()
+    gdk = pytest.importorskip("gi.repository.Gdk")
+
+    class _FakeWebView:
+        def __init__(self) -> None:
+            self.level = 3.0
+            self.handlers: dict[str, object] = {}
+
+        def set_zoom_level(self, level: float) -> None:
+            self.level = level
+
+        def get_zoom_level(self) -> float:
+            return self.level
+
+        def connect(self, signal: str, handler: object) -> None:
+            self.handlers[signal] = handler
+
+    view = _FakeWebView()
+    browser_view = MagicMock()
+    browser_view.instances = {"w1": MagicMock(webview=view)}
+    gui = MagicMock()
+    gui.BrowserView = browser_view
+    window = MagicMock()
+    window.gui = gui
+    window.uid = "w1"
+
+    from wesktop.desktop import _install_zoom_lock
+
+    assert _install_zoom_lock(window) is True
+    assert view.level == 1.0  # pinned on install
+
+    # Something rescaled the page: the notify handler undoes it.
+    view.level = 2.5
+    view.handlers["notify::zoom-level"](view, None)
+    assert view.level == 1.0
+
+    # ctrl+scroll is refused; a plain scroll is not.
+    on_scroll = view.handlers["scroll-event"]
+    assert on_scroll(view, MagicMock(state=gdk.ModifierType.CONTROL_MASK)) is True
+    assert on_scroll(view, MagicMock(state=gdk.ModifierType(0))) is False
+
+    # A touchpad pinch is refused; another event is not.
+    on_event = view.handlers["event"]
+    assert on_event(view, MagicMock(type=gdk.EventType.TOUCHPAD_PINCH)) is True
+    assert on_event(view, MagicMock(type=gdk.EventType.BUTTON_PRESS)) is False
+
+
+def test_zoom_lock_is_not_installed_when_the_app_wants_zoom() -> None:
+    """zoomable=True leaves the loaded event untouched."""
+    from wesktop.desktop import _wire_zoom_lock
+
+    window = MagicMock()
+    before = window.events.loaded
+    _wire_zoom_lock(window, zoomable=True)
+    assert window.events.loaded is before
