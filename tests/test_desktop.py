@@ -1599,3 +1599,81 @@ def test_set_input_region_none_restores_the_whole_window() -> None:
 
     queued[0]()
     assert gtk_window.regions == [None]
+
+
+# ---------------------------------------------------------------------------
+# Window capture
+# ---------------------------------------------------------------------------
+
+
+def test_capture_window_refuses_a_non_gtk_backend(tmp_path: Path) -> None:
+    """A backend with no WebKit view is named, and no file is written."""
+    from wesktop.desktop import capture_window
+
+    out = tmp_path / "shot.png"
+    with pytest.raises(RuntimeError, match="GTK backend only"):
+        capture_window(_fake_pywebview_window(None), out)
+    assert not out.exists()
+
+
+def test_wire_capture_is_a_no_op_without_a_path() -> None:
+    """No capture_to means the loaded event is left exactly as it was."""
+    from wesktop.desktop import _wire_capture
+
+    window = MagicMock()
+    before = window.events.loaded
+    _wire_capture(window, None, 0.0)
+    assert window.events.loaded is before
+
+
+def test_wire_capture_refuses_a_build_without_a_loaded_event(tmp_path: Path) -> None:
+    """A pywebview with no loaded event is an error, not a capture that never happens."""
+    from wesktop.desktop import _wire_capture
+
+    class _NoEvents:
+        events = None
+
+    with pytest.raises(RuntimeError, match="no window 'loaded' event"):
+        _wire_capture(_NoEvents(), tmp_path / "shot.png", 0.0)
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve_background")
+def test_run_captures_on_load(
+    mock_serve_bg: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """run(capture_to=...) hangs a capture on the window's loaded event."""
+    port = _free_port()
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
+
+    handlers: list[object] = []
+
+    class _Loaded:
+        def __iadd__(self, handler: object) -> "_Loaded":
+            handlers.append(handler)
+            return self
+
+    window = MagicMock()
+    window.events.loaded = _Loaded()
+    mock_create_window.return_value = window
+
+    out = tmp_path / "shot.png"
+    with patch("wesktop.desktop.capture_window", return_value=out) as mock_capture:
+        from wesktop.desktop import run
+
+        run("myapp:app", host="127.0.0.1", port=port, capture_to=out, capture_delay=0.0)
+
+        # The runtime-config injection hangs on the same event; the capture is
+        # the one that reaches capture_window.
+        assert handlers
+        for handler in handlers:
+            handler()
+        time.sleep(0.5)
+
+    mock_capture.assert_called_once_with(window, out)

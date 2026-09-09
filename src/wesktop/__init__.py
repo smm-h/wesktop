@@ -140,6 +140,7 @@ _LAZY_ATTRS: dict[str, str] = {
     "active_window": "wesktop.desktop",
     "set_input_region": "wesktop.desktop",
     "begin_window_drag": "wesktop.desktop",
+    "capture_window": "wesktop.desktop",
     "ensure_gui_backend": "wesktop.desktop",
     # server lifecycle (granian)
     "serve": "wesktop.server",
@@ -244,6 +245,7 @@ __all__ = [
     "active_window",
     "set_input_region",
     "begin_window_drag",
+    "capture_window",
     "ensure_gui_backend",
     # features
     "FeatureFlags",

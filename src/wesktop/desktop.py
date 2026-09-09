@@ -477,6 +477,128 @@ def begin_window_drag(window: object, button: int = 1) -> None:
     GLib.idle_add(_start)
 
 
+def _gtk_web_view(window: object) -> object | None:
+    """The WebKit view inside a pywebview window, or None on another backend."""
+    gui = getattr(window, "gui", None)
+    browser_view = getattr(gui, "BrowserView", None)
+    if browser_view is None:
+        return None
+    instance = browser_view.instances.get(getattr(window, "uid", None))
+    return getattr(instance, "webview", None)
+
+
+def capture_window(
+    window: object, path: str | Path, *, timeout: float = 10.0
+) -> Path:
+    """Save a PNG of what THIS window is showing, and nothing else.
+
+    The image comes from the web view's own snapshot, so it contains this
+    window's rendered page and no pixel of anyone else's: it is not a screen
+    grab, it cannot see another application, and it needs no screen-capture
+    permission. The window need not even be on top.
+
+    The snapshot keeps its alpha, so a transparent window's empty parts are
+    transparent in the PNG rather than filled with whatever was behind them.
+
+    Blocks until the snapshot arrives or *timeout* elapses, and returns the
+    path written. Must NOT be called from the GTK main thread -- the snapshot
+    completes on that thread, so waiting there would deadlock; call it from a
+    background thread, a ``js_api`` method or a window event handler.
+
+    GTK backend only. On any other backend this raises.
+    """
+    web_view = _gtk_web_view(window)
+    if web_view is None:
+        backend = getattr(getattr(window, "gui", None), "__name__", "unknown")
+        raise RuntimeError(
+            f"capture_window is implemented for the GTK backend only; this "
+            f"window is on {backend!r}. Nothing was written."
+        )
+
+    import gi
+    from gi.repository import GLib
+
+    try:
+        gi.require_version("WebKit2", "4.1")
+    except ValueError:
+        gi.require_version("WebKit2", "4.0")
+    from gi.repository import WebKit2
+
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    done = threading.Event()
+    result: dict[str, object] = {}
+
+    def _on_snapshot(source: object, async_result: object, _data: object) -> None:
+        try:
+            result["surface"] = source.get_snapshot_finish(async_result)
+        except Exception as exc:  # the snapshot failed; report it to the caller
+            result["error"] = exc
+        finally:
+            done.set()
+
+    def _request() -> bool:
+        try:
+            web_view.get_snapshot(
+                WebKit2.SnapshotRegion.VISIBLE,
+                WebKit2.SnapshotOptions.TRANSPARENT_BACKGROUND,
+                None,
+                _on_snapshot,
+                None,
+            )
+        except Exception as exc:
+            result["error"] = exc
+            done.set()
+        return False
+
+    GLib.idle_add(_request)
+
+    if not done.wait(timeout):
+        raise TimeoutError(
+            f"the window did not produce a snapshot within {timeout:g}s; "
+            f"nothing was written to {out}"
+        )
+    error = result.get("error")
+    if error is not None:
+        raise RuntimeError(f"the window snapshot failed: {error}") from error  # type: ignore[arg-type]
+
+    surface = result["surface"]
+    surface.write_to_png(str(out))  # type: ignore[attr-defined]
+    return out
+
+
+def _wire_capture(window: object, capture_to: Path | None, delay: float) -> None:
+    """Arrange for the window to save a PNG of itself once its page has loaded.
+
+    The ``loaded`` event fires when the document is loaded, which is a beat
+    before the first paint, so the capture waits *delay* seconds after it. The
+    capture runs on a background thread because it blocks on a result the GTK
+    main loop has to deliver.
+    """
+    if capture_to is None:
+        return
+
+    events = getattr(window, "events", None)
+    loaded = getattr(events, "loaded", None) if events is not None else None
+    iadd = getattr(loaded, "__iadd__", None)
+    if iadd is None:
+        raise RuntimeError(
+            "capture_to was requested, but this pywebview build exposes no "
+            "window 'loaded' event to hang the capture on."
+        )
+
+    def _capture_soon(*_args: object) -> None:
+        def _work() -> None:
+            time.sleep(delay)
+            written = capture_window(window, capture_to)
+            print(f"wesktop: window captured to {written}", file=sys.stderr, flush=True)
+
+        threading.Thread(target=_work, name="wesktop-capture", daemon=True).start()
+
+    setattr(events, "loaded", iadd(_capture_soon))
+
+
 def _run_window(
     webview: object,
     window: object,
@@ -724,6 +846,8 @@ def run(
     reload: bool = False,
     js_api: object | None = None,
     chrome: WindowChrome | None = None,
+    capture_to: str | Path | None = None,
+    capture_delay: float = 0.6,
     single_instance: bool = True,
     second_open: str = "new-window",
 ) -> None:
@@ -741,6 +865,12 @@ def run(
     draws its own silhouette is
     ``chrome=WindowChrome(frameless=True, transparent=True)``.
 
+    ``capture_to`` saves a PNG of the window once its page has loaded (see
+    :func:`capture_window`) -- the image is this window's own rendering, never a
+    screen grab. It is what an app wires its own ``--capture <path>`` flag to.
+    ``capture_delay`` is the settle time between the load event and the
+    snapshot.
+
     ``second_open`` selects what happens on a second launch while an instance is
     already running (single-instance join). It must be chosen explicitly from:
 
@@ -753,6 +883,7 @@ def run(
     """
     if chrome is None:
         chrome = WindowChrome()
+    capture_path = None if capture_to is None else Path(capture_to)
     if second_open not in _SECOND_OPEN_MODES:
         raise ValueError(
             f"invalid second_open {second_open!r}; must be one of "
@@ -806,6 +937,7 @@ def run(
                     js_api=js_api,
                     chrome=chrome,
                 )
+                _wire_capture(window, capture_path, capture_delay)
                 _run_window(webview, window, url, pid_path, existing_port, name, icon)
                 return
             # No port file -- can't join. Fall through to start a new server.
@@ -842,4 +974,5 @@ def run(
         js_api=js_api,
         chrome=chrome,
     )
+    _wire_capture(window, capture_path, capture_delay)
     _run_window(webview, window, url, pid_path, port_num, name, icon)
