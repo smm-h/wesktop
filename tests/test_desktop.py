@@ -65,6 +65,7 @@ def test_run_calls_webview(
         width=800,
         height=600,
         js_api=None,
+        **wesktop.WindowChrome().as_window_kwargs(),
     )
 
     # webview.start() called to enter the event loop with icon=None
@@ -144,6 +145,7 @@ def test_run_with_js_api(
         width=1280,
         height=800,
         js_api=api,
+        **wesktop.WindowChrome().as_window_kwargs(),
     )
 
 
@@ -171,6 +173,7 @@ def test_run_without_js_api(
         width=1280,
         height=800,
         js_api=None,
+        **wesktop.WindowChrome().as_window_kwargs(),
     )
 
 
@@ -1404,3 +1407,84 @@ def test_list_app_instances(tmp_path: Path) -> None:
     snap = list_app_instances(pid_path)
     assert [s.name for s in snap.servers] == ["myapp"]
     assert [m["window_id"] for m in snap.windows] == ["w1"]
+
+
+# ---------------------------------------------------------------------------
+# WindowChrome
+# ---------------------------------------------------------------------------
+
+
+def test_window_chrome_defaults_are_pywebviews() -> None:
+    """A bare WindowChrome() carries pywebview's own create_window defaults."""
+    import inspect
+
+    import webview
+
+    signature = inspect.signature(webview.create_window)
+    for name, value in wesktop.WindowChrome().as_window_kwargs().items():
+        assert signature.parameters[name].default == value, name
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.serve_background")
+def test_run_forwards_chrome(
+    mock_serve_bg: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+) -> None:
+    """A frameless, transparent chrome reaches webview.create_window verbatim."""
+    port = _free_port()
+    mock_serve_bg.return_value = f"http://127.0.0.1:{port}"
+
+    chrome = wesktop.WindowChrome(
+        frameless=True, transparent=True, shadow=False, background_color="#00000000"
+    )
+
+    from wesktop.desktop import run
+
+    run("myapp:app", host="127.0.0.1", port=port, chrome=chrome)
+
+    kwargs = mock_create_window.call_args.kwargs
+    assert kwargs["frameless"] is True
+    assert kwargs["transparent"] is True
+    assert kwargs["shadow"] is False
+    assert kwargs["background_color"] == "#00000000"
+    # Every other chrome field is still forwarded at its default.
+    assert kwargs["resizable"] is True
+    assert kwargs["min_size"] == (200, 100)
+
+
+@patch("wesktop.desktop._has_gui_backend", return_value=True)
+@patch("webview.start")
+@patch("webview.create_window")
+@patch("wesktop.server.check_already_running")
+@patch("wesktop.server.read_port_file")
+def test_join_forwards_chrome(
+    mock_read_port: MagicMock,
+    mock_running: MagicMock,
+    mock_create_window: MagicMock,
+    mock_wv_start: MagicMock,
+    _mock_gui: MagicMock,
+    tmp_path: Path,
+) -> None:
+    """The single-instance JOIN path opens its window with the same chrome."""
+    port = _free_port()
+    mock_running.return_value = 4242
+    mock_read_port.return_value = port
+
+    from wesktop.desktop import run
+
+    run(
+        "myapp:app",
+        host="127.0.0.1",
+        pid_path=tmp_path / "app.pid",
+        chrome=wesktop.WindowChrome(frameless=True, on_top=True),
+    )
+
+    kwargs = mock_create_window.call_args.kwargs
+    assert kwargs["frameless"] is True
+    assert kwargs["on_top"] is True
+    assert kwargs["url"] == f"http://127.0.0.1:{port}"

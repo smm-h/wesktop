@@ -136,6 +136,7 @@ _SDUI_NAMES = (
 _LAZY_ATTRS: dict[str, str] = {
     # desktop (pywebview)
     "run": "wesktop.desktop",
+    "WindowChrome": "wesktop.desktop",
     "ensure_gui_backend": "wesktop.desktop",
     # server lifecycle (granian)
     "serve": "wesktop.server",
@@ -236,6 +237,7 @@ __all__ = [
     "run",
     "dev",
     # desktop (lazy)
+    "WindowChrome",
     "ensure_gui_backend",
     # features
     "FeatureFlags",

@@ -46,7 +46,7 @@ import threading
 import time
 import urllib.parse
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Callable
 
@@ -307,6 +307,77 @@ def _require_webview_gui() -> object:
     return webview
 
 
+@dataclass(frozen=True)
+class WindowChrome:
+    """How the native window is drawn: its frame, shape, stacking and geometry.
+
+    Every field is forwarded verbatim to ``webview.create_window`` and every
+    default is pywebview's own, so a bare ``WindowChrome()`` opens exactly the
+    window wesktop opened before this existed.
+
+    The two fields an app reaches for when it wants its own shape rather than a
+    rectangle in an OS frame:
+
+    - ``frameless`` removes the title bar and border. The page then draws its
+      own chrome, and ``easy_drag`` (on by default) lets a press anywhere that
+      is not an interactive element move the window.
+    - ``transparent`` makes the window's own background see-through, so the
+      page's rounded corners, shadows and cut-outs are the window's silhouette
+      instead of sitting on an opaque rectangle. The page must ask for it too:
+      ``html, body { background: transparent }``, since an opaque page paints
+      over a transparent window.
+
+    Platform truth for ``transparent``: honoured by the GTK/WebKit backend on
+    Linux (a compositor supplying an RGBA visual) and by Cocoa on macOS; the
+    Windows Edge WebView2 backend ignores it and paints ``background_color``.
+    """
+
+    resizable: bool = True
+    frameless: bool = False
+    easy_drag: bool = True
+    shadow: bool = True
+    transparent: bool = False
+    background_color: str = "#FFFFFF"
+    on_top: bool = False
+    fullscreen: bool = False
+    hidden: bool = False
+    minimized: bool = False
+    maximized: bool = False
+    confirm_close: bool = False
+    text_select: bool = False
+    zoomable: bool = False
+    draggable: bool = False
+    focus: bool = True
+    min_size: tuple[int, int] = (200, 100)
+    x: int | None = None
+    y: int | None = None
+
+    def as_window_kwargs(self) -> dict[str, object]:
+        """The chrome as ``webview.create_window`` keyword arguments."""
+        return {f.name: getattr(self, f.name) for f in fields(self)}
+
+
+def _create_window(
+    webview: object,
+    *,
+    title: str,
+    url: str,
+    width: int,
+    height: int,
+    js_api: object | None,
+    chrome: WindowChrome,
+) -> object:
+    """Create the native window. The ONE call site, so join and new-server cannot drift."""
+    return webview.create_window(  # type: ignore[attr-defined]
+        title=title,
+        url=url,
+        width=width,
+        height=height,
+        js_api=js_api,
+        **chrome.as_window_kwargs(),
+    )
+
+
 def _run_window(
     webview: object,
     window: object,
@@ -553,6 +624,7 @@ def run(
     pre_serve: Callable[[], None] | None = None,
     reload: bool = False,
     js_api: object | None = None,
+    chrome: WindowChrome | None = None,
     single_instance: bool = True,
     second_open: str = "new-window",
 ) -> None:
@@ -564,6 +636,12 @@ def run(
     target in another, and a file watcher cannot restart the detached
     server. Use :func:`wesktop.serve` for both.
 
+    ``chrome`` is the window's frame, shape, stacking and geometry (see
+    :class:`WindowChrome`). Omitted, it is ``WindowChrome()`` -- an ordinary
+    decorated, opaque OS window. A frameless, transparent window whose page
+    draws its own silhouette is
+    ``chrome=WindowChrome(frameless=True, transparent=True)``.
+
     ``second_open`` selects what happens on a second launch while an instance is
     already running (single-instance join). It must be chosen explicitly from:
 
@@ -574,6 +652,8 @@ def run(
       focus-request marker and exit; the process that owns the window raises it
       via a ~1s file-based poll. Raising above other apps is WM-dependent.
     """
+    if chrome is None:
+        chrome = WindowChrome()
     if second_open not in _SECOND_OPEN_MODES:
         raise ValueError(
             f"invalid second_open {second_open!r}; must be one of "
@@ -618,8 +698,14 @@ def run(
                 url = _app_url(resolved_host, existing_port)
                 log.info("Joining existing instance (PID %d) at %s", existing_pid, url)
                 webview = _require_webview_gui()
-                window = webview.create_window(
-                    title=title, url=url, width=width, height=height, js_api=js_api,
+                window = _create_window(
+                    webview,
+                    title=title,
+                    url=url,
+                    width=width,
+                    height=height,
+                    js_api=js_api,
+                    chrome=chrome,
                 )
                 _run_window(webview, window, url, pid_path, existing_port, name, icon)
                 return
@@ -648,11 +734,13 @@ def run(
     # Auto-register desktop entry if not already present
     _auto_register_entry(title, icon)
 
-    window = webview.create_window(
+    window = _create_window(
+        webview,
         title=title,
         url=url,
         width=width,
         height=height,
         js_api=js_api,
+        chrome=chrome,
     )
     _run_window(webview, window, url, pid_path, port_num, name, icon)
