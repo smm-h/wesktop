@@ -1833,3 +1833,143 @@ def test_zoom_lock_is_not_installed_when_the_app_wants_zoom() -> None:
     before = window.events.loaded
     _wire_zoom_lock(window, zoomable=True)
     assert window.events.loaded is before
+
+
+# ---------------------------------------------------------------------------
+# System theme
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [(0, "no-preference"), (1, "dark"), (2, "light"), (99, "no-preference")],
+)
+def test_desktop_color_scheme_reads_the_portal(
+    value: int, expected: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The XDG appearance values map to the three answers, unknown ones included."""
+    wesktop.ensure_gui_backend()
+    pytest.importorskip("gi.repository.Gio")
+
+    from wesktop import desktop
+
+    proxy = MagicMock()
+    proxy.call_sync.return_value = MagicMock(unpack=lambda: (value,))
+    monkeypatch.setattr(desktop, "_appearance_portal", lambda: proxy)
+
+    assert desktop.desktop_color_scheme() == expected
+
+
+def test_desktop_color_scheme_without_a_portal(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No portal is 'nothing said which to use', not an exception."""
+    from wesktop import desktop
+
+    monkeypatch.setattr(desktop, "_appearance_portal", lambda: None)
+    assert desktop.desktop_color_scheme() == "no-preference"
+
+
+def test_desktop_color_scheme_when_the_portal_refuses(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A portal that raises is the same answer, and never reaches the caller."""
+    wesktop.ensure_gui_backend()
+    pytest.importorskip("gi.repository.Gio")
+
+    from wesktop import desktop
+
+    proxy = MagicMock()
+    proxy.call_sync.side_effect = RuntimeError("no")
+    monkeypatch.setattr(desktop, "_appearance_portal", lambda: proxy)
+
+    assert desktop.desktop_color_scheme() == "no-preference"
+
+
+def test_gtk_color_scheme_is_applied_as_prefer_dark(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """'dark' sets GTK's prefer-dark property; anything else clears it."""
+    wesktop.ensure_gui_backend()
+    gtk = pytest.importorskip("gi.repository.Gtk")
+
+    from wesktop.desktop import _apply_gtk_color_scheme
+
+    settings = MagicMock()
+    monkeypatch.setattr(gtk.Settings, "get_default", staticmethod(lambda: settings))
+
+    _apply_gtk_color_scheme("dark")
+    settings.set_property.assert_called_with("gtk-application-prefer-dark-theme", True)
+
+    _apply_gtk_color_scheme("light")
+    settings.set_property.assert_called_with("gtk-application-prefer-dark-theme", False)
+
+    _apply_gtk_color_scheme("no-preference")
+    settings.set_property.assert_called_with("gtk-application-prefer-dark-theme", False)
+
+
+def test_theme_follow_subscribes_to_the_portals_changes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The window keeps following: a colour-scheme change re-applies the scheme."""
+    wesktop.ensure_gui_backend()
+    pytest.importorskip("gi.repository.GLib")
+
+    from wesktop import desktop
+
+    proxy = MagicMock()
+    monkeypatch.setattr(desktop, "_appearance_portal", lambda: proxy)
+    applied: list[str] = []
+    monkeypatch.setattr(desktop, "desktop_color_scheme", lambda: "dark")
+    monkeypatch.setattr(desktop, "_apply_gtk_color_scheme", applied.append)
+
+    queued: list[object] = []
+    from gi.repository import GLib
+
+    monkeypatch.setattr(GLib, "idle_add", lambda fn: queued.append(fn))
+
+    window = MagicMock()
+    desktop._install_theme_follow(window)
+
+    assert len(queued) == 1
+    queued[0]()
+    assert applied == ["dark"]
+
+    # The proxy is kept alive on the window, or its subscription would die here.
+    assert window._wesktop_appearance_proxy is proxy
+
+    handler = proxy.connect.call_args[0][1]
+    params = MagicMock(unpack=lambda: ("org.freedesktop.appearance", "color-scheme", 2))
+    handler(proxy, ":1.2", "SettingChanged", params)
+    assert len(queued) == 2
+    queued[1]()
+    assert applied == ["dark", "dark"]
+
+    # An unrelated setting is ignored.
+    other = MagicMock(unpack=lambda: ("org.gnome.desktop", "something", 1))
+    handler(proxy, ":1.2", "SettingChanged", other)
+    assert len(queued) == 2
+
+
+def test_theme_follow_can_be_declined(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """follow_system_theme=False leaves the desktop preference unread."""
+    from wesktop import desktop
+
+    called: list[object] = []
+    monkeypatch.setattr(desktop, "_install_theme_follow", called.append)
+    monkeypatch.setattr(desktop, "_has_gui_backend", lambda: True)
+    monkeypatch.setattr(desktop, "_auto_register_entry", lambda *a, **k: None)
+
+    port = _free_port()
+    with patch("wesktop.server.serve_background", return_value=f"http://127.0.0.1:{port}"), \
+         patch("webview.create_window", return_value=MagicMock(gui=None)), \
+         patch("webview.start"):
+        desktop.run(
+            "myapp:app",
+            host="127.0.0.1",
+            port=port,
+            pid_path=tmp_path / "app.pid",
+            follow_system_theme=False,
+        )
+
+    assert called == []

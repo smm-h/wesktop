@@ -638,6 +638,132 @@ def capture_window(
     return out
 
 
+# What the desktop's appearance setting means. The values are the XDG
+# appearance spec's, not ours: 0 no preference, 1 prefer dark, 2 prefer light.
+_COLOR_SCHEME_BY_VALUE = {0: "no-preference", 1: "dark", 2: "light"}
+
+
+def _appearance_portal() -> object | None:
+    """A proxy for the desktop's appearance settings, or None where there is none.
+
+    None also covers "this is not a GTK backend", since PyGObject is what the
+    GTK backend brings; the other backends have no use for this at all.
+    """
+    try:
+        from gi.repository import Gio
+    except ImportError:
+        return None
+
+    try:
+        return Gio.DBusProxy.new_for_bus_sync(
+            Gio.BusType.SESSION,
+            Gio.DBusProxyFlags.NONE,
+            None,
+            "org.freedesktop.portal.Desktop",
+            "/org/freedesktop/portal/desktop",
+            "org.freedesktop.portal.Settings",
+            None,
+        )
+    except Exception:
+        log.debug("no appearance portal on this session", exc_info=True)
+        return None
+
+
+def desktop_color_scheme() -> str:
+    """The desktop's light/dark preference: ``"dark"``, ``"light"`` or ``"no-preference"``.
+
+    Read from the XDG desktop portal's ``org.freedesktop.appearance``
+    ``color-scheme`` setting, which every current desktop publishes and which
+    says nothing about any particular toolkit. A session with no portal, or one
+    that declines to answer, is ``"no-preference"`` -- the same answer as a
+    desktop that genuinely has no preference, because from here they are the
+    same fact: nothing said which to use.
+    """
+    proxy = _appearance_portal()
+    if proxy is None:
+        return "no-preference"
+
+    from gi.repository import GLib, Gio
+
+    try:
+        result = proxy.call_sync(
+            "Read",
+            GLib.Variant("(ss)", ("org.freedesktop.appearance", "color-scheme")),
+            Gio.DBusCallFlags.NONE,
+            2000,
+            None,
+        )
+    except Exception:
+        log.debug("the appearance portal did not answer", exc_info=True)
+        return "no-preference"
+    return _COLOR_SCHEME_BY_VALUE.get(result.unpack()[0], "no-preference")
+
+
+def _apply_gtk_color_scheme(scheme: str) -> None:
+    """Tell GTK which scheme to paint, which is what WebKit reports to the page."""
+    try:
+        from gi.repository import Gtk
+    except ImportError:
+        return
+
+    settings = Gtk.Settings.get_default()
+    if settings is None:  # GTK is not initialised yet
+        return
+    settings.set_property("gtk-application-prefer-dark-theme", scheme == "dark")
+
+
+def _install_theme_follow(window: object) -> None:
+    """Make the window follow the desktop's light/dark preference, and keep following.
+
+    A GTK3 WebKit window reports ``prefers-color-scheme: light`` to its page
+    forever, whatever the desktop is set to: WebKitGTK derives the media feature
+    from GTK's own ``gtk-application-prefer-dark-theme``, and nothing sets that
+    from the desktop's preference for a plain GTK3 application. So a page that
+    honours ``prefers-color-scheme`` -- which is every page that follows the
+    system -- renders light on a dark desktop.
+
+    The preference is read from the portal and applied to GTK, and the portal's
+    change signal is followed, so a desktop switched from light to dark while
+    the window is open takes the window with it. CSS media queries are live, so
+    the page re-renders without reloading.
+
+    Only the GTK backend needs any of this. Cocoa and Edge WebView2 report the
+    system preference to the page on their own, so where PyGObject is absent --
+    which is exactly where the backend is not GTK -- there is nothing to install
+    and this does nothing.
+    """
+    try:
+        from gi.repository import GLib
+    except ImportError:
+        log.debug("not a GTK backend; its web view follows the system already")
+        return
+
+    def _sync(*_args: object) -> bool:
+        _apply_gtk_color_scheme(desktop_color_scheme())
+        return False
+
+    # GTK is initialised inside webview.start(); the idle callback runs once its
+    # main loop is up, which is the first moment Gtk.Settings exists.
+    GLib.idle_add(_sync)
+
+    proxy = _appearance_portal()
+    if proxy is None:
+        return
+
+    def _on_setting_changed(
+        _proxy: object, _sender: str, signal: str, params: object
+    ) -> None:
+        if signal != "SettingChanged":
+            return
+        namespace, key, _value = params.unpack()
+        if namespace == "org.freedesktop.appearance" and key == "color-scheme":
+            GLib.idle_add(_sync)
+
+    proxy.connect("g-signal", _on_setting_changed)
+    # The proxy must outlive this call or its signal subscription dies with it.
+    setattr(window, "_wesktop_appearance_proxy", proxy)
+
+
 def _install_zoom_lock(window: object) -> bool:
     """Hold the page at 1:1 on the GTK backend. Returns whether the lock went on.
 
@@ -983,6 +1109,7 @@ def run(
     chrome: WindowChrome | None = None,
     capture_to: str | Path | None = None,
     capture_delay: float = 0.6,
+    follow_system_theme: bool = True,
     single_instance: bool = True,
     second_open: str = "new-window",
 ) -> None:
@@ -999,6 +1126,12 @@ def run(
     decorated, opaque OS window. A frameless, transparent window whose page
     draws its own silhouette is
     ``chrome=WindowChrome(frameless=True, transparent=True)``.
+
+    ``follow_system_theme`` makes the window report the desktop's light/dark
+    preference to its page as ``prefers-color-scheme``, and keep reporting it
+    when the desktop changes. Without it a GTK3 window says "light" forever --
+    see :func:`_install_theme_follow`. Pass ``False`` for an app that pins its
+    own appearance.
 
     ``capture_to`` saves a PNG of the window once its page has loaded (see
     :func:`capture_window`) -- the image is this window's own rendering, never a
@@ -1072,6 +1205,8 @@ def run(
                     js_api=js_api,
                     chrome=chrome,
                 )
+                if follow_system_theme:
+                    _install_theme_follow(window)
                 _wire_zoom_lock(window, chrome.zoomable)
                 _wire_capture(window, capture_path, capture_delay)
                 _run_window(webview, window, url, pid_path, existing_port, name, icon)
@@ -1110,6 +1245,8 @@ def run(
         js_api=js_api,
         chrome=chrome,
     )
+    if follow_system_theme:
+        _install_theme_follow(window)
     _wire_zoom_lock(window, chrome.zoomable)
     _wire_capture(window, capture_path, capture_delay)
     _run_window(webview, window, url, pid_path, port_num, name, icon)
