@@ -1107,14 +1107,14 @@ wheels = [
 
 [[package]]
 name = "strictcli"
-version = "0.36.0"
+version = "0.41.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "tomlkit" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e3/b4/5ad0aa4f8912a87716e75614d85c8d8c27b6dcc6bdbf9b3de1303c22714a/strictcli-0.36.0.tar.gz", hash = "sha256:3ad801d2919ac1b0ecb68f04a1062e2cedd7d58d3ad6d4aa1ba0eca7e11d7d05", size = 260732, upload-time = "2026-08-04T20:49:45.559Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/27/a8/41f417562fc77996cabba33b0e072576289b34056154ade306c4268635f2/strictcli-0.41.1.tar.gz", hash = "sha256:2235a6928171288c85535dc7cc5fc9752358bd6831adff53da57e66f6bf29fd1", size = 480223, upload-time = "2026-08-17T14:52:36.455Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b7/be/a924f2e95af0642a0c6358ec6b5b998b5adef5625814cb5024d1a564b677/strictcli-0.36.0-py3-none-any.whl", hash = "sha256:1aa2fa464fb7b1505485c79e3436942ca5c2dfe39958f8de7f2e3e7271baa98f", size = 101923, upload-time = "2026-08-04T20:49:43.962Z" },
+    { url = "https://files.pythonhosted.org/packages/7c/d1/2483589b3896e992be44c128d2e6a40a181a7338b251a0bc3c98b5041583/strictcli-0.41.1-py3-none-any.whl", hash = "sha256:fdfc8abbee7a3f65fa1a9c553f6c18e96885d574c48ac6672ea7208e1ba9d780", size = 207722, upload-time = "2026-08-17T14:52:34.687Z" },
 ]
 
 [[package]]
@@ -1367,7 +1367,7 @@ requires-dist = [
     { name = "fastware", extras = ["all"] },
     { name = "pydantic" },
     { name = "pywebview", specifier = ">=6.2.1" },
-    { name = "strictcli", specifier = ">=0.36.0" },
+    { name = "strictcli", specifier = ">=0.41.1" },
 ]
 
 [package.metadata.requires-dev]

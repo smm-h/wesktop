@@ -11,7 +11,7 @@ dependencies = [
     "pywebview>=6.2.1",
     # 0.36.0 made effect classification mandatory; wesktop's CLI declares
     # `effect="read_only"` on `diagnose` and will not register on anything older.
-    "strictcli>=0.36.0",
+    "strictcli>=0.41.1",
     "pydantic",
 ]
 
