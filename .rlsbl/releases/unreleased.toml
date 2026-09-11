@@ -2,11 +2,11 @@
 format_version = 1
 # Version bump type: patch, minor, major, infra, or prerelease
 #   prerelease: advance an existing pre-release (0.6.0-beta.0 -> -beta.1)
-bump = ""
+bump = "minor"
 # Short description of this release (required)
-description = ""
+description = "Native window control for frameless apps: WindowChrome, compositor-driven drag, input regions, window capture, headless runs, and windows that follow the desktop light/dark theme."
 # Optional context explaining why these changes were made
-context = ""
+context = """The first consumer of these features is a frameless terminal emulator app built on wesktop. It needs the app to draw its own window frame, move and capture the window without a screen grab, follow the desktop theme, and run its server with no window under test; that is what this release adds."""
 # Pre-release channel: alpha, beta, rc, or stable (ordered;
 # demotion is an error). With patch/minor/major it ENTERS the
 # channel (0.5.2 + minor + alpha -> 0.6.0-alpha.0); with
