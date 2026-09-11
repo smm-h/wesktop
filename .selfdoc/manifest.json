@@ -24,107 +24,202 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.desktop",
+          "text": "`src.wesktop.desktop`",
           "anchor": "srcwesktopdesktop"
         },
         {
           "level": 3,
-          "text": "_wire_runtime_bridge",
+          "text": "`_wire_runtime_bridge`",
           "anchor": "_wire_runtime_bridge"
         },
         {
           "level": 3,
-          "text": "_app_url",
+          "text": "`_app_url`",
           "anchor": "_app_url"
         },
         {
           "level": 3,
-          "text": "_version_url",
+          "text": "`_version_url`",
           "anchor": "_version_url"
         },
         {
           "level": 3,
-          "text": "_port_from_url",
+          "text": "`_port_from_url`",
           "anchor": "_port_from_url"
         },
         {
           "level": 3,
-          "text": "_startup_handshake",
+          "text": "`_startup_handshake`",
           "anchor": "_startup_handshake"
         },
         {
           "level": 3,
-          "text": "_inject_runtime_config",
+          "text": "`_inject_runtime_config`",
           "anchor": "_inject_runtime_config"
         },
         {
           "level": 3,
-          "text": "_wire_runtime_config_injection",
+          "text": "`_wire_runtime_config_injection`",
           "anchor": "_wire_runtime_config_injection"
         },
         {
           "level": 3,
-          "text": "_raise_window",
+          "text": "`_raise_window`",
           "anchor": "_raise_window"
         },
         {
           "level": 3,
-          "text": "_request_focus_existing",
+          "text": "`_request_focus_existing`",
           "anchor": "_request_focus_existing"
         },
         {
           "level": 3,
-          "text": "_install_focus_request_poll",
+          "text": "`_install_focus_request_poll`",
           "anchor": "_install_focus_request_poll"
         },
         {
           "level": 3,
-          "text": "AppInstances",
+          "text": "`AppInstances`",
           "anchor": "appinstances"
         },
         {
           "level": 3,
-          "text": "list_app_instances",
+          "text": "`list_app_instances`",
           "anchor": "list_app_instances"
         },
         {
           "level": 3,
-          "text": "_require_webview_gui",
+          "text": "`_require_webview_gui`",
           "anchor": "_require_webview_gui"
         },
         {
           "level": 3,
-          "text": "_run_window",
+          "text": "`WindowChrome`",
+          "anchor": "windowchrome"
+        },
+        {
+          "level": 4,
+          "text": "`as_window_kwargs`",
+          "anchor": "as_window_kwargs"
+        },
+        {
+          "level": 3,
+          "text": "`_create_window`",
+          "anchor": "_create_window"
+        },
+        {
+          "level": 3,
+          "text": "`HeadlessApp`",
+          "anchor": "headlessapp"
+        },
+        {
+          "level": 3,
+          "text": "`headless`",
+          "anchor": "headless"
+        },
+        {
+          "level": 3,
+          "text": "`active_window`",
+          "anchor": "active_window"
+        },
+        {
+          "level": 3,
+          "text": "`_gtk_toplevel`",
+          "anchor": "_gtk_toplevel"
+        },
+        {
+          "level": 3,
+          "text": "`_require_gtk_toplevel`",
+          "anchor": "_require_gtk_toplevel"
+        },
+        {
+          "level": 3,
+          "text": "`set_input_region`",
+          "anchor": "set_input_region"
+        },
+        {
+          "level": 3,
+          "text": "`begin_window_drag`",
+          "anchor": "begin_window_drag"
+        },
+        {
+          "level": 3,
+          "text": "`_gtk_web_view`",
+          "anchor": "_gtk_web_view"
+        },
+        {
+          "level": 3,
+          "text": "`capture_window`",
+          "anchor": "capture_window"
+        },
+        {
+          "level": 3,
+          "text": "`_appearance_portal`",
+          "anchor": "_appearance_portal"
+        },
+        {
+          "level": 3,
+          "text": "`desktop_color_scheme`",
+          "anchor": "desktop_color_scheme"
+        },
+        {
+          "level": 3,
+          "text": "`_apply_gtk_color_scheme`",
+          "anchor": "_apply_gtk_color_scheme"
+        },
+        {
+          "level": 3,
+          "text": "`_install_theme_follow`",
+          "anchor": "_install_theme_follow"
+        },
+        {
+          "level": 3,
+          "text": "`_install_zoom_lock`",
+          "anchor": "_install_zoom_lock"
+        },
+        {
+          "level": 3,
+          "text": "`_wire_zoom_lock`",
+          "anchor": "_wire_zoom_lock"
+        },
+        {
+          "level": 3,
+          "text": "`_wire_capture`",
+          "anchor": "_wire_capture"
+        },
+        {
+          "level": 3,
+          "text": "`_run_window`",
           "anchor": "_run_window"
         },
         {
           "level": 3,
-          "text": "ensure_gui_backend",
+          "text": "`ensure_gui_backend`",
           "anchor": "ensure_gui_backend"
         },
         {
           "level": 3,
-          "text": "_has_gui_backend",
+          "text": "`_has_gui_backend`",
           "anchor": "_has_gui_backend"
         },
         {
           "level": 3,
-          "text": "_default_pid_path",
+          "text": "`_default_pid_path`",
           "anchor": "_default_pid_path"
         },
         {
           "level": 3,
-          "text": "_launch_command_parts",
+          "text": "`_launch_command_parts`",
           "anchor": "_launch_command_parts"
         },
         {
           "level": 3,
-          "text": "_auto_register_entry",
+          "text": "`_auto_register_entry`",
           "anchor": "_auto_register_entry"
         },
         {
           "level": 3,
-          "text": "run",
+          "text": "`run`",
           "anchor": "run"
         },
         {
@@ -159,57 +254,57 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.entries",
+          "text": "`src.wesktop.entries`",
           "anchor": "srcwesktopentries"
         },
         {
           "level": 3,
-          "text": "create_entry",
+          "text": "`create_entry`",
           "anchor": "create_entry"
         },
         {
           "level": 3,
-          "text": "remove_entry",
+          "text": "`remove_entry`",
           "anchor": "remove_entry"
         },
         {
           "level": 3,
-          "text": "entry_exists",
+          "text": "`entry_exists`",
           "anchor": "entry_exists"
         },
         {
           "level": 3,
-          "text": "launcher_name",
+          "text": "`launcher_name`",
           "anchor": "launcher_name"
         },
         {
           "level": 3,
-          "text": "launcher_path",
+          "text": "`launcher_path`",
           "anchor": "launcher_path"
         },
         {
           "level": 3,
-          "text": "create_launcher",
+          "text": "`create_launcher`",
           "anchor": "create_launcher"
         },
         {
           "level": 3,
-          "text": "remove_launcher",
+          "text": "`remove_launcher`",
           "anchor": "remove_launcher"
         },
         {
           "level": 3,
-          "text": "_split_windows_command",
+          "text": "`_split_windows_command`",
           "anchor": "_split_windows_command"
         },
         {
           "level": 3,
-          "text": "quote_windows_command",
+          "text": "`quote_windows_command`",
           "anchor": "quote_windows_command"
         },
         {
           "level": 3,
-          "text": "_windows_com_available",
+          "text": "`_windows_com_available`",
           "anchor": "_windows_com_available"
         },
         {
@@ -239,7 +334,7 @@
         },
         {
           "level": 3,
-          "text": "SDUINode",
+          "text": "`SDUINode`",
           "anchor": "sduinode"
         },
         {
@@ -377,6 +472,11 @@
           "level": 2,
           "text": "Framework flags",
           "anchor": "framework-flags"
+        },
+        {
+          "level": 2,
+          "text": "Configuration",
+          "anchor": "configuration"
         }
       ]
     },
@@ -895,7 +995,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.__main__",
+          "text": "`src.wesktop.__main__`",
           "anchor": "srcwesktop__main__"
         }
       ]
@@ -912,7 +1012,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.asgi",
+          "text": "`src.wesktop.asgi`",
           "anchor": "srcwesktopasgi"
         }
       ]
@@ -929,7 +1029,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.audit",
+          "text": "`src.wesktop.audit`",
           "anchor": "srcwesktopaudit"
         }
       ]
@@ -946,7 +1046,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.auth",
+          "text": "`src.wesktop.auth`",
           "anchor": "srcwesktopauth"
         }
       ]
@@ -963,17 +1063,17 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.cli",
+          "text": "`src.wesktop.cli`",
           "anchor": "srcwesktopcli"
         },
         {
           "level": 3,
-          "text": "diagnose",
+          "text": "`diagnose`",
           "anchor": "diagnose"
         },
         {
           "level": 3,
-          "text": "main",
+          "text": "`main`",
           "anchor": "main"
         }
       ]
@@ -990,7 +1090,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.config",
+          "text": "`src.wesktop.config`",
           "anchor": "srcwesktopconfig"
         }
       ]
@@ -1007,107 +1107,202 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.desktop",
+          "text": "`src.wesktop.desktop`",
           "anchor": "srcwesktopdesktop"
         },
         {
           "level": 3,
-          "text": "_wire_runtime_bridge",
+          "text": "`_wire_runtime_bridge`",
           "anchor": "_wire_runtime_bridge"
         },
         {
           "level": 3,
-          "text": "_app_url",
+          "text": "`_app_url`",
           "anchor": "_app_url"
         },
         {
           "level": 3,
-          "text": "_version_url",
+          "text": "`_version_url`",
           "anchor": "_version_url"
         },
         {
           "level": 3,
-          "text": "_port_from_url",
+          "text": "`_port_from_url`",
           "anchor": "_port_from_url"
         },
         {
           "level": 3,
-          "text": "_startup_handshake",
+          "text": "`_startup_handshake`",
           "anchor": "_startup_handshake"
         },
         {
           "level": 3,
-          "text": "_inject_runtime_config",
+          "text": "`_inject_runtime_config`",
           "anchor": "_inject_runtime_config"
         },
         {
           "level": 3,
-          "text": "_wire_runtime_config_injection",
+          "text": "`_wire_runtime_config_injection`",
           "anchor": "_wire_runtime_config_injection"
         },
         {
           "level": 3,
-          "text": "_raise_window",
+          "text": "`_raise_window`",
           "anchor": "_raise_window"
         },
         {
           "level": 3,
-          "text": "_request_focus_existing",
+          "text": "`_request_focus_existing`",
           "anchor": "_request_focus_existing"
         },
         {
           "level": 3,
-          "text": "_install_focus_request_poll",
+          "text": "`_install_focus_request_poll`",
           "anchor": "_install_focus_request_poll"
         },
         {
           "level": 3,
-          "text": "AppInstances",
+          "text": "`AppInstances`",
           "anchor": "appinstances"
         },
         {
           "level": 3,
-          "text": "list_app_instances",
+          "text": "`list_app_instances`",
           "anchor": "list_app_instances"
         },
         {
           "level": 3,
-          "text": "_require_webview_gui",
+          "text": "`_require_webview_gui`",
           "anchor": "_require_webview_gui"
         },
         {
           "level": 3,
-          "text": "_run_window",
+          "text": "`WindowChrome`",
+          "anchor": "windowchrome"
+        },
+        {
+          "level": 4,
+          "text": "`as_window_kwargs`",
+          "anchor": "as_window_kwargs"
+        },
+        {
+          "level": 3,
+          "text": "`_create_window`",
+          "anchor": "_create_window"
+        },
+        {
+          "level": 3,
+          "text": "`HeadlessApp`",
+          "anchor": "headlessapp"
+        },
+        {
+          "level": 3,
+          "text": "`headless`",
+          "anchor": "headless"
+        },
+        {
+          "level": 3,
+          "text": "`active_window`",
+          "anchor": "active_window"
+        },
+        {
+          "level": 3,
+          "text": "`_gtk_toplevel`",
+          "anchor": "_gtk_toplevel"
+        },
+        {
+          "level": 3,
+          "text": "`_require_gtk_toplevel`",
+          "anchor": "_require_gtk_toplevel"
+        },
+        {
+          "level": 3,
+          "text": "`set_input_region`",
+          "anchor": "set_input_region"
+        },
+        {
+          "level": 3,
+          "text": "`begin_window_drag`",
+          "anchor": "begin_window_drag"
+        },
+        {
+          "level": 3,
+          "text": "`_gtk_web_view`",
+          "anchor": "_gtk_web_view"
+        },
+        {
+          "level": 3,
+          "text": "`capture_window`",
+          "anchor": "capture_window"
+        },
+        {
+          "level": 3,
+          "text": "`_appearance_portal`",
+          "anchor": "_appearance_portal"
+        },
+        {
+          "level": 3,
+          "text": "`desktop_color_scheme`",
+          "anchor": "desktop_color_scheme"
+        },
+        {
+          "level": 3,
+          "text": "`_apply_gtk_color_scheme`",
+          "anchor": "_apply_gtk_color_scheme"
+        },
+        {
+          "level": 3,
+          "text": "`_install_theme_follow`",
+          "anchor": "_install_theme_follow"
+        },
+        {
+          "level": 3,
+          "text": "`_install_zoom_lock`",
+          "anchor": "_install_zoom_lock"
+        },
+        {
+          "level": 3,
+          "text": "`_wire_zoom_lock`",
+          "anchor": "_wire_zoom_lock"
+        },
+        {
+          "level": 3,
+          "text": "`_wire_capture`",
+          "anchor": "_wire_capture"
+        },
+        {
+          "level": 3,
+          "text": "`_run_window`",
           "anchor": "_run_window"
         },
         {
           "level": 3,
-          "text": "ensure_gui_backend",
+          "text": "`ensure_gui_backend`",
           "anchor": "ensure_gui_backend"
         },
         {
           "level": 3,
-          "text": "_has_gui_backend",
+          "text": "`_has_gui_backend`",
           "anchor": "_has_gui_backend"
         },
         {
           "level": 3,
-          "text": "_default_pid_path",
+          "text": "`_default_pid_path`",
           "anchor": "_default_pid_path"
         },
         {
           "level": 3,
-          "text": "_launch_command_parts",
+          "text": "`_launch_command_parts`",
           "anchor": "_launch_command_parts"
         },
         {
           "level": 3,
-          "text": "_auto_register_entry",
+          "text": "`_auto_register_entry`",
           "anchor": "_auto_register_entry"
         },
         {
           "level": 3,
-          "text": "run",
+          "text": "`run`",
           "anchor": "run"
         }
       ]
@@ -1124,7 +1319,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.dev",
+          "text": "`src.wesktop.dev`",
           "anchor": "srcwesktopdev"
         }
       ]
@@ -1141,7 +1336,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.di",
+          "text": "`src.wesktop.di`",
           "anchor": "srcwesktopdi"
         }
       ]
@@ -1158,57 +1353,57 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.entries",
+          "text": "`src.wesktop.entries`",
           "anchor": "srcwesktopentries"
         },
         {
           "level": 3,
-          "text": "create_entry",
+          "text": "`create_entry`",
           "anchor": "create_entry"
         },
         {
           "level": 3,
-          "text": "remove_entry",
+          "text": "`remove_entry`",
           "anchor": "remove_entry"
         },
         {
           "level": 3,
-          "text": "entry_exists",
+          "text": "`entry_exists`",
           "anchor": "entry_exists"
         },
         {
           "level": 3,
-          "text": "launcher_name",
+          "text": "`launcher_name`",
           "anchor": "launcher_name"
         },
         {
           "level": 3,
-          "text": "launcher_path",
+          "text": "`launcher_path`",
           "anchor": "launcher_path"
         },
         {
           "level": 3,
-          "text": "create_launcher",
+          "text": "`create_launcher`",
           "anchor": "create_launcher"
         },
         {
           "level": 3,
-          "text": "remove_launcher",
+          "text": "`remove_launcher`",
           "anchor": "remove_launcher"
         },
         {
           "level": 3,
-          "text": "_split_windows_command",
+          "text": "`_split_windows_command`",
           "anchor": "_split_windows_command"
         },
         {
           "level": 3,
-          "text": "quote_windows_command",
+          "text": "`quote_windows_command`",
           "anchor": "quote_windows_command"
         },
         {
           "level": 3,
-          "text": "_windows_com_available",
+          "text": "`_windows_com_available`",
           "anchor": "_windows_com_available"
         }
       ]
@@ -1225,7 +1420,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.error_log",
+          "text": "`src.wesktop.error_log`",
           "anchor": "srcwesktoperror_log"
         }
       ]
@@ -1242,7 +1437,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.features",
+          "text": "`src.wesktop.features`",
           "anchor": "srcwesktopfeatures"
         }
       ]
@@ -1259,7 +1454,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.logging",
+          "text": "`src.wesktop.logging`",
           "anchor": "srcwesktoplogging"
         }
       ]
@@ -1276,7 +1471,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.mcp",
+          "text": "`src.wesktop.mcp`",
           "anchor": "srcwesktopmcp"
         },
         {
@@ -1291,22 +1486,22 @@
         },
         {
           "level": 3,
-          "text": "create_mcp_server",
+          "text": "`create_mcp_server`",
           "anchor": "create_mcp_server"
         },
         {
           "level": 3,
-          "text": "register_tools_for_role",
+          "text": "`register_tools_for_role`",
           "anchor": "register_tools_for_role"
         },
         {
           "level": 3,
-          "text": "ROLES",
+          "text": "`ROLES`",
           "anchor": "roles-1"
         },
         {
           "level": 3,
-          "text": "DEFAULT_ROLE",
+          "text": "`DEFAULT_ROLE`",
           "anchor": "default_role-1"
         }
       ]
@@ -1323,12 +1518,12 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.mcp_tools._http",
+          "text": "`src.wesktop.mcp_tools._http`",
           "anchor": "srcwesktopmcp_tools_http"
         },
         {
           "level": 3,
-          "text": "request",
+          "text": "`request`",
           "anchor": "request"
         }
       ]
@@ -1345,12 +1540,12 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.mcp_tools._paths",
+          "text": "`src.wesktop.mcp_tools._paths`",
           "anchor": "srcwesktopmcp_tools_paths"
         },
         {
           "level": 3,
-          "text": "guard_path",
+          "text": "`guard_path`",
           "anchor": "guard_path"
         }
       ]
@@ -1367,12 +1562,12 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.mcp_tools.ask_user",
+          "text": "`src.wesktop.mcp_tools.ask_user`",
           "anchor": "srcwesktopmcp_toolsask_user"
         },
         {
           "level": 3,
-          "text": "ask_user",
+          "text": "`ask_user`",
           "anchor": "ask_user"
         }
       ]
@@ -1389,22 +1584,22 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.mcp_tools.deployment",
+          "text": "`src.wesktop.mcp_tools.deployment`",
           "anchor": "srcwesktopmcp_toolsdeployment"
         },
         {
           "level": 3,
-          "text": "stage_branch",
+          "text": "`stage_branch`",
           "anchor": "stage_branch"
         },
         {
           "level": 3,
-          "text": "create_prod_pr",
+          "text": "`create_prod_pr`",
           "anchor": "create_prod_pr"
         },
         {
           "level": 3,
-          "text": "check_pipeline",
+          "text": "`check_pipeline`",
           "anchor": "check_pipeline"
         }
       ]
@@ -1421,32 +1616,32 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.mcp_tools.filesystem",
+          "text": "`src.wesktop.mcp_tools.filesystem`",
           "anchor": "srcwesktopmcp_toolsfilesystem"
         },
         {
           "level": 3,
-          "text": "read_file",
+          "text": "`read_file`",
           "anchor": "read_file"
         },
         {
           "level": 3,
-          "text": "write_file",
+          "text": "`write_file`",
           "anchor": "write_file"
         },
         {
           "level": 3,
-          "text": "edit_file",
+          "text": "`edit_file`",
           "anchor": "edit_file"
         },
         {
           "level": 3,
-          "text": "list_files",
+          "text": "`list_files`",
           "anchor": "list_files"
         },
         {
           "level": 3,
-          "text": "search_files",
+          "text": "`search_files`",
           "anchor": "search_files"
         }
       ]
@@ -1463,32 +1658,32 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.mcp_tools.git",
+          "text": "`src.wesktop.mcp_tools.git`",
           "anchor": "srcwesktopmcp_toolsgit"
         },
         {
           "level": 3,
-          "text": "_run",
+          "text": "`_run`",
           "anchor": "_run"
         },
         {
           "level": 3,
-          "text": "git_status",
+          "text": "`git_status`",
           "anchor": "git_status"
         },
         {
           "level": 3,
-          "text": "git_diff",
+          "text": "`git_diff`",
           "anchor": "git_diff"
         },
         {
           "level": 3,
-          "text": "git_commit",
+          "text": "`git_commit`",
           "anchor": "git_commit"
         },
         {
           "level": 3,
-          "text": "git_log",
+          "text": "`git_log`",
           "anchor": "git_log"
         }
       ]
@@ -1505,12 +1700,12 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.mcp_tools.review",
+          "text": "`src.wesktop.mcp_tools.review`",
           "anchor": "srcwesktopmcp_toolsreview"
         },
         {
           "level": 3,
-          "text": "post_review_comment",
+          "text": "`post_review_comment`",
           "anchor": "post_review_comment"
         }
       ]
@@ -1527,12 +1722,12 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.mcp_tools.testing",
+          "text": "`src.wesktop.mcp_tools.testing`",
           "anchor": "srcwesktopmcp_toolstesting"
         },
         {
           "level": 3,
-          "text": "run_tests",
+          "text": "`run_tests`",
           "anchor": "run_tests"
         }
       ]
@@ -1549,7 +1744,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.mcp_tools",
+          "text": "`src.wesktop.mcp_tools`",
           "anchor": "srcwesktopmcp_tools"
         }
       ]
@@ -1566,7 +1761,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.middleware",
+          "text": "`src.wesktop.middleware`",
           "anchor": "srcwesktopmiddleware"
         }
       ]
@@ -1583,32 +1778,32 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.runtime_bridge",
+          "text": "`src.wesktop.runtime_bridge`",
           "anchor": "srcwesktopruntime_bridge"
         },
         {
           "level": 3,
-          "text": "reload",
+          "text": "`reload`",
           "anchor": "reload"
         },
         {
           "level": 3,
-          "text": "clear_web_cache",
+          "text": "`clear_web_cache`",
           "anchor": "clear_web_cache"
         },
         {
           "level": 3,
-          "text": "fetch_build_id",
+          "text": "`fetch_build_id`",
           "anchor": "fetch_build_id"
         },
         {
           "level": 3,
-          "text": "check_and_reload",
+          "text": "`check_and_reload`",
           "anchor": "check_and_reload"
         },
         {
           "level": 3,
-          "text": "install_focus_poll",
+          "text": "`install_focus_poll`",
           "anchor": "install_focus_poll"
         }
       ]
@@ -1625,277 +1820,277 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.sdui",
+          "text": "`src.wesktop.sdui`",
           "anchor": "srcwesktopsdui"
         },
         {
           "level": 3,
-          "text": "SDUINode",
+          "text": "`SDUINode`",
           "anchor": "sduinode"
         },
         {
           "level": 3,
-          "text": "node",
+          "text": "`node`",
           "anchor": "node"
         },
         {
           "level": 3,
-          "text": "TabItem",
+          "text": "`TabItem`",
           "anchor": "tabitem"
         },
         {
           "level": 3,
-          "text": "BreadcrumbItem",
+          "text": "`BreadcrumbItem`",
           "anchor": "breadcrumbitem"
         },
         {
           "level": 3,
-          "text": "TimelineItem",
+          "text": "`TimelineItem`",
           "anchor": "timelineitem"
         },
         {
           "level": 3,
-          "text": "ColumnDef",
+          "text": "`ColumnDef`",
           "anchor": "columndef"
         },
         {
           "level": 3,
-          "text": "KVEntry",
+          "text": "`KVEntry`",
           "anchor": "kventry"
         },
         {
           "level": 3,
-          "text": "OptionItem",
+          "text": "`OptionItem`",
           "anchor": "optionitem"
         },
         {
           "level": 3,
-          "text": "DataGridColumnDef",
+          "text": "`DataGridColumnDef`",
           "anchor": "datagridcolumndef"
         },
         {
           "level": 3,
-          "text": "_PrimitiveBase",
+          "text": "`_PrimitiveBase`",
           "anchor": "_primitivebase"
         },
         {
           "level": 4,
-          "text": "to_node",
+          "text": "`to_node`",
           "anchor": "to_node"
         },
         {
           "level": 3,
-          "text": "Stack",
+          "text": "`Stack`",
           "anchor": "stack"
         },
         {
           "level": 3,
-          "text": "ZStack",
+          "text": "`ZStack`",
           "anchor": "zstack"
         },
         {
           "level": 3,
-          "text": "Spacer",
+          "text": "`Spacer`",
           "anchor": "spacer"
         },
         {
           "level": 3,
-          "text": "Divider",
+          "text": "`Divider`",
           "anchor": "divider"
         },
         {
           "level": 3,
-          "text": "Grid",
+          "text": "`Grid`",
           "anchor": "grid"
         },
         {
           "level": 3,
-          "text": "Card",
+          "text": "`Card`",
           "anchor": "card"
         },
         {
           "level": 3,
-          "text": "Tabs",
+          "text": "`Tabs`",
           "anchor": "tabs"
         },
         {
           "level": 3,
-          "text": "Breadcrumb",
+          "text": "`Breadcrumb`",
           "anchor": "breadcrumb"
         },
         {
           "level": 3,
-          "text": "Empty",
+          "text": "`Empty`",
           "anchor": "empty"
         },
         {
           "level": 3,
-          "text": "Heading",
+          "text": "`Heading`",
           "anchor": "heading"
         },
         {
           "level": 3,
-          "text": "Text",
+          "text": "`Text`",
           "anchor": "text"
         },
         {
           "level": 3,
-          "text": "Code",
+          "text": "`Code`",
           "anchor": "code"
         },
         {
           "level": 3,
-          "text": "Status",
+          "text": "`Status`",
           "anchor": "status"
         },
         {
           "level": 3,
-          "text": "Badge",
+          "text": "`Badge`",
           "anchor": "badge"
         },
         {
           "level": 3,
-          "text": "ProgressBar",
+          "text": "`ProgressBar`",
           "anchor": "progressbar"
         },
         {
           "level": 3,
-          "text": "Spinner",
+          "text": "`Spinner`",
           "anchor": "spinner"
         },
         {
           "level": 3,
-          "text": "Timeline",
+          "text": "`Timeline`",
           "anchor": "timeline"
         },
         {
           "level": 3,
-          "text": "Diff",
+          "text": "`Diff`",
           "anchor": "diff"
         },
         {
           "level": 3,
-          "text": "Markdown",
+          "text": "`Markdown`",
           "anchor": "markdown"
         },
         {
           "level": 3,
-          "text": "Table",
+          "text": "`Table`",
           "anchor": "table"
         },
         {
           "level": 3,
-          "text": "DataGrid",
+          "text": "`DataGrid`",
           "anchor": "datagrid"
         },
         {
           "level": 3,
-          "text": "List",
+          "text": "`List`",
           "anchor": "list"
         },
         {
           "level": 3,
-          "text": "KeyValue",
+          "text": "`KeyValue`",
           "anchor": "keyvalue"
         },
         {
           "level": 3,
-          "text": "JsonView",
+          "text": "`JsonView`",
           "anchor": "jsonview"
         },
         {
           "level": 3,
-          "text": "Tree",
+          "text": "`Tree`",
           "anchor": "tree"
         },
         {
           "level": 3,
-          "text": "Button",
+          "text": "`Button`",
           "anchor": "button"
         },
         {
           "level": 3,
-          "text": "Input",
+          "text": "`Input`",
           "anchor": "input"
         },
         {
           "level": 3,
-          "text": "TextArea",
+          "text": "`TextArea`",
           "anchor": "textarea"
         },
         {
           "level": 3,
-          "text": "Select",
+          "text": "`Select`",
           "anchor": "select"
         },
         {
           "level": 3,
-          "text": "Checkbox",
+          "text": "`Checkbox`",
           "anchor": "checkbox"
         },
         {
           "level": 3,
-          "text": "Switch",
+          "text": "`Switch`",
           "anchor": "switch"
         },
         {
           "level": 3,
-          "text": "Radio",
+          "text": "`Radio`",
           "anchor": "radio"
         },
         {
           "level": 3,
-          "text": "Slider",
+          "text": "`Slider`",
           "anchor": "slider"
         },
         {
           "level": 3,
-          "text": "Alert",
+          "text": "`Alert`",
           "anchor": "alert"
         },
         {
           "level": 3,
-          "text": "Toast",
+          "text": "`Toast`",
           "anchor": "toast"
         },
         {
           "level": 3,
-          "text": "Logs",
+          "text": "`Logs`",
           "anchor": "logs"
         },
         {
           "level": 3,
-          "text": "Modal",
+          "text": "`Modal`",
           "anchor": "modal"
         },
         {
           "level": 3,
-          "text": "Drawer",
+          "text": "`Drawer`",
           "anchor": "drawer"
         },
         {
           "level": 3,
-          "text": "Popover",
+          "text": "`Popover`",
           "anchor": "popover"
         },
         {
           "level": 3,
-          "text": "Confirm",
+          "text": "`Confirm`",
           "anchor": "confirm"
         },
         {
           "level": 3,
-          "text": "register_sdui_provider",
+          "text": "`register_sdui_provider`",
           "anchor": "register_sdui_provider"
         },
         {
           "level": 3,
-          "text": "get_sdui_provider",
+          "text": "`get_sdui_provider`",
           "anchor": "get_sdui_provider"
         },
         {
           "level": 3,
-          "text": "list_sdui_providers",
+          "text": "`list_sdui_providers`",
           "anchor": "list_sdui_providers"
         }
       ]
@@ -1912,7 +2107,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.server",
+          "text": "`src.wesktop.server`",
           "anchor": "srcwesktopserver"
         }
       ]
@@ -1929,7 +2124,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.sse",
+          "text": "`src.wesktop.sse`",
           "anchor": "srcwesktopsse"
         }
       ]
@@ -1946,7 +2141,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.tasks",
+          "text": "`src.wesktop.tasks`",
           "anchor": "srcwesktoptasks"
         }
       ]
@@ -1963,7 +2158,7 @@
         },
         {
           "level": 2,
-          "text": "src.wesktop.testing",
+          "text": "`src.wesktop.testing`",
           "anchor": "srcwesktoptesting"
         }
       ]
@@ -2121,5 +2316,6 @@
     }
   ],
   "posts": [],
-  "last_gen": "2026-08-12T03:38:53.197062+00:00"
+  "last_gen": "2026-09-11T13:01:23.803733+00:00",
+  "theme": "minimal"
 }

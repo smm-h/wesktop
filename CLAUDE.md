@@ -78,7 +78,7 @@ Some stubs (`asgi.py`, `server.py`, `mcp.py`) also re-export private helpers use
 | --- | --- |
 | `fastware[all]` | * |
 | `pywebview` | >=6.2.1 |
-| `strictcli` | >=0.36.0 |
+| `strictcli` | >=0.41.1 |
 | `pydantic` | * |
 
 Dev dependencies: `pytest`, `httpx` (async test client), `stricttest` (test-isolation floor). 279 tests across 15 test modules.
@@ -156,7 +156,7 @@ Runs the ASGI server without a GUI. Useful for deployment and CI.
 ```bash
 wesktop diagnose              # runtime environment check
 wesktop config show            # display configuration
-wesktop config set key value   # set a config value
+wesktop config set key --value v   # set a config value
 wesktop config edit            # open config in $EDITOR
 wesktop --version              # package version
 ```

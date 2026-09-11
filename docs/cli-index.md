@@ -32,3 +32,9 @@ These flags are owned by the strictcli framework, not by the app. No command may
 | `--approve-consequential` | Skips the confirmation prompt a consequential command shows before it runs. |
 | `--quiet` | Hides informational output. Warnings, errors, structured data and the dry-run log are never suppressed. |
 | `--verbose` | Shows debug output. `--quiet` wins when both are passed. |
+
+## Configuration
+
+| Setting | Value |
+| --- | --- |
+| Config file | This app reads a config file; `--config <path>` selects one. |
