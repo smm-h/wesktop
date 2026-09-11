@@ -2,6 +2,34 @@
 
 # Changelog
 
+## 0.12.0
+
+Native window control for frameless apps: WindowChrome, compositor-driven drag, input regions, window capture, headless runs, and windows that follow the desktop light/dark theme.
+
+<details>
+<summary>Context</summary>
+
+The first consumer of these features is a frameless terminal emulator app built on wesktop. It needs the app to draw its own window frame, move and capture the window without a screen grab, follow the desktop theme, and run its server with no window under test; that is what this release adds.
+
+</details>
+
+### Breaking
+
+- **`config set` takes `--value`.** strictcli 0.41 turned the framework-owned `config set` into a selector: `wesktop config set key --value v`, `--clear`, or `--default`, replacing the positional value. The floor is now `strictcli>=0.41.1`; the config commands also carry fuller help text.
+
+### Features
+
+- **Window chrome.** `wesktop.run(chrome=WindowChrome(...))` opens frameless, transparent, always-on-top or custom-geometry native windows. Every pywebview window option is forwarded verbatim, with pywebview's own defaults, so an app can draw its own silhouette instead of a decorated rectangle.
+- **Frameless windows that behave.** `wesktop.active_window()` returns the live window handle, `set_input_region()` restricts pointer input to the region the page draws (so clicks on a transparent window's empty parts reach what is behind it), and `begin_window_drag()` asks the compositor for an interactive move -- the drag pywebview's `easy_drag` cannot do on Wayland.
+- **Window capture.** `wesktop.capture_window(window, path)` saves a PNG of the app's own window from the web view's own snapshot -- not a screen grab, so it needs no screen-capture permission, contains no other application's pixels, keeps the window's transparency, and works when the window is not on top. `run(capture_to=...)` takes the shot once the page has loaded.
+- **Headless runs.** `with wesktop.headless("myapp:app") as app:` starts the app's server with no window, hands back the URL, and stops it when the block ends -- including when it raises. pywebview is never imported, so a suite can drive a real wesktop app on a machine with no display, in CI, or over ssh.
+
+### Fixes
+
+- **Documentation links no longer dead-end.** The SDUI reference link and the cross-links into the fastware documentation now point at pages that exist.
+- **Pinch-to-zoom stays off.** `zoomable=False` is now enforced rather than merely passed along: pywebview's GTK backend never read the flag, so a touchpad pinch or a ctrl+scroll rescaled the page of every GTK window. Those events are refused and the page is pinned at 1:1.
+- **Windows follow the desktop theme.** A GTK window now reports the desktop's light/dark preference to its page as `prefers-color-scheme` and keeps following it when the desktop changes -- previously it said "light" forever, so every page that follows the system rendered light on a dark desktop. `wesktop.desktop_color_scheme()` exposes the reading; `run(follow_system_theme=False)` opts out.
+
 ## 0.11.1
 
 Ships an sdist that contains only the package, its tests, its docs and its root metadata.
@@ -189,6 +217,8 @@ All ASGI, SSE, middleware, server, auth, DI, testing, logging, tasks, features, 
 
 ## 0.6.0
 
+**Feature.** `serve_background()` runs the server as an independent subprocess that survives the parent process exiting. `run()` now uses this for full window/server lifecycle separation.
+
 ### Features
 
 - **Feature.** `serve_background()` runs the server as an independent subprocess that survives the parent process exiting. `run()` now uses this for full window/server lifecycle separation.
@@ -198,6 +228,8 @@ All ASGI, SSE, middleware, server, auth, DI, testing, logging, tasks, features, 
 - **Fix.** Desktop entry launcher scripts no longer hardcode the working directory. Apps resolve paths from their package install location.
 
 ## 0.5.0
+
+**Remove browser fallback from run().** run() no longer silently falls back to opening a browser when pywebview is unavailable. It now raises RuntimeError, making the failure explicit. Use serve() for headless/browser workflows.
 
 ### Breaking
 
@@ -215,6 +247,8 @@ All ASGI, SSE, middleware, server, auth, DI, testing, logging, tasks, features, 
 
 ## 0.4.5
 
+**Feature.** `ensure_gui_backend()` now searches macOS paths (Homebrew and Framework) for system PyGObject.
+
 ### Features
 
 - **Feature.** `ensure_gui_backend()` now searches macOS paths (Homebrew and Framework) for system PyGObject.
@@ -225,11 +259,15 @@ All ASGI, SSE, middleware, server, auth, DI, testing, logging, tasks, features, 
 
 ## 0.4.4
 
+**Feature.** `ensure_gui_backend()` finds and loads system PyGObject in isolated venvs. Called automatically by `run()`.
+
 ### Features
 
 - **Feature.** `ensure_gui_backend()` finds and loads system PyGObject in isolated venvs. Called automatically by `run()`.
 
 ## 0.4.3
+
+**Fix.** `serve(foreground=False)` signal handler patch now survives thread start race condition. Previous fix was ineffective because the noop was restored before the daemon thread executed startup.
 
 ### Fixes
 
@@ -237,11 +275,15 @@ All ASGI, SSE, middleware, server, auth, DI, testing, logging, tasks, features, 
 
 ## 0.4.2
 
+**Fix.** `run()` no longer crashes when pywebview has no GUI backend available (e.g., missing GTK/Qt in uv virtual environments).
+
 ### Fixes
 
 - **Fix.** `run()` no longer crashes when pywebview has no GUI backend available (e.g., missing GTK/Qt in uv virtual environments).
 
 ## 0.4.1
+
+**Fix.** `serve(foreground=False)` no longer crashes with granian's signal handler registration in daemon threads. Fixes desktop mode (`run()`) and any background-server usage.
 
 ### Fixes
 
@@ -251,12 +293,16 @@ All ASGI, SSE, middleware, server, auth, DI, testing, logging, tasks, features, 
 
 ## 0.4.0
 
+**New feature.** `run()` accepts a `js_api` parameter, passed through to pywebview's `create_window()` for exposing Python methods to JavaScript.
+
 ### Features
 
 - **New feature.** `run()` accepts a `js_api` parameter, passed through to pywebview's `create_window()` for exposing Python methods to JavaScript.
 - **New feature.** `dev()` starts a Vite dev server alongside the wesktop server in a single command, with ViteDevProxy for unified port access and automatic Vite lifecycle management.
 
 ## 0.3.2
+
+**New feature.** Forward reload parameter to run().
 
 ### Features
 
@@ -270,6 +316,8 @@ All ASGI, SSE, middleware, server, auth, DI, testing, logging, tasks, features, 
 - **Fix.** Document optional MCP dependency in docstring.
 
 ## 0.3.1
+
+**New feature.** AppConfig dataclass for centralized app configuration via create_app().
 
 ### Features
 
@@ -285,6 +333,8 @@ All ASGI, SSE, middleware, server, auth, DI, testing, logging, tasks, features, 
 - **Fix.** Corrected module docstring to describe wesktop as a full-featured ASGI framework.
 
 ## 0.3.0
+
+**Breaking.** serve() API redesigned: foreground parameter is required (no default), host/port have no implicit defaults (must be explicit or via env vars).
 
 ### Breaking
 
@@ -310,11 +360,15 @@ All ASGI, SSE, middleware, server, auth, DI, testing, logging, tasks, features, 
 
 ## 0.2.1
 
+**Fix.** Use PyPI-published strictcli instead of local source override. Fixes CI test failures.
+
 ### Fixes
 
 - **Fix.** Use PyPI-published strictcli instead of local source override. Fixes CI test failures.
 
 ## 0.2.0
+
+**Lazy JSON.** Request.json is now lazily parsed with caching, improving performance for handlers that don't need the body.
 
 ### Features
 
@@ -327,9 +381,13 @@ All ASGI, SSE, middleware, server, auth, DI, testing, logging, tasks, features, 
 
 ## 0.1.1
 
+No user-facing changes.
+
 - No user-facing changes.
 
 ## 0.1.0
+
+**Initial release.** ASGI router, SSE broadcaster, and extracted server lifecycle.
 
 ### Features
 
