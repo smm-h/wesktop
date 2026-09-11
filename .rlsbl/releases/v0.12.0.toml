@@ -17,3 +17,7 @@ context = """The first consumer of these features is a frameless terminal emulat
 # blog = false
 include = ["pypi", "npm"]
 exclude = []
+candidate_sha = "45e58e9d9fb2da89868ceacc139f4fd52055de97"
+
+[tree_hashes]
+"." = "c8a20b7f34c9bb6b9b5f0b49b7b764b45031ea80"
