@@ -124,7 +124,7 @@ Runs the ASGI server without a GUI. Useful for deployment and CI.
 ```bash
 wesktop diagnose              # runtime environment check
 wesktop config show            # display configuration
-wesktop config set key value   # set a config value
+wesktop config set key --value v   # set a config value
 wesktop config edit            # open config in $EDITOR
 wesktop --version              # package version
 ```
