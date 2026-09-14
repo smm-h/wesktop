@@ -1,8 +1,8 @@
----
-title: CLAUDE.md
-description: Developer guide for AI agents working on the wesktop codebase
-date: 2026-07-01
----
++++
+title = "CLAUDE.md"
+description = "Developer guide for AI agents working on the wesktop codebase"
+date = 2026-07-01
++++
 # wesktop
 
 A Python framework for building web-based desktop applications. Provides native OS windows backed by a fast ASGI server.

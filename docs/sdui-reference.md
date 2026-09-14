@@ -1,8 +1,8 @@
----
-title: SDUI Primitive Reference
-description: "Complete reference for wesktop's 40 Server-Driven UI primitives: fields, types, defaults, output examples, and usage guidance organized by category."
-date: 2026-07-29
----
++++
+title = "SDUI Primitive Reference"
+description = "Complete reference for wesktop's 40 Server-Driven UI primitives: fields, types, defaults, output examples, and usage guidance organized by category."
+date = 2026-07-29
++++
 
 # SDUI Primitive Reference
 

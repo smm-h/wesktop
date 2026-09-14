@@ -1,7 +1,7 @@
----
-title: Getting Started
-description: Build a complete web-based desktop application with wesktop, from a basic API to a real-time SDUI dashboard in a native window.
----
++++
+title = "Getting Started"
+description = "Build a complete web-based desktop application with wesktop, from a basic API to a real-time SDUI dashboard in a native window."
++++
 
 # Getting Started
 

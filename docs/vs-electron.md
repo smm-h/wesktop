@@ -1,8 +1,8 @@
----
-title: wesktop vs Electron
-description: "Comparison of wesktop and Electron: native OS webview vs bundled Chromium, Python vs Node.js, ~5 MB vs 100-200 MB bundle size."
-date: 2026-07-01
----
++++
+title = "wesktop vs Electron"
+description = "Comparison of wesktop and Electron: native OS webview vs bundled Chromium, Python vs Node.js, ~5 MB vs 100-200 MB bundle size."
+date = 2026-07-01
++++
 
 # wesktop vs Electron
 

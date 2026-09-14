@@ -1,8 +1,8 @@
----
-title: wesktop
-description: A Python framework for building web-based desktop apps -- built on fastware with pywebview native windows, desktop entry management, and SDUI primitives
-date: 2026-07-01
----
++++
+title = "wesktop"
+description = "A Python framework for building web-based desktop apps -- built on fastware with pywebview native windows, desktop entry management, and SDUI primitives"
+date = 2026-07-01
++++
 
 # wesktop :-: var key="project.version"
 

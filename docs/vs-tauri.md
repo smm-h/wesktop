@@ -1,8 +1,8 @@
----
-title: wesktop vs Tauri
-description: "Comparison of wesktop and Tauri: both use native OS webviews, but differ in backend language (Python vs Rust), IPC model, and packaging approach."
-date: 2026-07-01
----
++++
+title = "wesktop vs Tauri"
+description = "Comparison of wesktop and Tauri: both use native OS webviews, but differ in backend language (Python vs Rust), IPC model, and packaging approach."
+date = 2026-07-01
++++
 
 # wesktop vs Tauri
 

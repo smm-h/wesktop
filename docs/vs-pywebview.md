@@ -1,8 +1,8 @@
----
-title: wesktop vs pywebview
-description: "What wesktop adds on top of bare pywebview: ASGI routing, SSE broadcasting, managed server lifecycle, middleware, auth, desktop entries, and SDUI."
-date: 2026-07-01
----
++++
+title = "wesktop vs pywebview"
+description = "What wesktop adds on top of bare pywebview: ASGI routing, SSE broadcasting, managed server lifecycle, middleware, auth, desktop entries, and SDUI."
+date = 2026-07-01
++++
 
 # wesktop vs pywebview
 

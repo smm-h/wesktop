@@ -1,8 +1,8 @@
----
-title: API Reference
-description: "API reference for wesktop's native symbols: run() desktop window, GUI backend detection, desktop entries, dev mode, SDUI primitives, and version metadata."
-date: 2026-07-01
----
++++
+title = "API Reference"
+description = "API reference for wesktop's native symbols: run() desktop window, GUI backend detection, desktop entries, dev mode, SDUI primitives, and version metadata."
+date = 2026-07-01
++++
 
 # API Reference
 
