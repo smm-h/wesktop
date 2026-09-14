@@ -1,7 +1,8 @@
 +++
 title = "wesktop diagnose"
-description = "Reference for the wesktop diagnose command — usage, flags, arguments, and examples for the diagnose subcommand of the wesktop CLI."
+description = "Check runtime environment, installed dependencies, and configuration paths"
 generated = true
+seeded = true
 nav_group = "CLI Reference"
 nav_order = 2
 +++

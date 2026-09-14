@@ -1,7 +1,8 @@
 +++
 title = "wesktop config"
-description = "Reference for the wesktop config command group — subcommands, flags, arguments, and usage details for the config group in the wesktop CLI."
+description = "Manage persistent configuration values stored in the config file"
 generated = true
+seeded = true
 nav_group = "CLI Reference"
 nav_order = 1
 +++

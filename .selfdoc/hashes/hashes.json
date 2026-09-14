@@ -7,21 +7,25 @@
   },
   "en/cli-config.md": {
     "content": "6a3aa3f9a5a2e3ee7b65a6188850a7bc28a6f5f8e000c3613b46b19e182f4763",
-    "description": "93ccee7eb335efe047e27977b968297bbf58300dc5dfc27ff3de7bb5f7de83ed",
-    "schema_hash": "f8af553f6ed6773efe6bba60fc59cece246b0473889d35473fbfdfea0a13990d"
+    "description": "7ee798adb5cec834c9a968f4ab8fe755869ecd29a453c38de008c08ed32bba2d",
+    "schema_hash": "f8af553f6ed6773efe6bba60fc59cece246b0473889d35473fbfdfea0a13990d",
+    "seed_hash": "7ee798adb5cec834c9a968f4ab8fe755869ecd29a453c38de008c08ed32bba2d"
   },
   "en/cli-diagnose.md": {
     "content": "e923953888a500040d9e106804449b78612dce4e943f83bf081f7b251b7e6962",
-    "description": "3d5281d2398fdfd3797661b5a27cbbf1bcfb7672e0dc7593edfe887fde57c9c4",
-    "schema_hash": "13947f4f0067d0428b358adede5d805100486ead0981a7d73bd1e45e7ce0318a"
+    "description": "765a2964a1aeda612ad93a1a6eb9237f393891f9a6e5e24f0d4899a52ffac2e4",
+    "schema_hash": "13947f4f0067d0428b358adede5d805100486ead0981a7d73bd1e45e7ce0318a",
+    "seed_hash": "765a2964a1aeda612ad93a1a6eb9237f393891f9a6e5e24f0d4899a52ffac2e4"
   },
   "en/cli-index.md": {
     "content": "7a6109ebbeca794fab229bf465905d1a3d49922b5079867d301d394acf7f8542",
-    "description": "7e8d646ef5ae5d690f8cebea33cf7abbd7f0a4b40883ca74e46aec3a7cd310ee"
+    "description": "eb7d99d2e046110a9cad0e28ea4636e1fa5269bf53c7727a6385e3962beedd53",
+    "seed_hash": "eb7d99d2e046110a9cad0e28ea4636e1fa5269bf53c7727a6385e3962beedd53"
   },
   "en/gen-index.md": {
     "content": "eed7598bf7813936b0610d5ebcf3ceea64c97539155e73082c95872f19edb679",
-    "description": "d666022be8ffe4410e5ac13ba9feca4f7c598f0d8485006c57d5d8d68c089929"
+    "description": "612f9fad5bc466a56e1b8ae95e41a2d7f7b67811a960c00a10144bab5bdd7ac4",
+    "seed_hash": "612f9fad5bc466a56e1b8ae95e41a2d7f7b67811a960c00a10144bab5bdd7ac4"
   },
   "en/getting-started.md": {
     "content": "085cf6d990a043141577277da0a560adc4c1901c9ddabbdcff640cfedea97828",

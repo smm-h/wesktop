@@ -1,7 +1,8 @@
 +++
 title = "wesktop CLI Reference"
-description = "Complete CLI reference for wesktop: the diagnose command for environment and dependency checks and the config group for persistent configuration."
+description = "Complete CLI reference for wesktop — all available commands, subcommands, flags, arguments, and usage examples with detailed descriptions."
 generated = true
+seeded = true
 nav_group = "CLI Reference"
 nav_order = 91
 +++

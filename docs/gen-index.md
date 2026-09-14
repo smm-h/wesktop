@@ -1,7 +1,8 @@
 +++
 title = "API Reference"
-description = "Auto-generated API reference index for wesktop: every module, class, and function across the desktop shell, SDUI schemas, MCP tools, and re-exports."
+description = "API reference index for wesktop covering 30 modules"
 generated = true
+seeded = true
 nav_group = "API Reference"
 nav_order = 90
 +++
