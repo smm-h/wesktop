@@ -2,8 +2,8 @@
   "schema_version": 1,
   "name": "wesktop",
   "slug": "wesktop",
-  "version": "0.11.1",
-  "description": "",
+  "version": "0.12.0",
+  "description": "A Python framework that turns an ASGI web app into a desktop application, serving it from a local Granian server and displaying it in a native OS window via pywebview",
   "language": "python",
   "base_url": "https://wesktop.smmh.dev",
   "pages": [
@@ -2316,6 +2316,6 @@
     }
   ],
   "posts": [],
-  "last_gen": "2026-09-11T13:01:54.676326+00:00",
+  "last_gen": "2026-09-14T14:50:26.324878+00:00",
   "theme": "minimal"
 }
