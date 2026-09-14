@@ -82,7 +82,7 @@
   },
   "project_id": "wesktop",
   "name": "wesktop",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "help": "A Python framework for building web-based desktop applications",
   "config": true,
   "commands": {

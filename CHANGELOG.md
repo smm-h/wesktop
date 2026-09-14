@@ -2,6 +2,15 @@
 
 # Changelog
 
+## 0.12.1
+
+The project describes itself consistently on PyPI, npm and in its README, and its documentation base is the unified site.
+
+### Fixes
+
+- **The project describes itself consistently on PyPI, npm and in its README.** The PyPI page had no long description or project links, the npm and Python descriptions differed, and the README opened with a tagline instead of a definition.
+- **Documentation links point at the unified site.** The declared docs base was the retired per-project host; it is `https://smmh.dev/wesktop/` now, so generated sitemaps, feeds and llms.txt name the address that serves the pages.
+
 ## 0.12.0
 
 Native window control for frameless apps: WindowChrome, compositor-driven drag, input regions, window capture, headless runs, and windows that follow the desktop light/dark theme.
