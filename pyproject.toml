@@ -1,11 +1,17 @@
 [project]
 name = "wesktop"
 version = "0.12.0"
-description = "A Python framework for building web-based desktop applications"
+description = "A Python framework that turns an ASGI web app into a desktop application, serving it from a local Granian server and displaying it in a native OS window via pywebview"
+readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{name = "smm-h", email = "smmh72@gmail.com"}]
-keywords = ["desktop", "web", "gui", "pywebview", "granian", "asgi", "rlsbl"]
+keywords = ["desktop", "desktop-app", "web", "gui", "webview", "pywebview", "granian", "asgi", "rlsbl"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "Environment :: Console",
+]
 dependencies = [
     "fastware[all]",
     "pywebview>=6.2.1",
@@ -14,6 +20,13 @@ dependencies = [
     "strictcli>=0.41.1",
     "pydantic",
 ]
+
+[project.urls]
+Homepage = "https://smmh.dev/wesktop/"
+Documentation = "https://smmh.dev/wesktop/"
+Repository = "https://github.com/smm-h/wesktop"
+Issues = "https://github.com/smm-h/wesktop/issues"
+Changelog = "https://github.com/smm-h/wesktop/blob/main/CHANGELOG.md"
 
 [project.scripts]
 wesktop = "wesktop.cli:main"

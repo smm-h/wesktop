@@ -5,7 +5,7 @@ date: 2026-07-01
 ---
 # wesktop
 
-Build web-based desktop apps in Python. Native OS windows backed by a fast ASGI server.
+wesktop is a Python framework that turns an ASGI web app into a desktop application, serving it from a local Granian server and displaying it in a native OS window via pywebview. It is for Python developers who want to ship a GUI application without Electron, Chromium bundling, or a JavaScript build step. The same app also runs headless as a plain ASGI server, so development, CI, and deployment load no GUI dependency at all.
 
 ![Version](https://img.shields.io/pypi/v/wesktop)
 ![Python](https://img.shields.io/pypi/pyversions/wesktop)
