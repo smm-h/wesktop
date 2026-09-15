@@ -1,0 +1,4 @@
+{"format_version":1,"id":"18d5997014629fece76b9f96b54e4c51a001c177bc17b7db","commits":["4edc38b0ebdbc1b52100094eccca8ae2dec84741"],"user_facing":true,"description":"**The tool describes itself with one sentence everywhere, including `--help`.** The `--help` header, README, docs site, PyPI and npm metadata now carry the same line.","type":"fix"}
+{"format_version":1,"id":"18d59d86a7d33c79caa44a82d40249b2bba979c51bc75c59","commits":["392eda3b96e43d04a550d3dad934c60d29416e7c"],"user_facing":false}
+{"format_version":1,"id":"18d59dcba07adf8b79cfb70f55f04bd99ec2fcc9d1ed523c","commits":["d99e41b765f238804bf08943062e068eb47a8410","7db5ce6e784632d42c15064162a22bf9a0c7992c","eb5802e93d3817406cbca588ec2aa444aebf355d"],"user_facing":false}
+{"format_version":1,"id":"18d59dcd023916c89fc7062d96604e5fbed7e97352c5825e","commits":["e8df7fe388b9af656ef33cdfe283666ce187474d"],"user_facing":false}
