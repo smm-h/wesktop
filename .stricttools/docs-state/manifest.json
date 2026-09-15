@@ -646,7 +646,7 @@
       "headings": [
         {
           "level": 1,
-          "text": "wesktop 0.12.2",
+          "text": "wesktop 0.12.3",
           "anchor": "wesktop"
         },
         {
@@ -2316,6 +2316,6 @@
     }
   ],
   "posts": [],
-  "last_gen": "2026-09-15T20:45:04.111960+00:00",
+  "last_gen": "2026-09-15T22:34:38.247943+00:00",
   "theme": "minimal"
 }
