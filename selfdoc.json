@@ -6,8 +6,8 @@
       "language": "python"
     }
   ],
-  "docs": "docs/",
-  "output": "docs/_build/",
+  "docs": ".stricttools/docs/",
+  "output": ".stricttools/docs-cache/build/",
   "description": "Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app",
   "repo": "https://github.com/smm-h/wesktop",
   "base_url": "https://smmh.dev/wesktop",
@@ -20,8 +20,8 @@
     ]
   },
   "root_files": [
-    "docs/_README.md",
-    "docs/_CLAUDE.md"
+    ".stricttools/docs/_README.md",
+    ".stricttools/docs/_CLAUDE.md"
   ],
   "versions": [
     {
@@ -36,7 +36,7 @@
     }
   ],
   "directives": {
-    "table-sdui": "docs/_directives/sdui_table.py"
+    "table-sdui": ".stricttools/docs/_directives/sdui_table.py"
   },
   "gen": {
     "exclude": [

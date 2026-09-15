@@ -21,7 +21,6 @@ coverage/
 .env
 .env.local
 *.local-only
-docs/_build/
 .wrangler/
 
 .rlsbl-monorepo/lock

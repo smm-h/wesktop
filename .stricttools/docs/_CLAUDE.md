@@ -165,6 +165,6 @@ All ASGI, server, middleware, SSE, auth, DI, testing, logging, tasks, features, 
 ```
 src/wesktop/         Source code (4 real modules + mcp_tools/ + 15 re-export stubs)
 tests/               Test suite (15 test modules, 279 tests)
-docs/                Documentation (selfdoc templates)
+.stricttools/docs/                Documentation (selfdoc templates)
 todo/                Planned work items
 ```
