@@ -2,7 +2,7 @@
 
 # wesktop
 
-A Python framework for building web-based desktop applications. Provides native OS windows backed by a fast ASGI server.
+Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app
 
 ## Architecture (post-extraction)
 
@@ -40,7 +40,7 @@ Some stubs (`asgi.py`, `server.py`, `mcp.py`) also re-export private helpers use
 
 ## Module layout
 
-- **src.wesktop** (`src/wesktop/__init__.py`): wesktop — A Python framework for building web-based desktop applications.
+- **src.wesktop** (`src/wesktop/__init__.py`): wesktop — Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app.
 - **src.wesktop.__main__** (`src/wesktop/__main__.py`): CLI entry point enabling `python -m wesktop` for diagnostics and configuration management via strictcli.
 - **src.wesktop.asgi** (`src/wesktop/asgi.py`): Full-featured ASGI framework re-exported from fastware: Router, Request, response types, WebSocket, app factory, middleware, and type aliases.
 - **src.wesktop.audit** (`src/wesktop/audit.py`): Append-only JSONL audit log writer re-exported from fastware for recording timestamped application events with structured payloads.

@@ -10,7 +10,7 @@ nav_order = 91
 
 # wesktop CLI Reference
 
-A Python framework for building web-based desktop applications
+Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app
 
 Version: :-: var key="project.version"
 

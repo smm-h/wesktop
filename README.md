@@ -2,7 +2,7 @@
 
 # wesktop
 
-wesktop is a Python framework that turns an ASGI web app into a desktop application, serving it from a local Granian server and displaying it in a native OS window via pywebview. It is for Python developers who want to ship a GUI application without Electron, Chromium bundling, or a JavaScript build step. The same app also runs headless as a plain ASGI server, so development, CI, and deployment load no GUI dependency at all.
+Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app
 
 ![Version](https://img.shields.io/pypi/v/wesktop)
 ![Python](https://img.shields.io/pypi/pyversions/wesktop)
@@ -99,7 +99,7 @@ npx wesktop diagnose
 
 ## Module layout
 
-- **src.wesktop** (`src/wesktop/__init__.py`): wesktop — A Python framework for building web-based desktop applications.
+- **src.wesktop** (`src/wesktop/__init__.py`): wesktop — Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app.
 - **src.wesktop.__main__** (`src/wesktop/__main__.py`): CLI entry point enabling `python -m wesktop` for diagnostics and configuration management via strictcli.
 - **src.wesktop.asgi** (`src/wesktop/asgi.py`): Full-featured ASGI framework re-exported from fastware: Router, Request, response types, WebSocket, app factory, middleware, and type aliases.
 - **src.wesktop.audit** (`src/wesktop/audit.py`): Append-only JSONL audit log writer re-exported from fastware for recording timestamped application events with structured payloads.
