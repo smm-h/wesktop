@@ -2,9 +2,9 @@
 format_version = 1
 # Version bump type: patch, minor, major, infra, or prerelease
 #   prerelease: advance an existing pre-release (0.6.0-beta.0 -> -beta.1)
-bump = "infra"
+bump = "patch"
 # Short description of this release (required)
-description = "Documentation moved onto selfdoc's .stricttools/ layout; no user-facing change."
+description = "The tool describes itself with one sentence everywhere, and its documentation moved onto selfdoc's .stricttools/ layout."
 # Optional context explaining why these changes were made
 context = ""
 # Pre-release channel: alpha, beta, rc, or stable (ordered;
