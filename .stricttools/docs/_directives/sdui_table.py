@@ -15,6 +15,23 @@ import os
 import re
 
 
+def _repo_root() -> str:
+    """Walk up from this file until a directory holding selfdoc.json is found.
+
+    The docs tree moved under ``.stricttools/``, so a fixed number of parents
+    is wrong by construction; the project marker is what locates the root.
+    """
+    here = os.path.abspath(__file__)
+    directory = os.path.dirname(here)
+    while True:
+        if os.path.isfile(os.path.join(directory, "selfdoc.json")):
+            return directory
+        parent = os.path.dirname(directory)
+        if parent == directory:
+            raise RuntimeError(f"no selfdoc.json in any parent of {here}")
+        directory = parent
+
+
 def _parse_primitives(source: str) -> list[tuple[str, list[str]]]:
     """Parse category headers and their _PrimitiveBase subclasses from sdui.py.
 
@@ -51,8 +68,7 @@ def _parse_primitives(source: str) -> list[tuple[str, list[str]]]:
 
 def resolve(attrs: dict, config: dict, body: list[str]) -> str:
     """Return a markdown table of SDUI primitives grouped by category."""
-    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    sdui_path = os.path.join(repo_root, "src", "wesktop", "sdui.py")
+    sdui_path = os.path.join(_repo_root(), "src", "wesktop", "sdui.py")
 
     with open(sdui_path) as f:
         source = f.read()
