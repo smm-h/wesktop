@@ -1,12 +1,14 @@
 +++
 title = "wesktop"
-description = "A Python framework for building web-based desktop apps -- built on fastware with pywebview native windows, desktop entry management, and SDUI primitives"
+description = "Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app"
 date = 2026-07-01
 +++
 
 # wesktop :-: var key="project.version"
 
-wesktop is a Python framework for building web-based desktop applications. It combines [fastware](https://docs.smmh.dev/fastware) (an ASGI micro-framework with routing, SSE, middleware, auth, and server lifecycle) with [pywebview](https://pywebview.flowrl.com/) (native OS windows) to let you write Python backends that open as desktop apps -- or run headless as web servers.
+Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app
+
+It combines [fastware](https://docs.smmh.dev/fastware) (an ASGI micro-framework with routing, SSE, middleware, auth, and server lifecycle) with [pywebview](https://pywebview.flowrl.com/) (native OS windows) to let you write Python backends that open as desktop apps -- or run headless as web servers.
 
 ## Built on fastware
 

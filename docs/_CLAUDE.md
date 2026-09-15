@@ -5,7 +5,7 @@ date = 2026-07-01
 +++
 # wesktop
 
-A Python framework for building web-based desktop applications. Provides native OS windows backed by a fast ASGI server.
+Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app
 
 ## Architecture (post-extraction)
 

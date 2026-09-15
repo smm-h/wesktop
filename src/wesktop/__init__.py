@@ -1,4 +1,4 @@
-"""wesktop — A Python framework for building web-based desktop applications."""
+"""wesktop — Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app."""
 
 from __future__ import annotations
 

@@ -83,7 +83,7 @@
   "project_id": "wesktop",
   "name": "wesktop",
   "version": "0.12.2",
-  "help": "A Python framework for building web-based desktop applications",
+  "help": "Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app",
   "config": true,
   "commands": {
     "diagnose": {

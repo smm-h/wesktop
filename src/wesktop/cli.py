@@ -11,7 +11,7 @@ from wesktop import __version__
 
 app = App(
     name="wesktop",
-    help="A Python framework for building web-based desktop applications",
+    help="Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app",
     version=__version__,
     config=True,
 )
