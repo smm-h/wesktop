@@ -1,6 +1,6 @@
 [project]
 name = "wesktop"
-version = "0.12.2"
+version = "0.12.3"
 description = "Cross-platform web-based desktop application framework for Python -- Lean by design: your app runs in the OS's own WebView, so there is no need to bundle Chromium with your app"
 readme = "README.md"
 requires-python = ">=3.11"
